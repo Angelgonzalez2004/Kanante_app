@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "789041151727",
+    "firebase_url": "https://kanante-app-default-rtdb.firebaseio.com",
+    "project_id": "kanante-app",
+    "storage_bucket": "kanante-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:789041151727:android:154509429f122c89cea51a",
+        "android_client_info": {
+          "package_name": "com.example.kanante_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCv2e7KX-LGIQR0y4uDDzC_U7XdoBnol5I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

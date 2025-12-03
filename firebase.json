@@ -1,0 +1,28 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "kanante-app",
+          "appId": "1:789041151727:android:154509429f122c89cea51a",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "kanante-app",
+          "configurations": {
+            "android": "1:789041151727:android:154509429f122c89cea51a",
+            "ios": "1:789041151727:ios:8385262e31862b10cea51a",
+            "macos": "1:789041151727:ios:8385262e31862b10cea51a",
+            "web": "1:789041151727:web:3987138710f6d62ecea51a",
+            "windows": "1:789041151727:web:83bdc860a323806acea51a"
+          }
+        }
+      }
+    }
+  },
+  "database": {
+    "rules": "database.rules.json"
+  }
+}

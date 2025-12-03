@@ -1,0 +1,63 @@
+name: kanante_app
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0" # Compatible con Flutter 3.x (por ejemplo 3.13 o 3.19)
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # 🔥 Firebase (versiones estables compatibles con SDK 3.x)
+  firebase_core: ^2.32.0 # Ajustada la versión para compatibilidad. Revisa si necesitas una específica.
+  firebase_auth: ^4.19.0 # Ajustada la versión
+  firebase_database: ^10.5.6 # Ajustada la versión
+  firebase_storage: ^11.7.6 # Ajustada la versión
+
+  # 📷 Selector de imágenes
+  image_picker: ^1.1.2
+  cached_network_image: ^3.3.1 # For efficient image caching
+  share_plus: ^7.0.2 # For sharing content
+
+  # 📦 Otras utilidades
+  provider: ^6.1.2       # Gestión de estado simple
+  intl: ^0.20.2          # Fechas y formatos internacionales
+  shared_preferences: ^2.3.2 # Almacenamiento local (datos simples como sesión)
+  logger: ^2.0.2+1       # Añadido logger para un mejor manejo de logs (opcional, pero buena práctica)
+  flutter_quill: ^9.2.3
+  google_maps_flutter: ^2.6.1
+  geocoding: ^3.0.0
+  geolocator: ^12.0.0
+  photo_view: ^0.15.0
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0 # Asegúrate de tener una versión compatible con tu SDK
+  flutter_launcher_icons: "^0.13.1" # Added for app icons
+
+flutter:
+  uses-material-design: true
+
+  # 🖼️ Activos opcionales
+  assets:
+    - assets/images/
+
+  # 🔤 Fuentes personalizadas (opcional)
+  # fonts:
+  #   - family: Schyler
+  #     fonts:
+  #       - asset: fonts/Schyler-Regular.ttf
+  #       - asset: fonts/Schyler-Italic.ttf
+  #         style: italic
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/logoapp.jpg"
+  min_sdk_android: 21 # Default to 21, adjust if your app supports older versions

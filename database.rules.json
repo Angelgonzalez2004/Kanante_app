@@ -1,0 +1,18 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": true,
+    "users": {
+      ".indexOn": ["accountType"]
+    },
+    "publications": {
+      ".indexOn": ["professionalUid"]
+    },
+    "chats": {
+      ".indexOn": ["participants"]
+    },
+    "appointments": {
+      ".indexOn": ["professionalUid"]
+    }
+  }
+}
