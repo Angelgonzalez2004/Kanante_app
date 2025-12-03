@@ -1,20 +1,25 @@
-// lib\screens\register_screen.dart
-
-// 📦 Imports principales
-import 'dart:typed_data'; // ✅ Para Uint8List (leer bytes de imagen)
-import 'dart:math'; // Import for min function
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_storage/firebase_storage.dart'; // CAMBIO: Import de Firebase Storage
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
-// import 'package:cloudinary_sdk/cloudinary_sdk.dart'; // CAMBIO: Eliminado Cloudinary
 import 'package:intl/intl.dart';
-// import 'package:kanante_app/config.dart'; // CAMBIO: Eliminado (asumiendo que era para keys de Cloudinary)
+
+import '../../services/firebase_service.dart';
+import '../../theme/app_colors.dart';
+import '../../widgets/auth/auth_text_field.dart';
+import '../../widgets/auth/primary_auth_button.dart';
+import '../../widgets/fade_in_slide.dart';
+
+import 'admin/admin_dashboard.dart';
 import 'login_screen.dart';
+import 'user/user_dashboard.dart';
+import 'professional/professional_dashboard.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+  final User? googleUser;
+  const RegisterScreen({super.key, this.googleUser});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -23,535 +28,433 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final DatabaseReference _db = FirebaseDatabase.instance.ref();
-  final FirebaseStorage _storage =
-      FirebaseStorage.instance; // CAMBIO: Instancia de Storage
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final FirebaseService _firebaseService = FirebaseService();
 
-  String name = '';
-  String email = '';
-  String password = '';
-  String confirmPassword = '';
-  String accountType = 'Usuario';
-  String phone = '';
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _rfcController = TextEditingController();
+  final _birthDateController = TextEditingController();
+
+  String _accountType = 'Usuario';
   DateTime? _selectedBirthDate;
-  String rfc = '';
-  bool acceptTerms = false;
-  bool isLoading = false;
-  bool showPassword = false;
-  bool showConfirmPassword = false;
-
+  bool _acceptTerms = false;
+  bool _isLoading = false;
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
   XFile? _pickedXFile;
+  bool _isAdminKeyVerified = false;
 
-  // CAMBIO: Eliminada la inicialización de Cloudinary
-  /*
-  final Cloudinary _cloudinary = Cloudinary.full(
-     cloudName: AppConfig.cloudinaryCloudName,
-     apiKey: AppConfig.cloudinaryApiKey,
-     apiSecret: AppConfig.cloudinaryApiSecret,
-  );
-  */
+  @override
+  void initState() {
+    super.initState();
+    if (widget.googleUser != null) {
+      _emailController.text = widget.googleUser!.email ?? '';
+      _nameController.text = widget.googleUser!.displayName ?? '';
+    }
+  }
 
-  // ---------------- Snackbar Helper ----------------
-  void _showSnackBar(String message, {Color color = Colors.teal}) {
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _phoneController.dispose();
+    _rfcController.dispose();
+    _birthDateController.dispose();
+    super.dispose();
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: color,
-        duration: const Duration(seconds: 2),
+        backgroundColor: isError ? AppColors.error : AppColors.success,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(12),
       ),
     );
   }
 
-  bool _validateEmail(String email) {
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    return emailRegex.hasMatch(email);
-  }
-
-  // ---------------- Image Picker ----------------
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
+    final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (picked != null) {
-      setState(() {
-        _pickedXFile = picked;
-      });
+      setState(() => _pickedXFile = picked);
     }
   }
 
-  // ---------------- Registro ----------------
   Future<void> _register() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    if (!acceptTerms) {
-      _showSnackBar('Debes aceptar los términos y condiciones',
-          color: Colors.red);
+    if (!_formKey.currentState!.validate()) {
+      _showSnackBar('Por favor, corrige los errores en el formulario.', isError: true);
+      return;
+    }
+    if (!_acceptTerms) {
+      _showSnackBar('Debes aceptar los términos y condiciones para continuar.', isError: true);
+      return;
+    }
+    if (_accountType == 'Admin' && !_isAdminKeyVerified) {
+      _showSnackBar('Debes verificar la clave de administrador para registrarte como uno.', isError: true);
+      _showAdminKeyDialog(); // Re-prompt for key
       return;
     }
 
-    if (!_validateEmail(email)) {
-      _showSnackBar('Correo electrónico inválido', color: Colors.red);
-      return;
-    }
-
-    setState(() => isLoading = true);
+    setState(() => _isLoading = true);
 
     try {
-      // 🔑 Crear usuario en Firebase Auth
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      String uid = userCredential.user!.uid;
+      User? user;
+      if (widget.googleUser != null) {
+        user = widget.googleUser;
+      } else {
+        final existingUser = await _firebaseService.checkIfUserExistsByEmail(_emailController.text.trim());
+        if (existingUser != null) {
+          throw FirebaseAuthException(code: 'email-already-in-use');
+        }
+        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+        user = userCredential.user;
+      }
+
+      if (user == null) throw Exception("No se pudo obtener la información de usuario.");
 
       String? profileImageUrl;
-
-      // ---------------- CAMBIO: Subida de imagen a Firebase Storage ----------------
-      if (_pickedXFile != null) {
-        try {
-          // 1. Leer bytes de la imagen
+      if (_accountType == 'Profesional') {
+         profileImageUrl = user.photoURL;
+        if (_pickedXFile != null) {
           Uint8List fileBytes = await _pickedXFile!.readAsBytes();
-
-          // 2. Crear la referencia de archivo (p.ej. profile_images/user_uid.jpg)
           String fileExtension = _pickedXFile!.name.split('.').last;
-          String fileName = 'user_${uid}_profile.$fileExtension';
-          Reference storageRef =
-              _storage.ref().child('profile_images/$fileName');
-
-          // 3. Subir los bytes
+          String fileName = 'profile_images/${user.uid}.$fileExtension';
+          Reference storageRef = _storage.ref().child(fileName);
           UploadTask uploadTask = storageRef.putData(fileBytes);
-
-          // 4. Esperar a que se complete y obtener la URL
           TaskSnapshot snapshot = await uploadTask;
           profileImageUrl = await snapshot.ref.getDownloadURL();
-
-          print('✅ Imagen subida correctamente a Storage: $profileImageUrl');
-        } on FirebaseException catch (e) {
-          print('❌ Error Firebase Storage: ${e.message}');
-          _showSnackBar(
-            'Error al subir imagen: ${e.message ?? "Error desconocido"}',
-            color: Colors.orange,
-          );
-        } catch (e) {
-          print('⚠️ Error al procesar imagen: $e');
-          _showSnackBar('Error al procesar la imagen: $e',
-              color: Colors.orange);
         }
       }
-      // ---------------- FIN DEL CAMBIO ----------------
 
-      // 🔹 Formatear fecha
-      String formattedBirthDate = _selectedBirthDate != null
-          ? DateFormat('yyyy-MM-dd').format(_selectedBirthDate!)
-          : '';
+      await _firebaseService.createNewUser(
+        uid: user.uid,
+        email: user.email!,
+        name: _nameController.text.trim(),
+        accountType: _accountType,
+        profileImageUrl: profileImageUrl,
+        birthDate: _selectedBirthDate,
+        phone: _phoneController.text.trim(),
+        rfc: _rfcController.text.trim(),
+      );
 
-      // 🗄 Guardar en Firebase Realtime Database
-      await _db.child('users/$uid').set({
-        'name': name.isEmpty ? null : name,
-        'email': email,
-        'accountType': accountType,
-        'phone': phone.isEmpty ? null : phone,
-        'birthDate': formattedBirthDate.isEmpty ? null : formattedBirthDate,
-        'rfc': rfc.isEmpty ? null : rfc,
-        'profileImageUrl':
-            profileImageUrl, // Se guarda la URL de Firebase Storage
-        'createdAt': DateTime.now().toIso8601String(),
-        'status': 'active',
-      });
+      _showSnackBar('¡Cuenta creada exitosamente! Bienvenido a Kananté.');
+      if (!mounted) return;
 
-      _showSnackBar('Cuenta creada exitosamente 🎉');
-
-      await Future.delayed(const Duration(milliseconds: 1500));
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-        );
+      Widget dashboard;
+      switch (_accountType) {
+        case 'Usuario':
+          dashboard = const UserDashboard();
+          break;
+        case 'Profesional':
+          dashboard = const ProfessionalDashboard();
+          break;
+        case 'Admin':
+          dashboard = const AdminDashboard();
+          break;
+        default:
+          dashboard = const LoginScreen();
       }
+      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => dashboard), (route) => false);
+
     } on FirebaseAuthException catch (e) {
-      String message = switch (e.code) {
-        'email-already-in-use' => 'El correo ya está registrado',
-        'invalid-email' => 'Correo inválido',
-        'weak-password' => 'La contraseña es muy débil (mínimo 6 caracteres)',
-        _ => e.message ?? 'Error al crear la cuenta',
-      };
-      _showSnackBar(message, color: Colors.red);
-    } catch (e) {
-      _showSnackBar('Error inesperado: $e', color: Colors.red);
-      print('DEBUG - Error general: $e');
-      try {
-        // Intento de Rollback: Si falla la BD o Storage, borrar el usuario de Auth
-        await _auth.currentUser?.delete();
-        print('Usuario Auth eliminado por error en BD o Storage.');
-      } catch (authDeleteError) {
-        print('Error eliminando usuario de Auth: $authDeleteError');
+      String message = 'Ocurrió un error. Intenta de nuevo más tarde.';
+      if (e.code == 'email-already-in-use') {
+        message = 'El correo electrónico ya está en uso. Por favor, intenta iniciar sesión.';
+      } else if (e.code == 'weak-password') {
+        message = 'La contraseña es muy débil. Debe tener al menos 6 caracteres.';
       }
+      _showSnackBar(message, isError: true);
+    } catch (e) {
+      _showSnackBar('Ocurrió un error inesperado: $e', isError: true);
     } finally {
-      if (mounted) setState(() => isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+  
+  void _onAccountTypeChanged(String? newValue) {
+    if (newValue == null) return;
+    
+    setState(() {
+      _accountType = newValue;
+      // Reset admin verification if user switches away from Admin
+      if (newValue != 'Admin') {
+        _isAdminKeyVerified = false;
+      }
+    });
+
+    if (newValue == 'Admin') {
+      _showAdminKeyDialog();
     }
   }
 
-  // ---------------- UI ----------------
+  void _showAdminKeyDialog() {
+    final keyController = TextEditingController();
+    showDialog(
+      context: context,
+      barrierDismissible: false, // User must interact with dialog
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Clave de Administrador'),
+          content: TextField(
+            controller: keyController,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'Ingresa la clave secreta',
+              icon: Icon(Icons.key),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // If user cancels, revert account type selection
+                setState(() {
+                  _accountType = 'Usuario';
+                  _isAdminKeyVerified = false;
+                });
+              },
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (keyController.text.trim() == '12345678') {
+                  setState(() => _isAdminKeyVerified = true);
+                  Navigator.of(context).pop();
+                  _showSnackBar('Clave de administrador correcta.');
+                } else {
+                  // Show error inside the dialog or as a snackbar after popping
+                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Clave incorrecta."), backgroundColor: Colors.red));
+                }
+              },
+              child: const Text('Verificar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
-    // Define max values for responsiveness
-    const double maxIconSize = 80.0;
-    const double maxTitleFontSize = 40.0;
-    const double maxSubtitleFontSize = 20.0;
-    const double maxButtonTextFontSize = 18.0;
-
+    final isGoogleUser = widget.googleUser != null;
+    
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Crear cuenta'),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textDark),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text('Crear Cuenta', style: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.bold)),
+        centerTitle: true,
       ),
-      backgroundColor: const Color(0xFFE0F2F1),
       body: Stack(
         children: [
-          SingleChildScrollView(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 450), // Max width for the form on large screens
-                child: Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 20.0), // Fixed horizontal margin for the card
-                  elevation: 8,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 40.0), // Fixed padding inside the card
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        // Use constraints.maxWidth instead of size.width here
-                        return Form(
-                          key: _formKey,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min, // To prevent column from taking full height unnecessarily
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                        Icon(Icons.spa_rounded,
-                            size: min(constraints.maxWidth * 0.25, maxIconSize), color: Colors.teal[700]),
-                        const SizedBox(height: 10),
-                  Text('Únete a Kananté',
-                      style: TextStyle(
-                          fontSize: min(constraints.maxWidth * 0.07, maxTitleFontSize),
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal[800])),
-                  Text('Bienestar Joven-Mental Campeche',
-                      style: TextStyle(
-                          fontSize: min(constraints.maxWidth * 0.045, maxSubtitleFontSize),
-                          color: Colors.teal[400],
-                          fontWeight: FontWeight.w500)),
-                  const SizedBox(height: 30),
-
-                  // 📸 Imagen de perfil
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: _pickedXFile != null
-                        ? FutureBuilder<Uint8List>(
-                            future: _pickedXFile!.readAsBytes(),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const CircleAvatar(
-                                  radius: 60,
-                                  backgroundColor: Colors.white,
-                                  child: CircularProgressIndicator(
-                                      color: Colors.teal),
-                                );
-                              } else if (snapshot.hasData) {
-                                return CircleAvatar(
-                                  radius: 60,
-                                  backgroundImage: MemoryImage(snapshot.data!),
-                                );
-                              } else {
-                                return CircleAvatar(
-                                  radius: 60,
-                                  backgroundColor: Colors.grey[200],
-                                  child: Icon(Icons.camera_alt,
-                                      color: Colors.grey[800],
-                                      size: min(constraints.maxWidth * 0.1, maxIconSize * 0.5)),
-                                );
-                              }
-                            },
-                          )
-                        : CircleAvatar(
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    if (_accountType == 'Profesional') ...[
+                      FadeInSlide(
+                        duration: const Duration(milliseconds: 400),
+                        child: GestureDetector(
+                          onTap: _pickImage,
+                          child: CircleAvatar(
                             radius: 60,
                             backgroundColor: Colors.grey[200],
-                            child: Icon(Icons.camera_alt,
-                                color: Colors.grey[800],
-                                size: min(constraints.maxWidth * 0.1, maxIconSize * 0.5)),
+                            backgroundImage: _pickedXFile != null ? FileImage(File(_pickedXFile!.path)) : null,
+                            child: _pickedXFile == null ? const Icon(Icons.camera_alt_outlined, size: 50, color: Colors.grey) : null,
                           ),
-                  ),
-                  const SizedBox(height: 20),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const FadeInSlide(
+                        delay: Duration(milliseconds: 100),
+                        child: Text('Añadir foto de perfil', style: TextStyle(color: AppColors.textLight)),
+                      ),
+                      const SizedBox(height: 30),
+                    ],
 
-                  ..._buildTextFields(size),
-                  SizedBox(height: size.height * 0.025),
-                  _buildAccountTypeDropdown(),
-                  SizedBox(height: size.height * 0.025),
-                  _buildTermsCheckbox(),
-                  SizedBox(height: size.height * 0.03),
+                    FadeInSlide(delay: const Duration(milliseconds: 200), child: _buildTextField(controller: _nameController, label: 'Nombre completo', icon: Icons.person_outline, validator: (val) => val!.isEmpty ? 'Ingresa tu nombre' : null)),
+                    const SizedBox(height: 20),
+                    FadeInSlide(delay: const Duration(milliseconds: 300), child: _buildTextField(controller: _emailController, label: 'Correo electrónico', icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress, enabled: !isGoogleUser, validator: (val) => (val == null || !val.contains('@')) ? 'Correo inválido' : null)),
+                    if (!isGoogleUser) ...[
+                      const SizedBox(height: 20),
+                      FadeInSlide(delay: const Duration(milliseconds: 400), child: _buildPasswordField(_passwordController, 'Contraseña')),
+                      const SizedBox(height: 20),
+                      FadeInSlide(delay: const Duration(milliseconds: 500), child: _buildConfirmPasswordField()),
+                    ],
+                    const SizedBox(height: 20),
+                    FadeInSlide(delay: const Duration(milliseconds: 600), child: _buildDropdown()),
+                    const SizedBox(height: 20),
+                    FadeInSlide(delay: const Duration(milliseconds: 700), child: _buildDatePicker()),
+                    const SizedBox(height: 20),
 
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.check_circle_outline,
-                        color: Colors.white),
-                    label: const Text('Registrarme',
-                        style: TextStyle(
-                            fontSize: maxButtonTextFontSize, fontWeight: FontWeight.bold)),
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal[600],
-                        foregroundColor: Colors.white,
-                        minimumSize: Size(double.infinity, size.height * 0.07),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25)),
-                        elevation: 4),
-                    onPressed: isLoading ? null : _register,
-                  ),
-                  const SizedBox(height: 15),
-
-                  TextButton.icon(
-                    onPressed: isLoading
-                        ? null
-                        : () {
-                            Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => const LoginScreen()));
-                          },
-                    icon: const Icon(Icons.arrow_back, color: Colors.teal),
-                    label: const Text('Volver al inicio de sesión',
-                        style: TextStyle(color: Colors.teal)),
-                  ),
-                        ],
-                      ), // Closing main Column
-                    ); // Closing Form
-                  }), // Closing LayoutBuilder
-                ), // Closing Padding inside Card
-              ), // Closing Card
-            ), // Closing ConstrainedBox
-          ), // Closing Center
-        ), // Closing SingleChildScrollView
-          if (isLoading)
-            Container(
-              color: Colors.black38,
-              child: const Center(
-                  child: CircularProgressIndicator(color: Colors.teal)),
+                    FadeInSlide(
+                      delay: const Duration(milliseconds: 800),
+                      child: CheckboxListTile(
+                        value: _acceptTerms,
+                        onChanged: (value) => setState(() => _acceptTerms = value!),
+                        activeColor: AppColors.primary,
+                        title: const Text('Acepto los términos y condiciones', style: TextStyle(color: AppColors.textLight)),
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    FadeInSlide(
+                      delay: const Duration(milliseconds: 900),
+                      child: PrimaryAuthButton(
+                        text: 'Crear Cuenta',
+                        isLoading: _isLoading,
+                        onPressed: _register,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                     FadeInSlide(
+                      delay: const Duration(milliseconds: 1000),
+                       child: TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('¿Ya tienes una cuenta? Inicia Sesión', style: TextStyle(color: AppColors.primary)),
+                        ),
+                     ),
+                  ],
+                ),
+              ),
             ),
+          ),
+          if (_isLoading) Container(color: Colors.black.withOpacity(0.2), child: const Center(child: CircularProgressIndicator(color: AppColors.primary))),
         ],
       ),
     );
   }
 
-  // ---------------- Widgets Helpers ----------------
-  List<Widget> _buildTextFields(Size size) {
-    return [
-      _buildInputField(Icons.person, 'Nombre completo (opcional)',
-          onChanged: (val) => name = val),
-      const SizedBox(height: 20),
-      _buildInputField(Icons.email_outlined, 'Correo electrónico',
-          keyboardType: TextInputType.emailAddress,
-          onChanged: (val) => email = val,
-          validator: (val) =>
-              val!.isEmpty ? 'Por favor ingresa tu correo' : null),
-      const SizedBox(height: 20),
-      _buildPasswordField(),
-      const SizedBox(height: 20),
-      _buildConfirmPasswordField(),
-      const SizedBox(height: 20),
-      _buildInputField(Icons.phone, 'Teléfono (opcional)',
-          keyboardType: TextInputType.phone, onChanged: (val) => phone = val),
-      const SizedBox(height: 15),
-      _buildBirthDatePicker(),
-      const SizedBox(height: 15),
-      _buildInputField(Icons.badge, 'RFC (opcional)',
-          onChanged: (val) => rfc = val),
-    ];
-  }
+  // --- WIDGET BUILDERS ---
 
-  Widget _buildInputField(IconData icon, String label,
-      {bool obscureText = false,
-      TextInputType keyboardType = TextInputType.text,
-      Function(String)? onChanged,
-      String? Function(String?)? validator}) {
-    return TextFormField(
-      obscureText: obscureText,
-      decoration: InputDecoration(
-        prefixIcon: Icon(icon, color: Colors.teal),
-        labelText: label,
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(25),
-            borderSide: BorderSide.none),
-      ),
+  Widget _buildTextField({required TextEditingController controller, required String label, required IconData icon, TextInputType keyboardType = TextInputType.text, bool enabled = true, String? Function(String?)? validator}) {
+    return AuthTextField(
+      controller: controller,
+      labelText: label,
+      icon: icon,
       keyboardType: keyboardType,
-      onChanged: onChanged,
-      validator: validator,
+      validator: validator ?? (val) => null,
     );
   }
 
-  Widget _buildPasswordField() {
-    return TextFormField(
-      obscureText: !showPassword,
-      onChanged: (val) => password = val,
-      validator: (val) => val!.length < 6 ? 'Mínimo 6 caracteres' : null,
-      decoration: InputDecoration(
-        prefixIcon: const Icon(Icons.lock_outline_rounded, color: Colors.teal),
-        labelText: 'Contraseña',
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(25),
-            borderSide: BorderSide.none),
-        suffixIcon: IconButton(
-          icon: Icon(showPassword ? Icons.visibility : Icons.visibility_off,
-              color: Colors.teal),
-          onPressed: () => setState(() => showPassword = !showPassword),
-        ),
+  Widget _buildPasswordField(TextEditingController controller, String label) {
+    return AuthTextField(
+      controller: controller,
+      labelText: label,
+      icon: Icons.lock_outline,
+      obscureText: !_showPassword,
+      validator: (val) => (val == null || val.length < 6) ? 'Mínimo 6 caracteres' : null,
+      suffixIcon: IconButton(
+        icon: Icon(_showPassword ? Icons.visibility_off : Icons.visibility, color: AppColors.textLight),
+        onPressed: () => setState(() => _showPassword = !_showPassword),
       ),
     );
   }
 
   Widget _buildConfirmPasswordField() {
-    return TextFormField(
-      obscureText: !showConfirmPassword,
-      onChanged: (val) => confirmPassword = val,
+    return AuthTextField(
+      controller: _confirmPasswordController,
+      labelText: 'Confirmar contraseña',
+      icon: Icons.lock_outline,
+      obscureText: !_showConfirmPassword,
       validator: (val) {
-        if (val!.isEmpty) return 'Confirma tu contraseña';
-        if (val != password) return 'Las contraseñas no coinciden';
+        if (val != _passwordController.text) return 'Las contraseñas no coinciden';
         return null;
       },
-      decoration: InputDecoration(
-        prefixIcon: const Icon(Icons.lock_reset_rounded, color: Colors.teal),
-        labelText: 'Confirmar contraseña',
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(25),
-            borderSide: BorderSide.none),
-        suffixIcon: IconButton(
-          icon: Icon(
-              showConfirmPassword ? Icons.visibility : Icons.visibility_off,
-              color: Colors.teal),
-          onPressed: () =>
-              setState(() => showConfirmPassword = !showConfirmPassword),
-        ),
+      suffixIcon: IconButton(
+        icon: Icon(_showConfirmPassword ? Icons.visibility_off : Icons.visibility, color: AppColors.textLight),
+        onPressed: () => setState(() => _showConfirmPassword = !_showConfirmPassword),
       ),
     );
   }
-
-  Widget _buildBirthDatePicker() {
+  
+  Widget _buildDatePicker() {
     return TextFormField(
+      controller: _birthDateController,
       readOnly: true,
-      controller: TextEditingController(
-        text: _selectedBirthDate != null
-            ? DateFormat('yyyy-MM-dd').format(_selectedBirthDate!)
-            : '',
-      ),
       onTap: () async {
         DateTime? picked = await showDatePicker(
           context: context,
           initialDate: _selectedBirthDate ?? DateTime(2000),
-          firstDate: DateTime(1900),
+          firstDate: DateTime(1920),
           lastDate: DateTime.now(),
-          helpText: 'Selecciona tu fecha de nacimiento',
-          cancelText: 'Cancelar',
-          confirmText: 'Seleccionar',
-          builder: (context, child) {
-            return Theme(
-              data: Theme.of(context).copyWith(
-                colorScheme: const ColorScheme.light(
-                  primary: Colors.teal,
-                  onPrimary: Colors.white,
-                  onSurface: Colors.black,
-                ),
-                textButtonTheme: TextButtonThemeData(
-                  style: TextButton.styleFrom(foregroundColor: Colors.teal),
-                ),
-              ),
-              child: child!,
-            );
-          },
+          builder: (context, child) => Theme(data: Theme.of(context).copyWith(colorScheme: const ColorScheme.light(primary: AppColors.primary)), child: child!),
         );
         if (picked != null) {
-          setState(() => _selectedBirthDate = picked);
+          setState(() {
+            _selectedBirthDate = picked;
+            _birthDateController.text = DateFormat('dd/MM/yyyy').format(picked);
+          });
         }
       },
       decoration: InputDecoration(
-        prefixIcon: const Icon(Icons.calendar_today, color: Colors.teal),
         labelText: 'Fecha de nacimiento (opcional)',
+        prefixIcon: const Icon(Icons.calendar_today_outlined),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+        labelStyle: const TextStyle(color: AppColors.textLight),
+        prefixIconColor: AppColors.primary,
         filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(25),
-            borderSide: BorderSide.none),
-      ),
-    );
-  }
-
-  Widget _buildAccountTypeDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(25)),
-      child: DropdownButtonFormField<String>(
-        value: accountType,
-        isExpanded: true,
-        decoration: const InputDecoration(
-          border: InputBorder.none,
-          prefixIcon: Icon(Icons.account_circle, color: Colors.teal),
-          labelText: 'Tipo de cuenta',
-          labelStyle: TextStyle(color: Colors.teal),
+        fillColor: const Color.fromRGBO(255, 255, 255, 0.8),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: BorderSide(color: Colors.grey.shade300, width: 1.0),
         ),
-        items: const [
-          DropdownMenuItem(
-              value: 'Usuario', child: Text('Usuario (uso personal)')),
-          DropdownMenuItem(
-              value: 'Profesional',
-              child: Text(
-                  'Profesional de la salud (psicólogo, terapeuta, psiquiatta, etc.)')),
-        ],
-        onChanged: (value) {
-          setState(() {
-            accountType = value!;
-          });
-        },
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        ),
       ),
     );
   }
 
-  Widget _buildTermsCheckbox() {
-    return CheckboxListTile(
-      value: acceptTerms,
-      onChanged: (value) => setState(() => acceptTerms = value!),
-      activeColor: Colors.teal,
-      title: GestureDetector(
-        onTap: () {
-          showDialog(
-            context: context,
-            builder: (_) => AlertDialog(
-              title: const Text('Términos y Condiciones'),
-              content: const SingleChildScrollView(
-                child: Text(
-                    'Al registrarte en Kananté, aceptas el uso responsable de la plataforma, '
-                    'el tratamiento confidencial de los datos y el respeto hacia los profesionales y usuarios de bienestar.'),
-              ),
-              actions: [
-                TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cerrar'))
-              ],
-            ),
-          );
-        },
-        child: const Text('Acepto los términos y condiciones',
-            style: TextStyle(color: Colors.teal)),
+  Widget _buildDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _accountType,
+      onChanged: _onAccountTypeChanged,
+      items: const [
+        DropdownMenuItem(value: 'Usuario', child: Text('Usuario (busco ayuda)')),
+        DropdownMenuItem(value: 'Profesional', child: Text('Profesional (ofrezco ayuda)')),
+        DropdownMenuItem(value: 'Admin', child: Text('Administrador')),
+      ],
+      decoration: InputDecoration(
+        labelText: 'Tipo de cuenta',
+        prefixIcon: const Icon(Icons.account_circle_outlined),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+        labelStyle: const TextStyle(color: AppColors.textLight),
+        prefixIconColor: AppColors.primary,
+        filled: true,
+        fillColor: const Color.fromRGBO(255, 255, 255, 0.8),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: BorderSide(color: Colors.grey.shade300, width: 1.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        ),
       ),
-      controlAffinity: ListTileControlAffinity.leading,
     );
   }
 }

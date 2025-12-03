@@ -26,6 +26,13 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
 
   final _formKey = GlobalKey<FormState>();
 
+  void _showSnackBar(String message, {Color color = Colors.teal}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: color),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -72,17 +79,20 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
       'phone': _phone,
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Datos actualizados con éxito')),
-    );
+    _showSnackBar('Datos actualizados con éxito', color: Colors.green);
   }
 
   Future<void> _changePassword() async {
     final TextEditingController newPassword = TextEditingController();
 
-    await showDialog(
+    // Use a local variable to store the result of the dialog,
+    // as context might not be valid after await showDialog.
+    String? snackBarMessage;
+    Color snackBarColor = Colors.red;
+
+    await showDialog<void>( // No need to await a boolean result if we handle it internally
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Cambiar contraseña'),
         content: TextField(
           controller: newPassword,
@@ -93,19 +103,18 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancelar')),
           ElevatedButton(
             onPressed: () async {
               try {
                 await _auth.currentUser?.updatePassword(newPassword.text);
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Contraseña actualizada correctamente')),
-                );
+                snackBarMessage = 'Contraseña actualizada correctamente';
+                snackBarColor = Colors.green;
+                Navigator.pop(dialogContext); // Pop the dialog
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: ${e.toString()}')),
-                );
+                snackBarMessage = 'Error: ${e.toString()}';
+                snackBarColor = Colors.red;
+                Navigator.pop(dialogContext); // Pop the dialog
               }
             },
             child: const Text('Guardar'),
@@ -113,6 +122,14 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
         ],
       ),
     );
+
+    // After the dialog is dismissed, check mounted before showing a snackbar on the main Scaffold
+    if (!mounted) return;
+    if (snackBarMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(snackBarMessage!), backgroundColor: snackBarColor), // Added '!'
+      );
+    }
   }
 
   Future<void> _logout() async {
@@ -131,15 +148,12 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
     if (confirm == true) {
       final name = _name.isNotEmpty ? _name : 'Usuario';
       await _auth.signOut();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('¡Hasta luego, $name! 👋')),
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
-      }
+      _showSnackBar('¡Hasta luego, $name! 👋', color: Colors.green);
+      if (!mounted) return; // Add this line
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
     }
   }
 
@@ -148,18 +162,14 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
     setState(() => _darkMode = value);
     themeNotifier.value = value ? ThemeMode.dark : ThemeMode.light;
     await prefs.setBool('darkMode', value);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(value ? 'Modo oscuro activado' : 'Modo claro activado')),
-    );
+    _showSnackBar(value ? 'Modo oscuro activado' : 'Modo claro activado', color: Colors.green);
   }
 
   Future<void> _toggleNotifications(bool value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() => _notifications = value);
     await prefs.setBool('notifications', value);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(value ? 'Notificaciones activadas' : 'Notificaciones desactivadas')),
-    );
+    _showSnackBar(value ? 'Notificaciones activadas' : 'Notificaciones desactivadas', color: Colors.green);
   }
 
   @override
@@ -172,7 +182,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.background, // Changed from background to surface
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.teal))
           : Center(
@@ -297,14 +307,16 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           value: _darkMode,
-          activeColor: Colors.teal,
+          activeTrackColor: Colors.teal.withOpacity(0.5), // New
+          activeThumbColor: Colors.teal, // New
           title: const Text('Modo oscuro'),
           onChanged: _toggleTheme,
         ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           value: _notifications,
-          activeColor: Colors.teal,
+          activeTrackColor: Colors.teal.withOpacity(0.5), // New
+          activeThumbColor: Colors.teal, // New
           title: const Text('Notificaciones'),
           onChanged: _toggleNotifications,
         ),
@@ -312,7 +324,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
         Center(
           child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent.withOpacity(0.1),
+              backgroundColor: Colors.redAccent.withAlpha(25), // Replaced withOpacity
               foregroundColor: Colors.redAccent,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),

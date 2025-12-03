@@ -118,11 +118,11 @@ class _EditPublicationPageState extends State<EditPublicationPage> {
       TaskSnapshot snapshot = await uploadTask;
       return await snapshot.ref.getDownloadURL();
     } on FirebaseException catch (e) {
-      print('Error uploading image to Firebase Storage: ${e.message}');
+      debugPrint('Error uploading image to Firebase Storage: ${e.message}');
       _showSnackBar('Error al subir imagen: ${e.message ?? "Error desconocido"}', color: Colors.orange);
       return null;
     } catch (e) {
-      print('Error processing image: $e');
+      debugPrint('Error processing image: $e');
       _showSnackBar('Error al procesar la imagen: $e', color: Colors.orange);
       return null;
     }
@@ -170,7 +170,7 @@ class _EditPublicationPageState extends State<EditPublicationPage> {
       _showSnackBar('Error de autenticación: ${e.message}', color: Colors.red);
     } catch (e) {
       _showSnackBar('Error inesperado: $e', color: Colors.red);
-      print('DEBUG - Error general al actualizar publicación: $e');
+      debugPrint('DEBUG - Error general al actualizar publicación: $e');
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -178,6 +178,8 @@ class _EditPublicationPageState extends State<EditPublicationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size; // Get screen size for responsiveness
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Editar Publicación'),
@@ -187,7 +189,7 @@ class _EditPublicationPageState extends State<EditPublicationPage> {
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(size.width * 0.04), // Responsive padding
             child: Form(
               key: _formKey,
               child: Column(
@@ -201,7 +203,7 @@ class _EditPublicationPageState extends State<EditPublicationPage> {
                     ),
                     validator: (value) => value!.isEmpty ? 'El título no puede estar vacío' : null,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: size.height * 0.02), // Responsive spacing
                   Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -217,7 +219,7 @@ class _EditPublicationPageState extends State<EditPublicationPage> {
                         ),
                         const Divider(height: 1),
                         SizedBox(
-                          height: 300,
+                          height: size.height * 0.4, // Responsive height
                           child: QuillEditor.basic(
                             configurations: QuillEditorConfigurations(
                               controller: _contentController,
@@ -232,7 +234,7 @@ class _EditPublicationPageState extends State<EditPublicationPage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: size.height * 0.02), // Responsive spacing
 
                   // Existing Images
                   if (_existingImageUrls.isNotEmpty)
@@ -240,7 +242,7 @@ class _EditPublicationPageState extends State<EditPublicationPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text('Imágenes existentes:', style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
+                        SizedBox(height: size.height * 0.01), // Responsive spacing
                         Wrap(
                           spacing: 8.0,
                           runSpacing: 8.0,
@@ -270,7 +272,7 @@ class _EditPublicationPageState extends State<EditPublicationPage> {
                             );
                           }).toList(),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: size.height * 0.02), // Responsive spacing
                       ],
                     ),
 
@@ -280,7 +282,7 @@ class _EditPublicationPageState extends State<EditPublicationPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text('Nuevas imágenes a subir:', style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
+                        SizedBox(height: size.height * 0.01), // Responsive spacing
                         Wrap(
                           spacing: 8.0,
                           runSpacing: 8.0,
@@ -326,7 +328,7 @@ class _EditPublicationPageState extends State<EditPublicationPage> {
                             );
                           }).toList(),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: size.height * 0.02), // Responsive spacing
                       ],
                     ),
 
@@ -335,7 +337,7 @@ class _EditPublicationPageState extends State<EditPublicationPage> {
                     icon: const Icon(Icons.image),
                     label: const Text('Seleccionar imágenes'),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: size.height * 0.02), // Responsive spacing
 
                   ElevatedButton(
                     onPressed: isLoading ? null : _updatePublication,

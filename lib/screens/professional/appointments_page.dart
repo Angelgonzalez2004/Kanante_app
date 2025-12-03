@@ -39,11 +39,13 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
   Future<void> _updateAppointmentStatus(String appointmentId, String status) async {
     try {
       await _firebaseService.updateAppointmentStatus(appointmentId, status);
+      if (!mounted) return; // Add this line
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Cita ${status == 'confirmed' ? 'confirmada' : 'rechazada'}.')),
       );
       _refreshAppointments();
     } catch (e) {
+      if (!mounted) return; // Add this line
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al actualizar la cita: $e')),
       );

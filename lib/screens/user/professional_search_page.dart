@@ -33,6 +33,7 @@ class _ProfessionalSearchPageState extends State<ProfessionalSearchPage> {
     final currentUserId = FirebaseAuth.instance.currentUser!.uid;
     final chatId = await _firebaseService.getOrCreateChat(currentUserId, professional.id);
     
+    if (!mounted) return; // Add this line
     Navigator.push(
       context,
       MaterialPageRoute(

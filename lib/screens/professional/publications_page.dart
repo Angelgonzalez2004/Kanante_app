@@ -80,19 +80,19 @@ class _PublicationsPageState extends State<PublicationsPage> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 final rawData = snapshot.data!.snapshot.value;
-                print('DEBUG: Raw data from Firebase: $rawData');
+                debugPrint('DEBUG: Raw data from Firebase: $rawData');
 
                 Map<String, dynamic> publicationsMap = {};
                 if (rawData is Map) {
                   publicationsMap = Map<String, dynamic>.from(rawData);
                 } else {
-                  print('DEBUG: Unexpected data format (not a Map): $rawData');
+                  debugPrint('DEBUG: Unexpected data format (not a Map): $rawData');
                   return const Center(child: Text('Formato de publicaciones inesperado.'));
                 }
 
                 final publications = publicationsMap;
                 final publicationList = publications.entries.toList();
-                print('DEBUG: Processed publication list: $publicationList');
+                debugPrint('DEBUG: Processed publication list: $publicationList');
 
                 final filteredPublicationList = publicationList.where((entry) {
                   final publication = Map<String, dynamic>.from(entry.value);
@@ -148,6 +148,7 @@ class _PublicationsPageState extends State<PublicationsPage> {
       try {
         await _db.child('publications').child(publicationId).remove();
       } catch (e) {
+        if (!mounted) return; // Add this line
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al eliminar la publicación: ${e.toString()}')),
         );
@@ -213,7 +214,7 @@ class _PublicationCard extends StatelessWidget {
                       final imageUrl = attachments.first;
                       return GestureDetector(
                         onTap: () {
-                          print('DEBUG: Single image tapped! URL: $imageUrl');
+                          debugPrint('DEBUG: Single image tapped! URL: $imageUrl');
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => ImageViewerScreen(imageUrl: imageUrl),
@@ -266,7 +267,7 @@ class _PublicationCard extends StatelessWidget {
                             final imageUrl = attachments[index];
                             return GestureDetector(
                               onTap: () {
-                                print('DEBUG: Carousel image tapped! URL: $imageUrl');
+                                debugPrint('DEBUG: Carousel image tapped! URL: $imageUrl');
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (context) => ImageViewerScreen(imageUrl: imageUrl),

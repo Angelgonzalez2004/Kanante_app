@@ -254,6 +254,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
   void _openChat(UserModel professional) async {
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
     if (currentUserId == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Debes iniciar sesiÃ³n para chatear.')),
       );
@@ -262,6 +263,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
 
     try {
       final chatId = await _firebaseService.getOrCreateChat(currentUserId, professional.id);
+      if (!mounted) return; // Re-add this check
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -273,6 +275,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
         ),
       );
     } catch (e) {
+      if (!mounted) return; // Re-add this check
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('No se pudo abrir el chat: $e')),
       );
@@ -282,6 +285,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
   void _showAppointmentRequestDialog(UserModel professional) async {
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
     if (currentUserId == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Debes iniciar sesiÃ³n para agendar una cita.')),
       );
@@ -314,10 +318,12 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
 
     try {
       await _firebaseService.requestAppointment(professional.id, currentUserId, finalDateTime);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Solicitud de cita enviada con Ã©xito.')),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al enviar la solicitud: $e')),
       );

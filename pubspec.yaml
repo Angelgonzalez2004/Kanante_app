@@ -15,6 +15,7 @@ dependencies:
   # 🔥 Firebase (versiones estables compatibles con SDK 3.x)
   firebase_core: ^2.32.0 # Ajustada la versión para compatibilidad. Revisa si necesitas una específica.
   firebase_auth: ^4.19.0 # Ajustada la versión
+  google_sign_in: ^6.1.6
   firebase_database: ^10.5.6 # Ajustada la versión
   firebase_storage: ^11.7.6 # Ajustada la versión
 
@@ -28,6 +29,7 @@ dependencies:
   intl: ^0.20.2          # Fechas y formatos internacionales
   shared_preferences: ^2.3.2 # Almacenamiento local (datos simples como sesión)
   logger: ^2.0.2+1       # Añadido logger para un mejor manejo de logs (opcional, pero buena práctica)
+  file_picker: ^6.2.0    # For picking documents and other files
   flutter_quill: ^9.2.3
   google_maps_flutter: ^2.6.1
   geocoding: ^3.0.0

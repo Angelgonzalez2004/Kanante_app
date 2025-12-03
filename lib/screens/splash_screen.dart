@@ -27,6 +27,7 @@ class _SplashScreenState extends State<SplashScreen> {
     User? user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
+      if (!mounted) return; // Add this line
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -40,17 +41,20 @@ class _SplashScreenState extends State<SplashScreen> {
       if (snapshot.exists && snapshot.value != null) {
         String accountType = snapshot.value.toString();
         if (accountType == 'Usuario') {
+          if (!mounted) return; // Add this line
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const UserDashboard()),
           );
         } else if (accountType == 'Profesional') {
+          if (!mounted) return; // Add this line
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const ProfessionalDashboard()),
           );
         } else {
           // If accountType is unknown, go to login
+          if (!mounted) return; // Add this line
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -58,6 +62,7 @@ class _SplashScreenState extends State<SplashScreen> {
         }
       } else {
         // If no accountType is found, go to login
+        if (!mounted) return; // Add this line
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -65,6 +70,7 @@ class _SplashScreenState extends State<SplashScreen> {
       }
     } catch (e) {
       // On error, go to login
+      if (!mounted) return; // Add this line
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),

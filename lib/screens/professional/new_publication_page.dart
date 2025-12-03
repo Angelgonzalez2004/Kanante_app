@@ -43,6 +43,7 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
         _contentController.document = Document.fromJson(data['content']);
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al cargar la publicación: ${e.toString()}')),
       );
@@ -112,6 +113,7 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
     if (user == null) return;
 
     if (_titleController.text.isEmpty || _contentController.document.isEmpty()) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor, ingresa un título y contenido.')),
       );
@@ -138,9 +140,11 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
         await _db.child('publications').child(widget.publicationId!).update(publicationData);
       }
 
+      if (!mounted) return;
       Navigator.of(context).pop();
     } catch (e) {
       setState(() => _isLoading = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al publicar: ${e.toString()}')),
       );
@@ -149,6 +153,8 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size; // Get screen size for responsiveness
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.publicationId == null ? 'Nueva Publicación' : 'Editar Publicación'),
@@ -164,7 +170,7 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: EdgeInsets.all(size.width * 0.04), // Responsive padding
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -176,11 +182,11 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
                         border: OutlineInputBorder(),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: size.height * 0.03), // Responsive spacing
                     _buildAttachmentsSection(),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+                    SizedBox(height: size.height * 0.03), // Responsive spacing
                     Text('Contenido de la publicación', style: Theme.of(context).textTheme.titleLarge),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+                    SizedBox(height: size.height * 0.01), // Responsive spacing
                     Card(
                       elevation: 2,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -196,7 +202,7 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
                           ),
                           const Divider(height: 1),
                           SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.4,
+                            height: size.height * 0.4, // Responsive height
                             child: QuillEditor.basic(
                               configurations: QuillEditorConfigurations(
                                 controller: _contentController,
@@ -219,15 +225,16 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
   }
 
   Widget _buildAttachmentsSection() {
+    final size = MediaQuery.of(context).size; // Get size for responsiveness
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Archivos adjuntos', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 8),
+        SizedBox(height: size.height * 0.01), // Responsive spacing
         _attachments.isEmpty
             ? const Text('No se han añadido archivos.')
             : _buildAttachmentsList(),
-        const SizedBox(height: 16),
+        SizedBox(height: size.height * 0.02), // Responsive spacing
         OutlinedButton.icon(
           onPressed: _pickAttachment,
           icon: const Icon(Icons.attach_file_rounded),

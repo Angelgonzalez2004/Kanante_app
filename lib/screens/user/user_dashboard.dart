@@ -54,7 +54,7 @@ class _UserDashboardState extends State<UserDashboard> {
       }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
-      print("Error loading user data: $e");
+      debugPrint("Error loading user data: $e");
     }
   }
 

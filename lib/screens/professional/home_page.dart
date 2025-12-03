@@ -37,7 +37,7 @@ class HomePage extends StatelessWidget {
           Text(
             "Gestiona tus pacientes, citas y mensajes de forma eficiente.",
             style: theme.textTheme.titleMedium?.copyWith(
-              color: colorScheme.onSurface.withOpacity(0.7),
+              color: colorScheme.onSurface.withAlpha(179), // Replaced deprecated withOpacity
             ),
           ),
           SizedBox(height: MediaQuery.of(context).size.height * 0.04),

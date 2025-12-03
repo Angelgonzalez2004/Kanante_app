@@ -54,11 +54,13 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
     if (confirm == true) {
       try {
         await _firebaseService.updateAppointmentStatus(appointmentId, 'cancelled');
+        if (!mounted) return; // Add this line
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Cita cancelada.')),
         );
         _loadAppointments(); // Refresh the list
       } catch (e) {
+        if (!mounted) return; // Add this line
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al cancelar la cita: $e')),
         );

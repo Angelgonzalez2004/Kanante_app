@@ -60,6 +60,7 @@ class _ChatScreenState extends State<ChatScreen> {
       await _firebaseService.sendMessage(message);
       _messageController.clear();
     } catch (e) {
+      if (!mounted) return; // Add this line
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al enviar mensaje: $e')),
       );
@@ -72,6 +73,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     if (pickedFile != null) {
       File file = File(pickedFile.path);
+      if (!mounted) return; // Add this line
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Enviando imagen...')),
       );
@@ -88,6 +90,7 @@ class _ChatScreenState extends State<ChatScreen> {
         );
         await _firebaseService.sendMessage(message);
       } catch (e) {
+        if (!mounted) return; // Add this line
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al enviar imagen: $e')),
         );
@@ -99,6 +102,7 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       await _firebaseService.deleteMessage(message.id, widget.chatId, deleteForEveryone);
     } catch (e) {
+      if (!mounted) return; // Add this line
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al eliminar mensaje: $e')),
       );
@@ -269,7 +273,7 @@ class _ChatScreenState extends State<ChatScreen> {
               Text(
                 DateFormat.Hm().format(message.timestamp),
                 style: TextStyle(
-                  color: textColor.withOpacity(0.7),
+                  color: textColor.withAlpha(179), // Replaced withOpacity
                   fontSize: 12,
                 ),
               ),

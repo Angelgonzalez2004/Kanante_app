@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
-import 'dart:math'; // Import for min function
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+import '../../services/firebase_service.dart';
+import '../../models/user_model.dart';
+import '../../theme/app_colors.dart';
+import '../../widgets/auth/auth_text_field.dart';
+import '../../widgets/auth/primary_auth_button.dart';
+import '../../widgets/auth/social_auth_button.dart';
+import '../../widgets/fade_in_slide.dart';
+
 import 'register_screen.dart';
 import 'recover_password_screen.dart';
 import 'user/user_dashboard.dart';
 import 'professional/professional_dashboard.dart';
+import 'admin/admin_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,6 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _db = FirebaseDatabase.instance.ref();
+  final FirebaseService _firebaseService = FirebaseService();
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -33,14 +44,19 @@ class _LoginScreenState extends State<LoginScreen> {
     _loadSavedCredentials();
   }
 
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadSavedCredentials() async {
     final prefs = await SharedPreferences.getInstance();
     final email = prefs.getString('email');
-    final password = prefs.getString('password');
-    if (email != null && password != null) {
+    if (email != null) {
       setState(() {
         _emailController.text = email;
-        _passwordController.text = password;
         _rememberMe = true;
       });
     }
@@ -50,16 +66,19 @@ class _LoginScreenState extends State<LoginScreen> {
     final prefs = await SharedPreferences.getInstance();
     if (_rememberMe) {
       await prefs.setString('email', _emailController.text.trim());
-      await prefs.setString('password', _passwordController.text);
     } else {
       await prefs.remove('email');
-      await prefs.remove('password');
     }
   }
 
-  void _showSnackBar(String message, {Color color = Colors.teal}) {
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: color),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? AppColors.error : AppColors.success,
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
@@ -75,267 +94,270 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       await _saveCredentials();
-
-      String uid = userCredential.user!.uid;
-
-      // 🔎 Obtener tipo de cuenta desde Realtime Database (validado)
-      final snapshot = await _db.child('users/$uid/accountType').get();
+      final snapshot = await _db.child('users/${userCredential.user!.uid}/accountType').get();
 
       if (!snapshot.exists || snapshot.value == null) {
-        _showSnackBar(
-            'No se encontró información del usuario en la base de datos.',
-            color: Colors.red);
+        _showSnackBar('No se encontró información del usuario.', isError: true);
+        await _auth.signOut();
         return;
       }
 
       String accountType = snapshot.value.toString();
+      _navigateToDashboard(accountType);
 
-      _showSnackBar('Inicio de sesión exitoso!', color: Colors.green);
-
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      if (!mounted) return;
-
-      if (accountType == 'Usuario') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const UserDashboard()),
-        );
-      } else if (accountType == 'Profesional') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const ProfessionalDashboard()),
-        );
-      } else {
-        _showSnackBar('Tipo de cuenta desconocido.', color: Colors.red);
-      }
     } on FirebaseAuthException catch (e) {
-      String message;
-      switch (e.code) {
-        case 'user-not-found':
-          message = 'No se encontró ninguna cuenta con este correo.';
-          break;
-        case 'wrong-password':
-          message = 'Contraseña incorrecta.';
-          break;
-        default:
-          message = e.message ?? 'Error al iniciar sesión.';
+      String message = 'Ocurrió un error. Intenta de nuevo.';
+      if (e.code == 'user-not-found' || e.code == 'invalid-credential' || e.code == 'wrong-password') {
+        message = 'Correo o contraseña incorrectos.';
       }
-      _showSnackBar(message, color: Colors.red);
+      _showSnackBar(message, isError: true);
     } catch (e) {
-      _showSnackBar('Error inesperado: $e', color: Colors.red);
+      _showSnackBar('Error inesperado: $e', isError: true);
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
   }
 
+  Future<void> _signInWithGoogle() async {
+    setState(() => isLoading = true);
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        if (mounted) setState(() => isLoading = false);
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      UserCredential userCredential = await _auth.signInWithCredential(credential);
+      User? user = userCredential.user;
+
+      if (user != null) {
+        // ADMIN BACKDOOR for Google Sign-in
+        if (user.email == 'admin@kanante.app') {
+          UserModel? userModel = await _firebaseService.getUserProfile(user.uid);
+          if (userModel == null) { // If admin profile doesn't exist, create it
+            await _firebaseService.createNewUser(
+              uid: user.uid,
+              email: user.email!,
+              name: user.displayName ?? 'Admin',
+              accountType: 'Admin',
+            );
+          }
+          _navigateToDashboard('Admin');
+          return;
+        }
+        // END OF BACKDOOR
+
+        UserModel? userModel = await _firebaseService.handleGoogleSignIn(user);
+
+        if (!mounted) return;
+        if (userModel != null) {
+          _navigateToDashboard(userModel.accountType);
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => RegisterScreen(googleUser: user)),
+          );
+        }
+      }
+    } catch (e) {
+      _showSnackBar('Error al iniciar sesión con Google.', isError: true);
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
+
+  void _navigateToDashboard(String accountType) {
+    if (!mounted) return;
+    
+    Widget dashboard;
+    switch (accountType) {
+      case 'Usuario':
+        dashboard = const UserDashboard();
+        break;
+      case 'Profesional':
+        dashboard = const ProfessionalDashboard();
+        break;
+      case 'Admin':
+        dashboard = const AdminDashboard();
+        break;
+      default:
+        // As a fallback, navigate to login if account type is unknown
+        _showSnackBar('Tipo de cuenta no reconocido.', isError: true);
+        dashboard = const LoginScreen(); 
+    }
+    
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => dashboard));
+  }
+
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
-    // Define max values for responsiveness
-    const double maxIconSize = 80.0;
-    const double maxTitleFontSize = 40.0;
-    const double maxSubtitleFontSize = 20.0;
-    const double maxButtonTextFontSize = 18.0;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFE0F2F1),
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          SingleChildScrollView(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 450), // Max width for the form on large screens
-                child: Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 20.0), // Fixed horizontal margin for the card
-                  elevation: 8,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const FadeInSlide(
+                    duration: Duration(milliseconds: 400),
+                    child: Icon(Icons.spa_outlined, size: 60, color: AppColors.primary),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 40.0), // Fixed padding inside the card
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        // Use constraints.maxWidth instead of size.width here
-                        return Form(
-                          key: _formKey,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min, // To prevent column from taking full height unnecessarily
-                            children: [
-                        Icon(Icons.spa_rounded,
-                            color: Colors.teal[600], size: min(constraints.maxWidth * 0.25, maxIconSize)),
-                        SizedBox(height: size.height * 0.01),
-                    Text('Kananté',
-                        style: TextStyle(
-                            fontSize: min(constraints.maxWidth * 0.1, maxTitleFontSize),
-                            fontWeight: FontWeight.bold,
-                            color: Colors.teal[700])),
-                    Text('Bienestar Joven Campeche',
-                        style: TextStyle(
-                            fontSize: min(constraints.maxWidth * 0.045, maxSubtitleFontSize),
-                            color: Colors.teal[400],
-                            fontWeight: FontWeight.w500)),
-                    SizedBox(height: size.height * 0.05),
-
-                    // 📨 Campo de correo
-                    TextFormField(
-                      controller: _emailController,
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.email_outlined,
-                            color: Colors.teal),
-                        labelText: 'Correo electrónico',
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(25),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 15),
+                  const SizedBox(height: 16),
+                  const FadeInSlide(
+                    duration: Duration(milliseconds: 500),
+                    delay: Duration(milliseconds: 100),
+                    child: Text(
+                      'Kananté',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textDark,
                       ),
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Por favor ingresa tu correo'
-                          : null,
                     ),
-                    SizedBox(height: size.height * 0.02),
-
-                    // 🔒 Campo de contraseña (con mostrar/ocultar)
-                    TextFormField(
-                      controller: _passwordController,
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.lock_outline_rounded,
-                            color: Colors.teal),
-                        labelText: 'Contraseña',
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(25),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 15),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            showPassword
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                            color: Colors.teal,
+                  ),
+                  const SizedBox(height: 8),
+                  const FadeInSlide(
+                    duration: Duration(milliseconds: 500),
+                    delay: Duration(milliseconds: 200),
+                    child: Text(
+                      'Bienvenido de vuelta',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: AppColors.textLight,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        FadeInSlide(
+                          duration: const Duration(milliseconds: 500),
+                          delay: const Duration(milliseconds: 300),
+                          child: AuthTextField(
+                            controller: _emailController,
+                            labelText: 'Correo electrónico',
+                            icon: Icons.email_outlined,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) => (value == null || !value.contains('@')) ? 'Correo inválido' : null,
                           ),
-                          onPressed: () =>
-                              setState(() => showPassword = !showPassword),
                         ),
-                      ),
-                      obscureText: !showPassword,
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Por favor ingresa tu contraseña'
-                          : null,
-                    ),
-
-                    CheckboxListTile(
-                      title: const Text('Recordar cuenta'),
-                      value: _rememberMe,
-                      onChanged: (value) {
-                        setState(() {
-                          _rememberMe = value!;
-                        });
-                      },
-                      controlAffinity: ListTileControlAffinity.leading,
-                    ),
-
-                    SizedBox(height: size.height * 0.03),
-
-                    // 🚪 Botón Entrar
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.login, color: Colors.white),
-                        label: const Text('Entrar',
-                            style: TextStyle(
-                                fontSize: maxButtonTextFontSize, fontWeight: FontWeight.bold)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal[600],
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(
-                              vertical: min(size.height * 0.02, 20.0)),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25)),
-                          elevation: 4,
+                        const SizedBox(height: 20),
+                        FadeInSlide(
+                          duration: const Duration(milliseconds: 500),
+                          delay: const Duration(milliseconds: 400),
+                          child: AuthTextField(
+                            controller: _passwordController,
+                            labelText: 'Contraseña',
+                            icon: Icons.lock_outline,
+                            obscureText: !showPassword,
+                            validator: (value) => (value == null || value.length < 6) ? 'La contraseña debe tener al menos 6 caracteres' : null,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                showPassword ? Icons.visibility_off : Icons.visibility,
+                                color: AppColors.textLight,
+                              ),
+                              onPressed: () => setState(() => showPassword = !showPassword),
+                            ),
+                          ),
                         ),
-                        onPressed: isLoading ? null : _login,
-                      ),
-                    ),
-
-                    SizedBox(height: size.height * 0.02),
-
-                    // 👤 Botón Crear cuenta
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.person_add_alt_1_rounded,
-                            color: Colors.teal),
-                        label: const Text('Crear cuenta',
-                            style: TextStyle(
-                                color: Colors.teal,
-                                fontWeight: FontWeight.w600,
-                                fontSize: maxButtonTextFontSize - 2)),
-                        style: OutlinedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                              vertical: min(size.height * 0.018, 18.0)),
-                          side: const BorderSide(color: Colors.teal),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25)),
-                        ),
-                        onPressed: isLoading
-                            ? null
-                            : () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) => const RegisterScreen()),
-                                );
-                              },
-                      ),
-                    ),
-
-                    SizedBox(height: size.height * 0.015),
-
-                    // 🔁 Recuperar contraseña
-                    TextButton.icon(
-                      onPressed: isLoading
-                          ? null
-                          : () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) =>
-                                        const RecoverPasswordScreen()),
-                              );
-                            },
-                      icon: const Icon(Icons.lock_reset_rounded,
-                          color: Colors.teal),
-                      label: const Text('¿Olvidaste tu contraseña?',
-                          style: TextStyle(
-                              color: Colors.teal, fontWeight: FontWeight.w500)),
-                    ),
                       ],
-                    ), // Closing main Column
-                  ); // Closing Form
-                }), // Closing LayoutBuilder
-              ), // Closing Padding inside Card
-            ), // Closing Card
-          ), // Closing ConstrainedBox
-        ), // Closing Center
-      ), // Closing SingleChildScrollView
-
-          // ⏳ Capa de carga
+                    ),
+                  ),
+                  FadeInSlide(
+                    duration: const Duration(milliseconds: 500),
+                    delay: const Duration(milliseconds: 500),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: _rememberMe,
+                              onChanged: (value) => setState(() => _rememberMe = value!),
+                              activeColor: AppColors.primary,
+                            ),
+                            const Text('Recordar correo', style: TextStyle(color: AppColors.textLight)),
+                          ],
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecoverPasswordScreen())),
+                          child: const Text('¿Olvidaste tu contraseña?', style: TextStyle(color: AppColors.primary)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  FadeInSlide(
+                    duration: const Duration(milliseconds: 500),
+                    delay: const Duration(milliseconds: 600),
+                    child: PrimaryAuthButton(
+                      text: 'Entrar',
+                      isLoading: isLoading,
+                      onPressed: _login,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  FadeInSlide(
+                    duration: const Duration(milliseconds: 500),
+                    delay: const Duration(milliseconds: 700),
+                    child: Row(
+                      children: [
+                        const Expanded(child: Divider()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Text('O', style: TextStyle(color: AppColors.textLight)),
+                        ),
+                        const Expanded(child: Divider()),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  FadeInSlide(
+                    duration: const Duration(milliseconds: 500),
+                    delay: const Duration(milliseconds: 800),
+                    child: SocialAuthButton(
+                      text: 'Continuar con Google',
+                      isLoading: isLoading,
+                      onPressed: _signInWithGoogle,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  FadeInSlide(
+                    duration: const Duration(milliseconds: 500),
+                    delay: const Duration(milliseconds: 900),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('¿No tienes una cuenta?', style: TextStyle(color: AppColors.textLight)),
+                        TextButton(
+                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen())),
+                          child: const Text('Crea una aquí', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           if (isLoading)
             Container(
-              color: Colors.black38,
-              child: const Center(
-                child: CircularProgressIndicator(color: Colors.teal),
-              ),
+              color: const Color.fromRGBO(0, 0, 0, 0.2),
+              child: const Center(child: CircularProgressIndicator(color: AppColors.primary)),
             ),
         ],
       ),
