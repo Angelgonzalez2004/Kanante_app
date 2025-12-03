@@ -1,70 +1,67 @@
-# Kanante_app
+<p align="center">
+  <img src="assets/images/logoapp.jpg" alt="Kanante App Logo" width="200"/>
+</p>
 
-Una aplicación móvil desarrollada con Flutter que integra una amplia gama de funcionalidades, incluyendo autenticación de usuarios, gestión de datos en tiempo real, almacenamiento de archivos, geolocalización, mapas y más, utilizando principalmente los servicios de Firebase.
+<h1 align="center">Kanante App</h1>
 
-## Características Principales
+<p align="center">
+  <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter Badge"/>
+  <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase Badge"/>
+</p>
 
-*   **Autenticación de Usuarios:** Integración con Firebase Authentication para la gestión de usuarios.
-*   **Base de Datos en Tiempo Real:** Utiliza Firebase Realtime Database para la sincronización de datos.
-*   **Almacenamiento de Archivos:** Gestión de imágenes y otros archivos con Firebase Storage.
-*   **Geolocalización y Mapas:** Funcionalidades de geolocalización, geocodificación y visualización en Google Maps.
-*   **Gestión de Datos Locales:** Soporte para base de datos SQLite para almacenamiento local.
-*   **Selección de Imágenes:** Permite a los usuarios seleccionar imágenes de la galería o cámara.
-*   **Compartir Contenido:** Funcionalidad para compartir información desde la aplicación.
-*   **Información del Dispositivo:** Acceso a detalles del dispositivo.
+**Kanante_app** es una aplicación móvil desarrollada con Flutter que conecta usuarios y profesionales, ofreciendo una amplia gama de funcionalidades que incluyen autenticación, gestión de datos en tiempo real, geolocalización y más, utilizando los servicios de Firebase como backend.
 
-## Tecnologías Utilizadas
+## ✨ Características Principales
+
+*   **Autenticación de Usuarios:** Integración completa con Firebase Authentication.
+*   **Base de Datos en Tiempo Real:** Sincronización de datos instantánea con Firebase Realtime Database.
+*   **Almacenamiento de Archivos:** Gestión de imágenes y archivos con Firebase Storage.
+*   **Geolocalización y Mapas:** Funcionalidades de geolocalización y visualización en Google Maps.
+*   **Gestión de Datos Locales:** Soporte para base de datos SQLite.
+*   **Interacción Multimedia:** Permite a los usuarios seleccionar imágenes de la galería o tomar fotos.
+*   **Funcionalidades Sociales:** Opciones para compartir contenido desde la aplicación.
+
+## 🛠️ Tecnologías Utilizadas
 
 *   **Framework:** [Flutter](https://flutter.dev/)
 *   **Lenguaje:** [Dart](https://dart.dev/)
-*   **Backend como Servicio (BaaS):** [Firebase](https://firebase.google.com/)
-    *   Firebase Authentication
-    *   Firebase Realtime Database
-    *   Firebase Storage
-*   **Paquetes de Flutter Clave:**
-    *   `firebase_core`: Core de Firebase para Flutter.
-    *   `firebase_auth`: Autenticación con Firebase.
-    *   `firebase_database`: Base de datos en tiempo real.
-    *   `firebase_storage`: Almacenamiento de archivos.
-    *   `geolocator`: Geolocalización.
-    *   `geocoding`: Geocodificación.
-    *   `google_maps_flutter`: Mapas de Google.
-    *   `image_picker`: Selección de imágenes.
-    *   `sqflite`: Base de datos SQLite local.
-    *   `shared_preferences`: Almacenamiento de preferencias simples.
-    *   `url_launcher`: Abrir URLs externas.
-    *   `device_info_plus`: Información del dispositivo.
-    *   `flutter_keyboard_visibility`: Detección de teclado en pantalla.
-    *   `share_plus`: Compartir contenido.
+*   **Backend:** [Firebase](https://firebase.google.com/)
+    *   Authentication
+    *   Realtime Database
+    *   Storage
+*   **Paquetes Clave de Flutter:**
+    *   `geolocator` & `geocoding`
+    *   `google_maps_flutter`
+    *   `image_picker`
+    *   `sqflite` y `shared_preferences`
+    *   `url_launcher` y `share_plus`
 
-## Estructura del Proyecto
+## 📂 Estructura del Proyecto
 
 ```
 kanante_app/
 ├── lib/
 │   ├── main.dart             # Punto de entrada de la aplicación
-│   ├── firebase_options.dart # Configuración de Firebase
-│   ├── models/               # Definiciones de modelos de datos
-│   ├── screens/              # Implementación de las pantallas/vistas
-│   ├── services/             # Lógica de negocio y servicios
+│   ├── models/               # Modelos de datos (Usuario, Cita, etc.)
+│   ├── screens/              # Pantallas de la aplicación
+│   ├── services/             # Lógica de negocio y comunicación con Firebase
 │   └── widgets/              # Componentes de UI reutilizables
 ├── assets/
-│   └── images/               # Imágenes y recursos gráficos
-├── android/                  # Proyecto Android
-├── ios/                      # Proyecto iOS
-├── web/                      # Proyecto Web
-├── pubspec.yaml              # Dependencias y metadatos del proyecto
-└── README.md                 # Este archivo
+│   └── images/               # Recursos gráficos
+├── android/
+├── ios/
+├── pubspec.yaml              # Dependencias y metadatos
+└── README.md
 ```
 
-## Configuración del Proyecto
+## 🚀 Cómo Empezar
 
 Para configurar y ejecutar este proyecto localmente, sigue estos pasos:
 
-### 1. Requisitos Previos
+### 1. Requisitos
 
-*   [Flutter SDK](https://flutter.dev/docs/get-started/install) instalado y configurado.
-*   Una cuenta de Firebase y un proyecto configurado.
+*   [Flutter SDK](https://flutter.dev/docs/get-started/install) instalado.
+*   Un proyecto configurado en [Firebase](https://console.firebase.google.com/).
 *   [Android Studio](https://developer.android.com/studio) o [Xcode](https://developer.apple.com/xcode/) (para desarrollo iOS).
 
 ### 2. Clonar el Repositorio
@@ -76,15 +73,13 @@ cd Kanante_app
 
 ### 3. Configurar Firebase
 
-1.  Crea un nuevo proyecto en la [Consola de Firebase](https://console.firebase.google.com/).
-2.  Añade una aplicación Android y/o iOS a tu proyecto de Firebase.
-3.  Descarga el archivo `google-services.json` para Android y colócalo en `android/app/`.
-4.  Descarga el archivo `GoogleService-Info.plist` para iOS y colócalo en `ios/Runner/`.
-5.  Genera el archivo `lib/firebase_options.dart` ejecutando el siguiente comando en la raíz de tu proyecto Flutter:
+1.  Desde la consola de Firebase, añade una aplicación Android y/o iOS.
+2.  Descarga `google-services.json` (Android) y colócalo en `android/app/`.
+3.  Descarga `GoogleService-Info.plist` (iOS) y colócalo en `ios/Runner/`.
+4.  Genera las opciones de configuración de Firebase para Flutter:
     ```bash
     flutterfire configure
     ```
-    Asegúrate de tener el CLI de Firebase instalado (`npm install -g firebase-tools`).
 
 ### 4. Instalar Dependencias
 
@@ -92,10 +87,8 @@ cd Kanante_app
 flutter pub get
 ```
 
-### 5. Ejecutar la Aplicación
+### 5. Ejecutar la App
 
 ```bash
 flutter run
 ```
-
-Esto debería iniciar la aplicación en tu dispositivo o emulador conectado.
