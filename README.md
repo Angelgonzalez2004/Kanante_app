@@ -46,6 +46,25 @@ Este proyecto está construido con una pila de tecnologías modernas para el des
 *   **Mapas:** [Google Maps Flutter](https://pub.dev/packages/google_maps_flutter)
 *   **Editor de Texto:** [Flutter Quill](https://pub.dev/packages/flutter_quill)
 
+## 📂 Estructura del Proyecto
+
+La estructura del proyecto está organizada para mantener una separación clara de responsabilidades, siguiendo las mejores prácticas de Flutter.
+
+```
+├── lib
+│   ├── models          # Clases de modelo de datos (Usuario, Cita, etc.)
+│   ├── screens         # Widgets de pantalla principal para cada flujo de la app
+│   │   ├── admin
+│   │   ├── professional
+│   │   ├── shared
+│   │   └── user
+│   ├── services        # Lógica de negocio y servicios (e.g., FirebaseService)
+│   ├── theme           # Definiciones de tema y colores de la app
+│   └── widgets         # Widgets reutilizables (botones, campos de texto, etc.)
+├── assets              # Archivos estáticos como imágenes y fuentes
+├── pubspec.yaml        # Definiciones y dependencias del proyecto
+```
+
 ## 🚀 Comenzando
 
 Para obtener una copia local y ponerla en marcha, sigue estos sencillos pasos.
@@ -80,7 +99,5 @@ Asegúrate de tener instalado el SDK de Flutter. Para más información, consult
 Distribuido bajo la Licencia MIT. Consulta `LICENSE` para más información.
 
 ## 📧 Contacto
-
-Angel Gonzalez - angelgonzalez200427@gmail.com
 
 Link del Proyecto: [https://github.com/Angelgonzalez2004/Kanante_app](https://github.com/Angelgonzalez2004/Kanante_app)
