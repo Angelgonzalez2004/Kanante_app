@@ -8,6 +8,7 @@ import '../../services/firebase_service.dart';
 import '../../models/user_model.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/auth/auth_text_field.dart';
+import '../../widgets/auth/floating_registration_form.dart';
 import '../../widgets/auth/primary_auth_button.dart';
 import '../../widgets/auth/social_auth_button.dart';
 import '../../widgets/fade_in_slide.dart';
@@ -28,6 +29,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
   final DatabaseReference _db = FirebaseDatabase.instance.ref();
   final FirebaseService _firebaseService = FirebaseService();
 
@@ -121,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _signInWithGoogle() async {
     setState(() => isLoading = true);
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         if (mounted) setState(() => isLoading = false);
         return;
@@ -153,24 +155,44 @@ class _LoginScreenState extends State<LoginScreen> {
         }
         // END OF BACKDOOR
 
-        UserModel? userModel = await _firebaseService.handleGoogleSignIn(user);
+        UserModel? userModel = await _firebaseService.getUserProfile(user.uid);
 
         if (!mounted) return;
         if (userModel != null) {
           _navigateToDashboard(userModel.accountType);
         } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => RegisterScreen(googleUser: user)),
-          );
+          _showFloatingRegisterSheet(user);
         }
       }
     } catch (e) {
-      _showSnackBar('Error al iniciar sesión con Google.', isError: true);
+      _showSnackBar('Error al iniciar sesión con Google: ${e.toString()}', isError: true);
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
   }
+  
+  void _showFloatingRegisterSheet(User googleUser) async {
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: FloatingRegistrationForm(googleUser: googleUser),
+      ),
+    );
+
+    if (result != null) {
+      _navigateToDashboard(result);
+    }
+  }
+
 
   void _navigateToDashboard(String accountType) {
     if (!mounted) return;
@@ -196,172 +218,177 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
           SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const FadeInSlide(
-                    duration: Duration(milliseconds: 400),
-                    child: Icon(Icons.spa_outlined, size: 60, color: AppColors.primary),
-                  ),
-                  const SizedBox(height: 16),
-                  const FadeInSlide(
-                    duration: Duration(milliseconds: 500),
-                    delay: Duration(milliseconds: 100),
-                    child: Text(
-                      'Kananté',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(horizontal: size.width * 0.06, vertical: size.height * 0.05),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const FadeInSlide(
+                        duration: Duration(milliseconds: 400),
+                        child: Icon(Icons.spa_outlined, size: 60, color: AppColors.primary),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const FadeInSlide(
-                    duration: Duration(milliseconds: 500),
-                    delay: Duration(milliseconds: 200),
-                    child: Text(
-                      'Bienvenido de vuelta',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: AppColors.textLight,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        FadeInSlide(
-                          duration: const Duration(milliseconds: 500),
-                          delay: const Duration(milliseconds: 300),
-                          child: AuthTextField(
-                            controller: _emailController,
-                            labelText: 'Correo electrónico',
-                            icon: Icons.email_outlined,
-                            keyboardType: TextInputType.emailAddress,
-                            validator: (value) => (value == null || !value.contains('@')) ? 'Correo inválido' : null,
+                      const SizedBox(height: 16),
+                      const FadeInSlide(
+                        duration: Duration(milliseconds: 500),
+                        delay: Duration(milliseconds: 100),
+                        child: Text(
+                          'Kananté',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textDark,
                           ),
                         ),
-                        const SizedBox(height: 20),
-                        FadeInSlide(
-                          duration: const Duration(milliseconds: 500),
-                          delay: const Duration(milliseconds: 400),
-                          child: AuthTextField(
-                            controller: _passwordController,
-                            labelText: 'Contraseña',
-                            icon: Icons.lock_outline,
-                            obscureText: !showPassword,
-                            validator: (value) => (value == null || value.length < 6) ? 'La contraseña debe tener al menos 6 caracteres' : null,
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                showPassword ? Icons.visibility_off : Icons.visibility,
-                                color: AppColors.textLight,
-                              ),
-                              onPressed: () => setState(() => showPassword = !showPassword),
-                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      const FadeInSlide(
+                        duration: Duration(milliseconds: 500),
+                        delay: Duration(milliseconds: 200),
+                        child: Text(
+                          'Bienvenido de vuelta',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: AppColors.textLight,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  FadeInSlide(
-                    duration: const Duration(milliseconds: 500),
-                    delay: const Duration(milliseconds: 500),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
+                      ),
+                      SizedBox(height: size.height * 0.05),
+                      Form(
+                        key: _formKey,
+                        child: Column(
                           children: [
-                            Checkbox(
-                              value: _rememberMe,
-                              onChanged: (value) => setState(() => _rememberMe = value!),
-                              activeColor: AppColors.primary,
+                            FadeInSlide(
+                              duration: const Duration(milliseconds: 500),
+                              delay: const Duration(milliseconds: 300),
+                              child: AuthTextField(
+                                controller: _emailController,
+                                labelText: 'Correo electrónico',
+                                icon: Icons.email_outlined,
+                                keyboardType: TextInputType.emailAddress,
+                                validator: (value) => (value == null || !value.contains('@')) ? 'Correo inválido' : null,
+                              ),
                             ),
-                            const Text('Recordar correo', style: TextStyle(color: AppColors.textLight)),
+                            const SizedBox(height: 20),
+                            FadeInSlide(
+                              duration: const Duration(milliseconds: 500),
+                              delay: const Duration(milliseconds: 400),
+                              child: AuthTextField(
+                                controller: _passwordController,
+                                labelText: 'Contraseña',
+                                icon: Icons.lock_outline,
+                                obscureText: !showPassword,
+                                validator: (value) => (value == null || value.length < 6) ? 'La contraseña debe tener al menos 6 caracteres' : null,
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    showPassword ? Icons.visibility_off : Icons.visibility,
+                                    color: AppColors.textLight,
+                                  ),
+                                  onPressed: () => setState(() => showPassword = !showPassword),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
-                        TextButton(
-                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecoverPasswordScreen())),
-                          child: const Text('¿Olvidaste tu contraseña?', style: TextStyle(color: AppColors.primary)),
+                      ),
+                      FadeInSlide(
+                        duration: const Duration(milliseconds: 500),
+                        delay: const Duration(milliseconds: 500),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _rememberMe,
+                                  onChanged: (value) => setState(() => _rememberMe = value!),
+                                  activeColor: AppColors.primary,
+                                ),
+                                const Text('Recordar correo', style: TextStyle(color: AppColors.textLight)),
+                              ],
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecoverPasswordScreen())),
+                              child: const Text('¿Olvidaste tu contraseña?', style: TextStyle(color: AppColors.primary)),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  FadeInSlide(
-                    duration: const Duration(milliseconds: 500),
-                    delay: const Duration(milliseconds: 600),
-                    child: PrimaryAuthButton(
-                      text: 'Entrar',
-                      isLoading: isLoading,
-                      onPressed: _login,
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 24),
-                  FadeInSlide(
-                    duration: const Duration(milliseconds: 500),
-                    delay: const Duration(milliseconds: 700),
-                    child: Row(
-                      children: [
-                        const Expanded(child: Divider()),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text('O', style: TextStyle(color: AppColors.textLight)),
+                      ),
+                      SizedBox(height: size.height * 0.03),
+                      FadeInSlide(
+                        duration: const Duration(milliseconds: 500),
+                        delay: const Duration(milliseconds: 600),
+                        child: PrimaryAuthButton(
+                          text: 'Entrar',
+                          isLoading: isLoading,
+                          onPressed: _login,
                         ),
-                        const Expanded(child: Divider()),
-                      ],
-                    ),
-                  ),
+                      ),
+                      
+                      SizedBox(height: size.height * 0.03),
+                      const FadeInSlide(
+                        duration: Duration(milliseconds: 500),
+                        delay: Duration(milliseconds: 700),
+                        child: Row(
+                          children: [
+                            Expanded(child: Divider()),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Text('O', style: TextStyle(color: AppColors.textLight)),
+                            ),
+                            Expanded(child: Divider()),
+                          ],
+                        ),
+                      ),
 
-                  const SizedBox(height: 24),
-                  FadeInSlide(
-                    duration: const Duration(milliseconds: 500),
-                    delay: const Duration(milliseconds: 800),
-                    child: SocialAuthButton(
-                      text: 'Continuar con Google',
-                      isLoading: isLoading,
-                      onPressed: _signInWithGoogle,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  
-                  // --- SOLUCIÓN AL OVERFLOW: WRAP ---
-                  FadeInSlide(
-                    duration: const Duration(milliseconds: 500),
-                    delay: const Duration(milliseconds: 900),
-                    child: Wrap(
-                      alignment: WrapAlignment.center,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        const Text('¿No tienes una cuenta? ', style: TextStyle(color: AppColors.textLight)),
-                        TextButton(
-                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen())),
-                          child: const Text('Crea una aquí', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                      SizedBox(height: size.height * 0.03),
+                      FadeInSlide(
+                        duration: const Duration(milliseconds: 500),
+                        delay: const Duration(milliseconds: 800),
+                        child: SocialAuthButton(
+                          text: 'Continuar con Google',
+                          isLoading: isLoading,
+                          onPressed: _signInWithGoogle,
                         ),
-                      ],
-                    ),
+                      ),
+                      SizedBox(height: size.height * 0.04),
+                      
+                      FadeInSlide(
+                        duration: const Duration(milliseconds: 500),
+                        delay: const Duration(milliseconds: 900),
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            const Text('¿No tienes una cuenta? ', style: TextStyle(color: AppColors.textLight)),
+                            TextButton(
+                              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen())),
+                              child: const Text('Crea una aquí', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
           if (isLoading)
             Container(
-              // Corregido withOpacity por withValues para Flutter 3.27+
-              color: Colors.black.withValues(alpha: 0.2), 
+              color: Colors.black.withAlpha((255 * 0.2).round()), 
               child: const Center(child: CircularProgressIndicator(color: AppColors.primary)),
             ),
         ],

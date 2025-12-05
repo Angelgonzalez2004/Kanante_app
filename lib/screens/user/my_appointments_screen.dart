@@ -136,14 +136,14 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       elevation: 3,
       shape: RoundedRectangleBorder(
-        side: BorderSide(color: statusColor.withOpacity(0.5), width: 1),
+        side: BorderSide(color: statusColor.withAlpha(128), width: 1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: ListTile(
           leading: CircleAvatar(
-            backgroundColor: statusColor.withOpacity(0.1),
+            backgroundColor: statusColor.withAlpha(26),
             child: statusIcon,
           ),
           title: Text(

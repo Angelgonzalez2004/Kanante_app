@@ -21,9 +21,9 @@ class HomePage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              color: Colors.teal.withOpacity(0.05),
+              color: Colors.teal.withAlpha(12),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.teal.withOpacity(0.2)),
+              border: Border.all(color: Colors.teal.withAlpha(51)),
             ),
             child: Row(
               children: [

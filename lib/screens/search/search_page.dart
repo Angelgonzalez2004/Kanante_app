@@ -9,7 +9,7 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
-  List<String> _allPublications = [
+  final List<String> _allPublications = [
     'Psicología moderna', 'Ayuda psicológica', 'Estrés y ansiedad', 'Consejos para dormir', 'Manejo de emociones'
   ]; // Mock data
   List<String> _searchResults = [];

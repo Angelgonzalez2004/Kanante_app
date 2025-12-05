@@ -1,18 +1,22 @@
+// lib\services\firebase_service.dart
+
 import 'dart:io';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../models/appointment_model.dart';
 import '../models/chat_model.dart';
 import '../models/message_model.dart';
 import '../models/publication_model.dart';
 import '../models/user_model.dart';
+import '../models/support_ticket_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
 class FirebaseService {
   final DatabaseReference _db = FirebaseDatabase.instance.ref();
   final FirebaseStorage _storage = FirebaseStorage.instance;
+
+  // --- User Profile Methods ---
 
   Future<UserModel?> getUserProfile(String userId) async {
     try {
@@ -27,36 +31,6 @@ class FirebaseService {
     return null;
   }
 
-  Future<UserModel?> checkIfUserExistsByEmail(String email) async {
-    try {
-      final snapshot = await _db.child('users').orderByChild('email').equalTo(email.toLowerCase()).get();
-      if (snapshot.exists && snapshot.value != null) {
-        final usersData = Map<String, dynamic>.from(snapshot.value as Map);
-        final entry = usersData.entries.first;
-        return UserModel.fromMap(entry.key, Map<String, dynamic>.from(entry.value as Map));
-      }
-    } catch (e) {
-      debugPrint("Error checking if user exists by email: $e");
-    }
-    return null;
-  }
-
-  Future<UserModel?> handleGoogleSignIn(User firebaseUser) async {
-    UserModel? userModel = await getUserProfile(firebaseUser.uid);
-    if (userModel != null) {
-      return userModel;
-    } else {
-      if (firebaseUser.email != null) {
-        UserModel? existingUserByEmail = await checkIfUserExistsByEmail(firebaseUser.email!);
-        if (existingUserByEmail != null) {
-          debugPrint("User with email ${firebaseUser.email} already exists with a different UID.");
-          return null;
-        }
-      }
-      return null;
-    }
-  }
-
   Future<void> createNewUser({
     required String uid,
     required String email,
@@ -66,7 +40,7 @@ class FirebaseService {
     DateTime? birthDate,
     String? phone,
     String? rfc,
-    List<String> specialties = const [],
+    List<dynamic> specialties = const [],
   }) async {
     String? formattedBirthDate;
     if (birthDate != null) {
@@ -80,7 +54,7 @@ class FirebaseService {
       accountType: accountType,
       profileImageUrl: profileImageUrl,
       birthDate: formattedBirthDate,
-      specialties: specialties,
+      specialties: specialties.cast<String>(),
       verificationStatus: 'pending',
       bio: '',
       phone: phone ?? '',
@@ -91,7 +65,95 @@ class FirebaseService {
     await _db.child('users/$uid').set(newUser.toMap());
   }
 
-  // --- Other methods from the original file ---
+  // --- Support Ticket Methods ---
+
+  Future<void> createSupportTicket(SupportTicket ticket) async {
+    final ticketRef = _db.child('support_tickets').push();
+    await ticketRef.set(ticket.toMap());
+  }
+
+  Stream<List<SupportTicket>> getSupportTickets() {
+    return _db.child('support_tickets').onValue.map((event) {
+      if (!event.snapshot.exists || event.snapshot.value == null) {
+        return [];
+      }
+      final data = Map<String, dynamic>.from(event.snapshot.value as Map);
+      return data.entries.map((e) => SupportTicket.fromMap(e.key, Map<String, dynamic>.from(e.value as Map))).toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    });
+  }
+
+  Future<void> replyToSupportTicket(String ticketId, String response) async {
+    await _db.child('support_tickets/$ticketId').update({
+      'adminResponse': response,
+      'respondedAt': DateTime.now().millisecondsSinceEpoch,
+      'status': 'closed',
+    });
+  }
+
+  // --- Support Chat Methods ---
+
+  Future<String> getOrCreateSupportChat(String userId, String userName, String userRole) async {
+    final chatId = 'support_$userId';
+    final chatRef = _db.child('support_chats/$chatId');
+    final snapshot = await chatRef.get();
+    if (!snapshot.exists) {
+      await chatRef.set({
+        'participants': {userId: true, 'support_admin': true},
+        'lastMessage': 'Chat de soporte iniciado.',
+        'timestamp': ServerValue.timestamp,
+        'userName': userName,
+        'userRole': userRole,
+        'userId': userId,
+      });
+    }
+    return chatId;
+  }
+  
+  Stream<List<ChatConversation>> getSupportChats() {
+    return _db.child('support_chats').onValue.map((event) {
+      if (!event.snapshot.exists || event.snapshot.value == null) {
+        return [];
+      }
+      final data = Map<String, dynamic>.from(event.snapshot.value as Map);
+      final conversations = data.entries.map((e) {
+        final chatData = Map<String, dynamic>.from(e.value as Map);
+        
+        // CORRECCIÓN APLICADA AQUÍ: Se utiliza .cast<String>().toList() para asegurar List<String>
+        final List<String> participantKeys = (chatData['participants'] as Map).keys.cast<String>().toList();
+
+        // We manually construct a ChatConversation-like object for the admin view
+        return ChatConversation(
+          id: e.key,
+          participants: participantKeys, 
+          lastMessage: chatData['lastMessage'] ?? '',
+          timestamp: DateTime.fromMillisecondsSinceEpoch(chatData['timestamp']),
+          // Custom fields for admin view
+          otherParticipantName: chatData['userName'] ?? 'Usuario Desconocido',
+          otherParticipantImageUrl: null, // No image for admin view for now
+        );
+      }).toList();
+      conversations.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return conversations;
+    });
+  }
+
+  Stream<List<Message>> getSupportMessagesStream(String chatId) {
+    return getMessagesStream(chatId); // Can reuse the same logic
+  }
+
+  Future<void> sendMessageToSupport(Message message) async {
+    // Reusing the base sendMessage and targeting the 'support_chats' node for the update
+    final messageRef = _db.child('messages/${message.chatId}').push();
+    await messageRef.set(message.toMap());
+    final chatRef = _db.child('support_chats/${message.chatId}');
+    await chatRef.update({
+      'lastMessage': message.type == MessageType.text ? message.content : 'Archivo adjunto',
+      'timestamp': ServerValue.timestamp,
+    });
+  }
+
+  // --- User/Professional Fetching Methods ---
 
   Future<List<UserModel>> getAllProfessionals({String? searchQuery}) async {
     try {
@@ -137,8 +199,8 @@ class FirebaseService {
       if (searchQuery != null && searchQuery.isNotEmpty) {
         allUsers = allUsers.where((user) {
           return user.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
-                 user.accountType.toLowerCase().contains(searchQuery.toLowerCase()) ||
-                 user.specialties.any((s) => s.toLowerCase().contains(searchQuery.toLowerCase()));
+                     user.accountType.toLowerCase().contains(searchQuery.toLowerCase()) ||
+                     user.specialties.any((s) => s.toLowerCase().contains(searchQuery.toLowerCase()));
         }).toList();
       }
 
@@ -148,6 +210,8 @@ class FirebaseService {
       return [];
     }
   }
+
+  // --- Publication Methods ---
 
   Future<List<Publication>> getPublicationsForProfessional(String professionalId) async {
     try {
@@ -202,12 +266,15 @@ class FirebaseService {
     }
   }
 
+  // --- Patient/Appointment Methods ---
+
   Future<List<UserModel>> getPatientsForProfessional(String professionalId) async {
     try {
       final professional = await getUserProfile(professionalId);
       if (professional == null || professional.patientIds.isEmpty) {
         return [];
       }
+      // patientIds es List<String> por definición en UserModel
       final patientFutures = professional.patientIds.map((patientId) => getUserProfile(patientId)).toList();
       final results = await Future.wait(patientFutures);
       return results.where((patient) => patient != null).cast<UserModel>().toList();
@@ -281,6 +348,8 @@ class FirebaseService {
     }
   }
 
+  // --- Chat Conversation Methods ---
+
   Future<List<ChatConversation>> getConversationsForProfessional(String professionalId) async {
     try {
       final event = await _db.child('chats').orderByChild('participants/$professionalId').equalTo(true).once();
@@ -295,6 +364,7 @@ class FirebaseService {
       }
 
       await Future.wait(conversations.map((convo) async {
+        // En ChatConversation, `participants` es List<String>. El método .firstWhere es seguro.
         final otherId = convo.participants.firstWhere((p) => p != professionalId, orElse: () => '');
         if (otherId.isNotEmpty) {
           final user = await getUserProfile(otherId);
@@ -316,7 +386,7 @@ class FirebaseService {
       final event = await _db.child('chats').orderByChild('participants/$userId').equalTo(true).once();
       final snapshot = event.snapshot;
       if (!snapshot.exists) return [];
-       final List<ChatConversation> conversations = [];
+      final List<ChatConversation> conversations = [];
       for (final child in snapshot.children) {
         if (child.key != null && child.value != null) {
           conversations.add(ChatConversation.fromMap(child.key!, Map<String, dynamic>.from(child.value as Map)));
@@ -340,29 +410,7 @@ class FirebaseService {
     }
   }
 
-  Future<List<UserModel>> searchProfessionals({String? query}) async {
-    try {
-      final event = await _db.child('users').orderByChild('accountType').equalTo('Profesional').once();
-      final snapshot = event.snapshot;
-      if (!snapshot.exists) return [];
-
-      final usersData = Map<String, dynamic>.from(snapshot.value as Map);
-      List<UserModel> professionals = usersData.entries
-          .map((e) => UserModel.fromMap(e.key, Map<String, dynamic>.from(e.value as Map)))
-          .toList();
-
-      if (query != null && query.isNotEmpty) {
-        final lowerQuery = query.toLowerCase();
-        professionals = professionals.where((p) =>
-            p.name.toLowerCase().contains(lowerQuery) ||
-            p.specialties.any((s) => s.toLowerCase().contains(lowerQuery))).toList();
-      }
-      return professionals;
-    } catch (e) {
-      debugPrint("Error searching professionals: $e");
-      return [];
-    }
-  }
+  // --- Chat Management Methods ---
 
   Future<String> getOrCreateChat(String currentUserId, String otherUserId) async {
     final participants = [currentUserId, otherUserId]..sort();
@@ -387,7 +435,10 @@ class FirebaseService {
       return data.entries
           .map((e) => Message.fromMap(e.key, Map<String, dynamic>.from(e.value as Map)))
           .toList()
-        ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+          // La ordenación es opcional aquí, dependiendo de si el Stream de la UI necesita el orden inverso.
+          // Si orderByChild('timestamp') ya trae ordenado, esta línea podría omitirse.
+          // Se mantiene la lógica original: ..sort((a, b) => b.timestamp.compareTo(a.timestamp)); 
+          ..sort((a, b) => a.timestamp.compareTo(b.timestamp)); // Revertido a orden ascendente para un chat
     });
   }
 
@@ -424,5 +475,12 @@ class FirebaseService {
       debugPrint("Error uploading file: $e");
       rethrow;
     }
+  }
+
+  // --- Search Methods (Duplicated logic merged/cleaned) ---
+
+  Future<List<UserModel>> searchProfessionals({String? query}) async {
+    // Reutiliza getAllProfessionals con la misma lógica de búsqueda
+    return getAllProfessionals(searchQuery: query);
   }
 }

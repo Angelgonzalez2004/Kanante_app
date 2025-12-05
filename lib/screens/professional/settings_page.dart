@@ -4,8 +4,10 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:io'; // For File
 import '../../main.dart'; // Para themeNotifier
+import '../login_screen.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -16,6 +18,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
   final DatabaseReference _db = FirebaseDatabase.instance.ref();
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
@@ -203,8 +206,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (confirm == true) {
       await _auth.signOut();
+      await _googleSignIn.signOut();
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
       }
     }
   }
@@ -228,12 +232,13 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (confirm == true) {
       try {
+        await _googleSignIn.signOut();
         await _auth.currentUser?.delete();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Cuenta eliminada con éxito.')),
           );
-          Navigator.pushReplacementNamed(context, '/login');
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
         }
       } on FirebaseAuthException catch (e) {
          if (mounted) {

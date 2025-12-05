@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../main.dart'; // Para themeNotifier
 import '../login_screen.dart';
 
@@ -15,6 +16,7 @@ class UserSettingsPage extends StatefulWidget {
 
 class _UserSettingsPageState extends State<UserSettingsPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();
 
   bool _darkMode = false;
@@ -157,6 +159,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
     if (confirm == true) {
       final name = _name.isNotEmpty ? _name : 'Usuario';
       await _auth.signOut();
+      await _googleSignIn.signOut();
       
       // La función _showSnackBar ya verifica 'mounted', así que es seguro llamarla aquí.
       _showSnackBar('¡Hasta luego, $name! 👋', color: Colors.green);
@@ -332,8 +335,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           value: _darkMode,
-          // CORRECCIÓN: withValues en lugar de withOpacity
-          activeTrackColor: Colors.teal.withValues(alpha: 0.5),
+          activeTrackColor: Colors.teal.withAlpha((255 * 0.5).round()),
           activeThumbColor: Colors.teal,
           title: const Text('Modo oscuro'),
           onChanged: _toggleTheme,
@@ -341,8 +343,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           value: _notifications,
-          // CORRECCIÓN: withValues en lugar de withOpacity
-          activeTrackColor: Colors.teal.withValues(alpha: 0.5),
+          activeTrackColor: Colors.teal.withAlpha((255 * 0.5).round()),
           activeThumbColor: Colors.teal,
           title: const Text('Notificaciones'),
           onChanged: _toggleNotifications,
@@ -351,8 +352,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
         Center(
           child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              // CORRECCIÓN: withValues en lugar de withAlpha (aunque withAlpha funciona, esto es más moderno)
-              backgroundColor: Colors.redAccent.withValues(alpha: 0.1),
+              backgroundColor: Colors.redAccent.withAlpha((255 * 0.1).round()),
               foregroundColor: Colors.redAccent,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),

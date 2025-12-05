@@ -137,6 +137,7 @@ class _SelectChatParticipantsPageState extends State<SelectChatParticipantsPage>
                 builder: (context) => ChatScreen(
                   chatId: chatId,
                   otherUserName: user.name,
+                  otherUserId: user.id,
                   otherUserImageUrl: user.profileImageUrl,
                 ),
               ),

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../login_screen.dart';
 import 'verifications_page.dart';
+import 'support_center_screen.dart';
+import 'package:kanante_app/data/faq_data.dart';
+import 'package:kanante_app/screens/shared/faq_screen.dart';
 import 'admin_publication_view_page.dart'; // Import the new page
 
 class AdminDashboard extends StatefulWidget {
@@ -13,10 +17,12 @@ class AdminDashboard extends StatefulWidget {
 
 class _AdminDashboardState extends State<AdminDashboard> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   Future<void> _signOut() async {
     try {
       await _auth.signOut();
+      await _googleSignIn.signOut();
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -73,6 +79,26 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 Navigator.pop(context);
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) => const AdminPublicationViewPage()),
+                );
+              },
+            ),
+             ListTile(
+              leading: const Icon(Icons.support_agent),
+              title: const Text('Centro de Soporte'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const SupportCenterScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.question_answer_outlined),
+              title: const Text('Preguntas Frecuentes'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const FaqScreen(faqData: FaqData.forAdmin)),
                 );
               },
             ),

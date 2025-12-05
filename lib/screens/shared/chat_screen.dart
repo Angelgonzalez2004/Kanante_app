@@ -10,12 +10,14 @@ import '../../services/firebase_service.dart';
 class ChatScreen extends StatefulWidget {
   final String chatId;
   final String otherUserName;
+  final String otherUserId; // Added
   final String? otherUserImageUrl;
 
   const ChatScreen({
     super.key,
     required this.chatId,
     required this.otherUserName,
+    required this.otherUserId, // Added
     this.otherUserImageUrl,
   });
 

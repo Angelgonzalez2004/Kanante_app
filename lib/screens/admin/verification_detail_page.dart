@@ -204,7 +204,7 @@ class _VerificationDetailPageState extends State<VerificationDetailPage> {
             ...documents.map((docUrl) {
               final decodedName = Uri.decodeFull(docUrl.split('/').last.split('?').first);
               final displayName = decodedName.length > 20
-                  ? decodedName.substring(0, 20) + '...'
+                  ? '${decodedName.substring(0, 20)}...'
                   : decodedName;
 
               return ListTile(
@@ -215,7 +215,7 @@ class _VerificationDetailPageState extends State<VerificationDetailPage> {
                   onPressed: () => _launchURL(docUrl),
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),

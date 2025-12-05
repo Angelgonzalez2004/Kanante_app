@@ -125,6 +125,7 @@ class _MessagesPageState extends State<MessagesPage> {
               builder: (context) => ChatScreen(
                 chatId: conversation.id,
                 otherUserName: conversation.otherParticipantName ?? 'Usuario Desconocido',
+                otherUserId: conversation.participants.firstWhere((id) => id != FirebaseAuth.instance.currentUser!.uid),
                 otherUserImageUrl: conversation.otherParticipantImageUrl,
               ),
             ),

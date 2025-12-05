@@ -57,7 +57,7 @@ class _PublicationFeedBodyState extends State<PublicationFeedBody> {
             ? DecorationImage(
                 image: CachedNetworkImageProvider(publication.attachments.first),
                 fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.4), BlendMode.darken),
+                colorFilter: ColorFilter.mode(Colors.black.withAlpha(102), BlendMode.darken),
               )
             : null,
       ),

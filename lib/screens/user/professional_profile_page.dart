@@ -293,6 +293,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
           builder: (context) => ChatScreen(
             chatId: chatId,
             otherUserName: professional.name,
+            otherUserId: professional.id,
             otherUserImageUrl: professional.profileImageUrl,
           ),
         ),

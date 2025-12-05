@@ -18,9 +18,9 @@
 **Kanante App** es una plataforma móvil que facilita la conexión entre usuarios que buscan servicios y profesionales que los ofrecen. La aplicación permite a los profesionales crear publicaciones, gestionar su perfil y agenda, mientras que los usuarios pueden buscar profesionales, ver su contenido, agendar citas y comunicarse directamente.
 
 La aplicación cuenta con tres roles principales:
-*   **👤 Usuario:** Busca y contacta profesionales, agenda citas y gestiona su perfil.
-*   **🧑‍⚕️ Profesional:** Publica contenido, gestiona su perfil, su agenda de citas y se comunica con los usuarios.
-*   **👑 Administrador:** Modera el contenido y gestiona las verificaciones de los profesionales.
+*   **👤 Usuario:** Busca y contacta profesionales, agenda citas, gestiona su perfil y accede a soporte técnico y FAQs.
+*   **🧑‍⚕️ Profesional:** Publica contenido, gestiona su perfil, su agenda de citas, se comunica con los usuarios y accede a soporte técnico y FAQs.
+*   **👑 Administrador:** Modera el contenido, gestiona las verificaciones de los profesionales, supervisa tickets de soporte, chats y FAQs de la plataforma.
 
 ## ✨ Características Principales
 
@@ -31,6 +31,12 @@ La aplicación cuenta con tres roles principales:
 *   **💬 Chat en Tiempo Real:** Comunicación directa entre usuarios y profesionales.
 *   **🗺️ Geolocalización:** Búsqueda de profesionales basada en la ubicación.
 *   **🎨 Panel de Administración:** Interfaz para la moderación de contenido y la gestión de la plataforma.
+*   **Soporte Multi-rol:** Experiencias de usuario adaptadas para Usuarios, Profesionales y Administradores.
+*   **Soporte y Ayuda Integrado:**
+    *   Chat directo con administradores de soporte.
+    *   Formularios de quejas y sugerencias (anónimos o identificados).
+    *   Acceso a políticas de privacidad.
+    *   Secciones de Preguntas Frecuentes (FAQ) personalizadas por rol.
 
 ## 🛠️ Tecnologías Utilizadas
 

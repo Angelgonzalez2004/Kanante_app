@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-
+import 'package:google_sign_in/google_sign_in.dart';
+import '../login_screen.dart';
 import '../shared/home_page.dart';
 import '../shared/publication_feed_page.dart';
 import 'patients_page.dart';
@@ -9,6 +10,7 @@ import 'appointments_page.dart';
 import 'messages_page.dart';
 import 'publications_page.dart';
 import 'settings_page.dart';
+import '../shared/support_screen.dart';
 import 'profile_page.dart'; // Este archivo debe contener la clase ProfessionalProfilePage
 
 class ProfessionalDashboard extends StatefulWidget {
@@ -21,6 +23,7 @@ class ProfessionalDashboard extends StatefulWidget {
 class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
   int _selectedIndex = 0;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
   final DatabaseReference _db = FirebaseDatabase.instance.ref();
 
   Map<String, dynamic>? _userData;
@@ -112,6 +115,11 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
         'page': const ProfessionalProfilePage() 
       },
       {
+        'title': 'Soporte',
+        'icon': Icons.support_agent,
+        'page': const SupportScreen()
+      },
+      {
         'title': 'Cerrar Sesión',
         'icon': Icons.logout_rounded,
         'isLogout': true, // Bandera especial para logout
@@ -189,7 +197,8 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
     );
     if (confirm == true) {
       await _auth.signOut();
-      if (mounted) Navigator.pushReplacementNamed(context, '/login');
+      await _googleSignIn.signOut();
+      if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
     }
   }
 

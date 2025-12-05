@@ -25,7 +25,7 @@ class _EditPublicationPageState extends State<EditPublicationPage> {
   late TextEditingController _titleController;
   late QuillController _contentController;
   List<String> _existingImageUrls = [];
-  List<XFile> _newPickedXFiles = [];
+  final List<XFile> _newPickedXFiles = [];
 
   bool isLoading = false;
 

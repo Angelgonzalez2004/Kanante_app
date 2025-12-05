@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../login_screen.dart';
 import '../shared/home_page.dart';
 import 'user_settings_page.dart';
 import 'professional_content_screen.dart';
 import 'my_appointments_screen.dart';
+import '../shared/support_screen.dart';
 import 'messages_page.dart'; // Changed import
 
 class UserDashboard extends StatefulWidget {
@@ -17,6 +19,7 @@ class UserDashboard extends StatefulWidget {
 
 class _UserDashboardState extends State<UserDashboard> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();
 
   String _userName = 'Usuario';
@@ -88,6 +91,11 @@ class _UserDashboardState extends State<UserDashboard> {
         'icon': Icons.settings,
         'page': const UserSettingsPage()
       },
+       {
+        'title': 'Soporte',
+        'icon': Icons.support_agent,
+        'page': const SupportScreen()
+      },
     ];
   }
 
@@ -122,6 +130,7 @@ class _UserDashboardState extends State<UserDashboard> {
 
   Future<void> _logout() async {
     await _auth.signOut();
+    await _googleSignIn.signOut();
     if (mounted) {
       Navigator.pushAndRemoveUntil(
         context,

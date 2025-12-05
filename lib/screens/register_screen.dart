@@ -113,10 +113,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (widget.googleUser != null) {
         user = widget.googleUser;
       } else {
-        final existingUser = await _firebaseService.checkIfUserExistsByEmail(_emailController.text.trim());
-        if (existingUser != null) {
-          throw FirebaseAuthException(code: 'email-already-in-use');
-        }
         UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text,

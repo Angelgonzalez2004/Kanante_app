@@ -99,9 +99,9 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  FadeInSlide(
-                    delay: const Duration(milliseconds: 200),
-                    child: const Text(
+                  const FadeInSlide(
+                    delay: Duration(milliseconds: 200),
+                    child: Text(
                       'Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.',
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 16, color: AppColors.textLight),

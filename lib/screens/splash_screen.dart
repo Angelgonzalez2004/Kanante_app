@@ -81,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final double maxImageSize = 300.0; // Define un tamaño máximo para la imagen
+    const double maxImageSize = 300.0; // Define un tamaño máximo para la imagen
     final imageSize = min(min(size.width, size.height) * 0.4, maxImageSize);
 
     return Scaffold(

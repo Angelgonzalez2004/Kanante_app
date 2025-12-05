@@ -14,10 +14,10 @@ class PublicationsPage extends StatefulWidget {
   const PublicationsPage({super.key});
 
   @override
-  _PublicationsPageState createState() => _PublicationsPageState();
+  PublicationsPageState createState() => PublicationsPageState();
 }
 
-class _PublicationsPageState extends State<PublicationsPage> {
+class PublicationsPageState extends State<PublicationsPage> {
   final _db = FirebaseDatabase.instance.ref();
   final _auth = FirebaseAuth.instance;
   late Query _publicationsQuery;
@@ -163,11 +163,10 @@ class _PublicationCard extends StatelessWidget {
   final Function(String) onDelete;
 
   const _PublicationCard({
-    Key? key,
     required this.publication,
     required this.publicationId,
     required this.onDelete,
-  }) : super(key: key);
+  });
 
   static String _extractTextFromContent(dynamic content) {
     if (content == null) {
