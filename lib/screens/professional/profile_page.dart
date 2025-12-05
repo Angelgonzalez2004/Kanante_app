@@ -1,4 +1,3 @@
-// lib/screens/professional/profile_page.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,12 +7,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_quill/flutter_quill.dart';
 import 'dart:convert';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geocoding/geocoding.dart' as geocoding;
-import 'package:geolocator/geolocator.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../models/user_model.dart';
-
 
 class ProfessionalProfilePage extends StatefulWidget {
   final String? professionalUid;
@@ -35,6 +31,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
   bool _isEditing = false;
   
   List<PlatformFile> _pickedDocuments = [];
+  XFile? _pickedProfileImage; // Variable para la nueva imagen de perfil
 
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -43,9 +40,11 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
   late QuillController _biographyQuillController;
   final _institutionNameController = TextEditingController();
 
+  // ignore: unused_field
   static const List<String> _predefinedSpecialties = [
     'Psicología Clínica', 'Psicoterapia', 'Neuropsicología', 'Psiquiatría', 'Terapia Familiar',
   ];
+  // ignore: unused_field
   static const List<String> _currencies = ['MXN', 'USD', 'EUR', 'Otro'];
 
   void _showAppSnackBar(String message, {bool isError = false}) {
@@ -94,7 +93,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
           _phoneController.text = _user!.phone ?? '';
           _rfcController.text = _user!.rfc ?? '';
           _birthController.text = _user!.birthDate ?? '';
-          _institutionNameController.text = ''; // Placeholder, adjust as needed
+          _institutionNameController.text = ''; // Placeholder
 
           final biographyContent = _user!.bio;
           if (biographyContent != null && biographyContent.isNotEmpty) {
@@ -129,6 +128,20 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
       _showAppSnackBar('${result.files.length} documento(s) seleccionado(s). Guárdalos para subirlos.');
     }
   }
+
+  // Función para seleccionar imagen de perfil
+  Future<void> _pickProfileImage() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        setState(() {
+          _pickedProfileImage = pickedFile;
+        });
+      }
+    } catch (e) {
+      _showAppSnackBar('Error al seleccionar imagen: $e', isError: true);
+    }
+  }
   
   Future<void> _saveProfile() async {
     final uid = _auth.currentUser?.uid;
@@ -136,7 +149,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
 
     setState(() => _isLoading = true);
     try {
-      // --- Upload documents if any were picked ---
+      // 1. Upload Documents
       List<String> documentUrls = List<String>.from(_user?.verificationDocuments ?? []);
       if (_pickedDocuments.isNotEmpty) {
         for (var doc in _pickedDocuments) {
@@ -152,13 +165,28 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
         }
       }
 
+      // 2. Upload Profile Image (if changed)
+      String? profileImageUrl = _user?.profileImageUrl;
+      if (_pickedProfileImage != null) {
+        final ref = _storage.ref().child('profile_images/$uid.jpg');
+        TaskSnapshot uploadTask;
+        if (kIsWeb) {
+          final bytes = await _pickedProfileImage!.readAsBytes();
+          uploadTask = await ref.putData(bytes);
+        } else {
+          uploadTask = await ref.putFile(File(_pickedProfileImage!.path));
+        }
+        profileImageUrl = await uploadTask.ref.getDownloadURL();
+      }
+
+      // 3. Update Database
       await _db.child('users/$uid').update({
         'name': _nameController.text.trim(),
         'phone': _phoneController.text.trim(),
         'rfc': _rfcController.text.trim(),
         'birthDate': _birthController.text.trim(),
         'bio': jsonEncode(_biographyQuillController.document.toDelta().toJson()),
-        // If new documents were uploaded, set status to pending
+        if (profileImageUrl != null) 'profileImageUrl': profileImageUrl,
         if (_pickedDocuments.isNotEmpty) 'verificationStatus': 'pending',
         if (_pickedDocuments.isNotEmpty) 'verificationDocuments': documentUrls,
       });
@@ -166,8 +194,9 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
       setState(() {
         _isEditing = false;
         _pickedDocuments = [];
+        _pickedProfileImage = null;
       });
-      _loadProfile(); // Reload data from Firebase
+      _loadProfile(); 
       _showAppSnackBar('Perfil actualizado con éxito.');
 
     } catch (e) {
@@ -217,12 +246,100 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
   Widget _buildEditableForm() {
     return Column(
       children: [
-        // Other form fields...
-        _buildTextField(_nameController, 'Nombre completo', Icons.person_outline),
+        // --- Avatar / Foto de Perfil ---
+        GestureDetector(
+          onTap: _isEditing ? _pickProfileImage : null,
+          child: Stack(
+            children: [
+              CircleAvatar(
+                radius: 60,
+                backgroundColor: Colors.grey[200],
+                backgroundImage: _pickedProfileImage != null
+                    ? (kIsWeb
+                        ? NetworkImage(_pickedProfileImage!.path)
+                        : FileImage(File(_pickedProfileImage!.path)) as ImageProvider)
+                    : (_user?.profileImageUrl != null
+                        ? CachedNetworkImageProvider(_user!.profileImageUrl!)
+                        : null),
+                child: (_pickedProfileImage == null && _user?.profileImageUrl == null)
+                    ? const Icon(Icons.person, size: 60, color: Colors.grey)
+                    : null,
+              ),
+              if (_isEditing)
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // --- Campos de Texto ---
+        _buildTextField(_nameController, 'Nombre completo', Icons.person_outline, enabled: _isEditing),
+        const SizedBox(height: 16),
+        _buildTextField(_phoneController, 'Teléfono', Icons.phone_outlined, keyboardType: TextInputType.phone, enabled: _isEditing),
+        const SizedBox(height: 16),
+        _buildTextField(_rfcController, 'RFC / Cédula', Icons.badge_outlined, enabled: _isEditing),
+        const SizedBox(height: 16),
+        _buildTextField(_birthController, 'Fecha de Nacimiento (DD/MM/AAAA)', Icons.calendar_today_outlined, enabled: _isEditing),
+        const SizedBox(height: 24),
+
+        // --- Editor de Biografía ---
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text("Biografía / Sobre mí", style: Theme.of(context).textTheme.titleMedium),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade400),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+               if (_isEditing)
+                QuillToolbar.simple(
+                  configurations: QuillSimpleToolbarConfigurations(
+                    controller: _biographyQuillController,
+                    sharedConfigurations: const QuillSharedConfigurations(
+                      locale: Locale('es'),
+                    ),
+                  ),
+                ),
+               if (_isEditing) const Divider(),
+               SizedBox(
+                 height: 200,
+                 child: Padding(
+                   padding: const EdgeInsets.all(8.0),
+                   child: QuillEditor.basic(
+                     configurations: QuillEditorConfigurations(
+                       controller: _biographyQuillController,
+                       sharedConfigurations: const QuillSharedConfigurations(
+                         locale: Locale('es'),
+                       ),
+                       // En modo lectura bloqueamos el foco
+                       // Si _isEditing es false, no permitimos editar
+                     ),
+                     focusNode: FocusNode(canRequestFocus: _isEditing),
+                   ),
+                 ),
+               ),
+            ],
+          ),
+        ),
+
         const SizedBox(height: 20),
-        // Verification Card is now part of the form when editing
-        _buildVerificationCard(),
-        // More form fields...
+        // Verification Card is now part of the form when editing to upload docs
+        if (_isEditing) _buildVerificationCard(),
       ],
     );
   }
@@ -294,7 +411,8 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
                   )),
             ],
             const SizedBox(height: 16),
-            if (status != 'verified')
+            // Solo mostramos el botón de subir si está editando Y no está verificada (o fue rechazada)
+            if (status != 'verified' && _isEditing)
               Center(
                 child: ElevatedButton.icon(
                   onPressed: _pickDocuments,
@@ -306,9 +424,9 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Center(
-                  child: TextButton(
-                    onPressed: _saveProfile,
-                    child: const Text('Guardar y enviar para verificación'),
+                  child: Text(
+                    'Se enviarán ${_pickedDocuments.length} documentos al guardar.',
+                    style: TextStyle(color: Colors.orange[800], fontStyle: FontStyle.italic),
                   ),
                 ),
               )
@@ -318,50 +436,21 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
     );
   }
   
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {TextInputType? keyboardType, int maxLines = 1}) {
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {TextInputType? keyboardType, int maxLines = 1, bool enabled = true}) {
     return TextFormField(
       controller: controller,
+      enabled: enabled,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,
-        fillColor: Theme.of(context).colorScheme.surface.withAlpha(150),
+        // CORRECCIÓN: withAlpha espera entero, withValues es mejor en versiones nuevas, pero withAlpha funciona bien aquí.
+        // Si tienes Flutter 3.27+ estricto, usa: Colors.grey.withValues(alpha: 0.1)
+        fillColor: enabled ? Theme.of(context).colorScheme.surface : Colors.grey.withAlpha(50), 
       ),
       keyboardType: keyboardType,
       maxLines: maxLines,
     );
   }
-}
-// Dummy widgets to avoid breaking the file, will be replaced by actual implementations
-class QuillEditorConfigurations {
-  final QuillController controller;
-  final bool readOnly;
-  final QuillSharedConfigurations sharedConfigurations;
-  QuillEditorConfigurations({required this.controller, this.readOnly = false, required this.sharedConfigurations});
-}
-
-class QuillSharedConfigurations {
-  final Locale locale;
-  const QuillSharedConfigurations({required this.locale});
-}
-
-class QuillEditor extends StatelessWidget {
-  final QuillEditorConfigurations configurations;
-  const QuillEditor.basic({super.key, required this.configurations});
-  @override
-  Widget build(BuildContext context) => const SizedBox.shrink();
-}
-
-class Document {
-  Document();
-  void insert(int index, String text) {}
-  factory Document.fromJson(dynamic json) => Document();
-  dynamic toDelta() => {};
-  bool isEmpty() => true;
-}
-
-class QuillController extends ChangeNotifier {
-  Document document = Document();
-  QuillController.basic();
 }

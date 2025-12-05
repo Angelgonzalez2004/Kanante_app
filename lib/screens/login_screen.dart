@@ -140,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // ADMIN BACKDOOR for Google Sign-in
         if (user.email == 'admin@kanante.app') {
           UserModel? userModel = await _firebaseService.getUserProfile(user.uid);
-          if (userModel == null) { // If admin profile doesn't exist, create it
+          if (userModel == null) { 
             await _firebaseService.createNewUser(
               uid: user.uid,
               email: user.email!,
@@ -175,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _navigateToDashboard(String accountType) {
     if (!mounted) return;
     
-    Widget dashboard;
+    Widget? dashboard;
     switch (accountType) {
       case 'Usuario':
         dashboard = const UserDashboard();
@@ -187,12 +187,11 @@ class _LoginScreenState extends State<LoginScreen> {
         dashboard = const AdminDashboard();
         break;
       default:
-        // As a fallback, navigate to login if account type is unknown
         _showSnackBar('Tipo de cuenta no reconocido.', isError: true);
-        dashboard = const LoginScreen(); 
+        return; 
     }
     
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => dashboard));
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => dashboard!));
   }
 
   @override
@@ -310,6 +309,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: _login,
                     ),
                   ),
+                  
                   const SizedBox(height: 24),
                   FadeInSlide(
                     duration: const Duration(milliseconds: 500),
@@ -325,6 +325,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                   ),
+
                   const SizedBox(height: 24),
                   FadeInSlide(
                     duration: const Duration(milliseconds: 500),
@@ -336,13 +337,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 32),
+                  
+                  // --- SOLUCIÓN AL OVERFLOW: WRAP ---
                   FadeInSlide(
                     duration: const Duration(milliseconds: 500),
                     delay: const Duration(milliseconds: 900),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    child: Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        const Text('¿No tienes una cuenta?', style: TextStyle(color: AppColors.textLight)),
+                        const Text('¿No tienes una cuenta? ', style: TextStyle(color: AppColors.textLight)),
                         TextButton(
                           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen())),
                           child: const Text('Crea una aquí', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
@@ -356,7 +360,8 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           if (isLoading)
             Container(
-              color: const Color.fromRGBO(0, 0, 0, 0.2),
+              // Corregido withOpacity por withValues para Flutter 3.27+
+              color: Colors.black.withValues(alpha: 0.2), 
               child: const Center(child: CircularProgressIndicator(color: AppColors.primary)),
             ),
         ],

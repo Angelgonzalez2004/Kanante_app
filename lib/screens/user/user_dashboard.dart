@@ -178,7 +178,7 @@ class _UserDashboardState extends State<UserDashboard> {
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout),
-              title: const Text('Cerrar SesiÃ³n'),
+              title: const Text('Cerrar Sesión'),
               onTap: _logout,
             ),
           ],

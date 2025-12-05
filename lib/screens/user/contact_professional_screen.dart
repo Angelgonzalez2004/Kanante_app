@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../models/user_model.dart';
 import '../../services/firebase_service.dart';
 import '../../widgets/fade_in_slide.dart';
-import 'professional_profile_page.dart';
+import '../professional/professional_profile_viewer_page.dart';
 
 class ContactProfessionalScreen extends StatefulWidget {
   const ContactProfessionalScreen({super.key});
@@ -122,7 +122,7 @@ class _ContactProfessionalScreenState extends State<ContactProfessionalScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ProfessionalProfilePage(professionalId: professional.id),
+              builder: (context) => ProfessionalProfileViewerPage(professionalUid: professional.id),
             ),
           );
         },

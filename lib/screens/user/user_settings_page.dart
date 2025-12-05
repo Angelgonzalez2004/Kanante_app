@@ -50,7 +50,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _darkMode = prefs.getBool('darkMode') ?? false;
     _notifications = prefs.getBool('notifications') ?? true;
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   Future<void> _loadUserData() async {
@@ -58,7 +58,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
     if (user == null) return;
 
     final snapshot = await _dbRef.child('users/${user.uid}').get();
-    if (snapshot.exists) {
+    if (snapshot.exists && mounted) {
       final data = Map<String, dynamic>.from(snapshot.value as Map);
       setState(() {
         _name = data['name'] ?? '';
@@ -85,12 +85,10 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
   Future<void> _changePassword() async {
     final TextEditingController newPassword = TextEditingController();
 
-    // Use a local variable to store the result of the dialog,
-    // as context might not be valid after await showDialog.
     String? snackBarMessage;
     Color snackBarColor = Colors.red;
 
-    await showDialog<void>( // No need to await a boolean result if we handle it internally
+    await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Cambiar contraseña'),
@@ -103,18 +101,26 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancelar')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancelar')),
           ElevatedButton(
             onPressed: () async {
               try {
                 await _auth.currentUser?.updatePassword(newPassword.text);
                 snackBarMessage = 'Contraseña actualizada correctamente';
                 snackBarColor = Colors.green;
-                Navigator.pop(dialogContext); // Pop the dialog
+                
+                // CORRECCIÓN: Verificar si el diálogo sigue montado antes de cerrarlo
+                if (!dialogContext.mounted) return;
+                Navigator.pop(dialogContext);
               } catch (e) {
                 snackBarMessage = 'Error: ${e.toString()}';
                 snackBarColor = Colors.red;
-                Navigator.pop(dialogContext); // Pop the dialog
+                
+                // CORRECCIÓN: Verificar si el diálogo sigue montado antes de cerrarlo
+                if (!dialogContext.mounted) return;
+                Navigator.pop(dialogContext);
               }
             },
             child: const Text('Guardar'),
@@ -123,11 +129,10 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
       ),
     );
 
-    // After the dialog is dismissed, check mounted before showing a snackbar on the main Scaffold
     if (!mounted) return;
     if (snackBarMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(snackBarMessage!), backgroundColor: snackBarColor), // Added '!'
+        SnackBar(content: Text(snackBarMessage!), backgroundColor: snackBarColor),
       );
     }
   }
@@ -139,8 +144,12 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
         title: const Text('Cerrar sesión'),
         content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sí, salir')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar')),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Sí, salir')),
         ],
       ),
     );
@@ -148,8 +157,11 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
     if (confirm == true) {
       final name = _name.isNotEmpty ? _name : 'Usuario';
       await _auth.signOut();
+      
+      // La función _showSnackBar ya verifica 'mounted', así que es seguro llamarla aquí.
       _showSnackBar('¡Hasta luego, $name! 👋', color: Colors.green);
-      if (!mounted) return; // Add this line
+      
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -162,14 +174,17 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
     setState(() => _darkMode = value);
     themeNotifier.value = value ? ThemeMode.dark : ThemeMode.light;
     await prefs.setBool('darkMode', value);
-    _showSnackBar(value ? 'Modo oscuro activado' : 'Modo claro activado', color: Colors.green);
+    _showSnackBar(value ? 'Modo oscuro activado' : 'Modo claro activado',
+        color: Colors.green);
   }
 
   Future<void> _toggleNotifications(bool value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() => _notifications = value);
     await prefs.setBool('notifications', value);
-    _showSnackBar(value ? 'Notificaciones activadas' : 'Notificaciones desactivadas', color: Colors.green);
+    _showSnackBar(
+        value ? 'Notificaciones activadas' : 'Notificaciones desactivadas',
+        color: Colors.green);
   }
 
   @override
@@ -182,7 +197,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
-      backgroundColor: Theme.of(context).colorScheme.background, // Changed from background to surface
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.teal))
           : Center(
@@ -199,7 +214,9 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                       padding: const EdgeInsets.all(24),
                       child: Form(
                         key: _formKey,
-                        child: isWide ? _buildWideLayout() : _buildNarrowLayout(),
+                        child: isWide
+                            ? _buildWideLayout()
+                            : _buildNarrowLayout(),
                       ),
                     ),
                   ),
@@ -245,7 +262,10 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
       children: [
         Text(
           'Mi Perfil',
-          style: TextStyle(fontSize: size.width * 0.055, fontWeight: FontWeight.bold, color: Colors.teal),
+          style: TextStyle(
+              fontSize: size.width * 0.055,
+              fontWeight: FontWeight.bold,
+              color: Colors.teal),
         ),
         SizedBox(height: size.height * 0.02),
         TextFormField(
@@ -275,11 +295,13 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.teal,
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: _saveUserData,
             icon: const Icon(Icons.save_rounded, color: Colors.white),
-            label: const Text('Guardar Cambios', style: TextStyle(fontSize: 16, color: Colors.white)),
+            label: const Text('Guardar Cambios',
+                style: TextStyle(fontSize: 16, color: Colors.white)),
           ),
         ),
       ],
@@ -293,7 +315,10 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
       children: [
         Text(
           'Ajustes de la Aplicación',
-          style: TextStyle(fontSize: size.width * 0.055, fontWeight: FontWeight.bold, color: Colors.teal),
+          style: TextStyle(
+              fontSize: size.width * 0.055,
+              fontWeight: FontWeight.bold,
+              color: Colors.teal),
         ),
         SizedBox(height: size.height * 0.015),
         ListTile(
@@ -307,16 +332,18 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           value: _darkMode,
-          activeTrackColor: Colors.teal.withOpacity(0.5), // New
-          activeThumbColor: Colors.teal, // New
+          // CORRECCIÓN: withValues en lugar de withOpacity
+          activeTrackColor: Colors.teal.withValues(alpha: 0.5),
+          activeThumbColor: Colors.teal,
           title: const Text('Modo oscuro'),
           onChanged: _toggleTheme,
         ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           value: _notifications,
-          activeTrackColor: Colors.teal.withOpacity(0.5), // New
-          activeThumbColor: Colors.teal, // New
+          // CORRECCIÓN: withValues en lugar de withOpacity
+          activeTrackColor: Colors.teal.withValues(alpha: 0.5),
+          activeThumbColor: Colors.teal,
           title: const Text('Notificaciones'),
           onChanged: _toggleNotifications,
         ),
@@ -324,14 +351,14 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
         Center(
           child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent.withAlpha(25), // Replaced withOpacity
+              // CORRECCIÓN: withValues en lugar de withAlpha (aunque withAlpha funciona, esto es más moderno)
+              backgroundColor: Colors.redAccent.withValues(alpha: 0.1),
               foregroundColor: Colors.redAccent,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: const BorderSide(color: Colors.redAccent)
-              ),
+                  borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: Colors.redAccent)),
             ),
             onPressed: _logout,
             icon: const Icon(Icons.logout_rounded),

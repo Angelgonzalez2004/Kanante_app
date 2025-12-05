@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:kanante_app/screens/professional/professional_profile_page.dart';
-import 'package:kanante_app/screens/professional/image_viewer_page.dart'; // Import ImageViewerPage
-import 'package:kanante_app/screens/search/search_page.dart'; // Import SearchPage
-import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
-import 'package:share_plus/share_plus.dart'; // Import share_plus
+
+// Import corregido (carpeta user)
+import 'package:kanante_app/screens/user/professional_profile_page.dart';
+
+import 'package:kanante_app/screens/professional/image_viewer_page.dart';
+import 'package:kanante_app/screens/search/search_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:share_plus/share_plus.dart';
 
 class PublicationDetailPage extends StatefulWidget {
   final Map<String, dynamic> publication;
@@ -19,17 +22,27 @@ class PublicationDetailPage extends StatefulWidget {
 
 class PublicationDetailPageState extends State<PublicationDetailPage> {
   Map<String, dynamic>? _authorData;
-  bool _isBookmarked = false; // New state variable for bookmark
+  bool _isBookmarked = false;
+  
+  // FocusNode para evitar que el teclado se abra (simula modo lectura)
+  final FocusNode _editorFocusNode = FocusNode(canRequestFocus: false);
 
   @override
   void initState() {
     super.initState();
     _fetchAuthorData();
-    _checkBookmarkStatus(); // Check bookmark status on init
+    _checkBookmarkStatus();
+  }
+
+  @override
+  void dispose() {
+    _editorFocusNode.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchAuthorData() async {
     try {
+      // Nota: Aquí SI usamos 'professionalUid' porque es la clave en tu base de datos (Map)
       final snapshot = await FirebaseDatabase.instance
           .ref('users/${widget.publication['professionalUid']}')
           .get();
@@ -39,11 +52,10 @@ class PublicationDetailPageState extends State<PublicationDetailPage> {
         });
       }
     } catch (e) {
-      // Handle error
+      debugPrint('Error fetching author data: $e');
     }
   }
 
-  // New method to check bookmark status
   Future<void> _checkBookmarkStatus() async {
     final prefs = await SharedPreferences.getInstance();
     final bookmarkedPublications = prefs.getStringList('bookmarkedPublications') ?? [];
@@ -52,7 +64,6 @@ class PublicationDetailPageState extends State<PublicationDetailPage> {
     });
   }
 
-  // New method to toggle bookmark status
   Future<void> _toggleBookmark() async {
     final prefs = await SharedPreferences.getInstance();
     List<String> bookmarkedPublications = prefs.getStringList('bookmarkedPublications') ?? [];
@@ -111,9 +122,9 @@ class PublicationDetailPageState extends State<PublicationDetailPage> {
         : null;
 
     if (updatedAt != null && updatedAt != createdAt) {
-      return 'Última modificación: ${updatedAt.toLocal().toString().split(' ')[0]}'; // Format as YYYY-MM-DD
+      return 'Última modificación: ${updatedAt.toLocal().toString().split(' ')[0]}';
     } else {
-      return 'Publicado: ${createdAt.toLocal().toString().split(' ')[0]}'; // Format as YYYY-MM-DD
+      return 'Publicado: ${createdAt.toLocal().toString().split(' ')[0]}';
     }
   }
 
@@ -146,7 +157,7 @@ class PublicationDetailPageState extends State<PublicationDetailPage> {
                       ? (widget.publication['content'] as List)
                           .map((item) => item is Map && item.containsKey('insert') ? item['insert'] : '')
                           .join('')
-                          .substring(0, (widget.publication['content'] as List).length > 50 ? 50 : (widget.publication['content'] as List).length) // Take a snippet
+                          .substring(0, (widget.publication['content'] as List).length > 50 ? 50 : (widget.publication['content'] as List).length)
                       : widget.publication['content'].toString().substring(0, widget.publication['content'].toString().length > 50 ? 50 : widget.publication['content'].toString().length);
                   Share.share('$title\n\n$contentSnippet...');
                 },
@@ -162,7 +173,7 @@ class PublicationDetailPageState extends State<PublicationDetailPage> {
                           imageUrl: attachments.first,
                           fit: BoxFit.cover,
                           placeholder: (context, url) => Container(color: Colors.grey[300]),
-                          errorWidget: (context, url, error) => Container(color: Colors.grey, child: Icon(Icons.error)),
+                          errorWidget: (context, url, error) => Container(color: Colors.grey, child: const Icon(Icons.error)),
                         )
                       : Container(color: Colors.grey),
                   const DecoratedBox(
@@ -198,7 +209,8 @@ class PublicationDetailPageState extends State<PublicationDetailPage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => ProfessionalProfilePage(
-                                professionalUid: widget.publication['professionalUid'],
+                                // AQUÍ ESTÁ LA CORRECCIÓN: 'professionalId' en lugar de 'professionalUid'
+                                professionalId: widget.publication['professionalUid'],
                               ),
                             ),
                           );
@@ -254,8 +266,11 @@ class PublicationDetailPageState extends State<PublicationDetailPage> {
                       document: _safelyLoadDocument(content),
                       selection: const TextSelection.collapsed(offset: 0),
                     ),
-                    readOnly: true,
+                    sharedConfigurations: const QuillSharedConfigurations(
+                      locale: Locale('es'),
+                    ),
                   ),
+                  focusNode: _editorFocusNode, // Bloquea el teclado (Modo lectura)
                 ),
               ),
             ),
@@ -273,7 +288,7 @@ class PublicationDetailPageState extends State<PublicationDetailPage> {
                   return Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    clipBehavior: Clip.antiAlias, // Ensures the image respects the card's rounded corners
+                    clipBehavior: Clip.antiAlias,
                     child: InkWell(
                       onTap: () {
                         Navigator.push(
@@ -289,7 +304,7 @@ class PublicationDetailPageState extends State<PublicationDetailPage> {
                         imageUrl: attachments[index],
                         fit: BoxFit.cover,
                         placeholder: (context, url) => Container(color: Colors.grey[300]),
-                        errorWidget: (context, url, error) => Container(color: Colors.grey, child: Icon(Icons.error)),
+                        errorWidget: (context, url, error) => Container(color: Colors.grey, child: const Icon(Icons.error)),
                       ),
                     ),
                   );

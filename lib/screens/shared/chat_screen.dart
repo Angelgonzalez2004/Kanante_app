@@ -27,7 +27,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final FirebaseService _firebaseService = FirebaseService();
   final TextEditingController _messageController = TextEditingController();
   final String _currentUserId = FirebaseAuth.instance.currentUser!.uid;
-  final FocusNode _messageFocusNode = FocusNode(); // Re-declared
+  final FocusNode _messageFocusNode = FocusNode();
 
   @override
   void initState() {

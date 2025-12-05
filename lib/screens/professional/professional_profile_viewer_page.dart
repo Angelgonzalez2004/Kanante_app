@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-class ProfessionalProfilePage extends StatelessWidget {
+class ProfessionalProfileViewerPage extends StatelessWidget {
   final String professionalUid;
 
-  const ProfessionalProfilePage({super.key, required this.professionalUid});
+  const ProfessionalProfileViewerPage({super.key, required this.professionalUid});
 
   @override
   Widget build(BuildContext context) {

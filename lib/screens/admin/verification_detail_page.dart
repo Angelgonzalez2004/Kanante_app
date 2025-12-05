@@ -202,9 +202,14 @@ class _VerificationDetailPageState extends State<VerificationDetailPage> {
             if (documents.isEmpty)
               const Text('No hay documentos subidos.'),
             ...documents.map((docUrl) {
+              final decodedName = Uri.decodeFull(docUrl.split('/').last.split('?').first);
+              final displayName = decodedName.length > 20
+                  ? decodedName.substring(0, 20) + '...'
+                  : decodedName;
+
               return ListTile(
                 leading: const Icon(Icons.description, color: Colors.blueGrey),
-                title: Text(Uri.decodeFull(docUrl.split('/').last.split('?').first).substring(0, 20) + '...', overflow: TextOverflow.ellipsis),
+                title: Text(displayName, overflow: TextOverflow.ellipsis),
                 trailing: ElevatedButton(
                   child: const Text('Ver'),
                   onPressed: () => _launchURL(docUrl),

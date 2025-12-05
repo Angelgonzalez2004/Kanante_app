@@ -39,7 +39,7 @@ class HomePage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          Text('Accesos RÃ¡pidos', style: textTheme.titleLarge),
+          Text('Accesos Rápidos', style: textTheme.titleLarge),
           const SizedBox(height: 16),
           GridView.count(
             crossAxisCount: 2,

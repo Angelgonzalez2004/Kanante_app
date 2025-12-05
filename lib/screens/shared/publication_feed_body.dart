@@ -90,7 +90,7 @@ class _PublicationFeedBodyState extends State<PublicationFeedBody> {
                     publication.authorName ?? 'Autor Desconocido',
                     style: TextStyle(color: widget.textColor, fontWeight: FontWeight.bold, fontSize: 16),
                   ),
-                  if (publication.authorVerificationStatus == 'verificado')
+                  if (publication.authorVerificationStatus == 'verified')
                     Padding(
                       padding: const EdgeInsets.only(left: 6.0),
                       child: Icon(Icons.verified, color: widget.textColor, size: 16),

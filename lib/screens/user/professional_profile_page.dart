@@ -77,7 +77,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
   }
 
   Widget _buildProfileInfoTab(UserModel professional) {
-    final bool isVerified = professional.verificationStatus == 'verificado';
+    final bool isVerified = professional.verificationStatus == 'verified';
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -92,7 +92,9 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
                   backgroundImage: professional.profileImageUrl != null
                       ? CachedNetworkImageProvider(professional.profileImageUrl!)
                       : null,
-                  child: professional.profileImageUrl == null ? const Icon(Icons.person, size: 40) : null,
+                  child: professional.profileImageUrl == null
+                      ? const Icon(Icons.person, size: 40)
+                      : null,
                 ),
               ),
               const SizedBox(width: 16),
@@ -100,14 +102,20 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(professional.name, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                    Text(professional.name,
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.bold)),
                     if (isVerified)
                       Padding(
                         padding: const EdgeInsets.only(top: 4.0),
                         child: Chip(
-                          avatar: Icon(Icons.verified, color: Colors.teal.shade800, size: 18),
+                          avatar: Icon(Icons.verified,
+                              color: Colors.teal.shade800, size: 18),
                           label: const Text('Verificado'),
-                          backgroundColor: Colors.teal.withOpacity(0.1),
+                          // CORRECCIÓN: withOpacity -> withValues
+                          backgroundColor: Colors.teal.withValues(alpha: 0.1),
                         ),
                       ),
                   ],
@@ -118,10 +126,12 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
           const SizedBox(height: 16),
           if (professional.specialties.isNotEmpty)
             Text(
-              professional.specialties.join(' â€¢ '),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.black54),
+              professional.specialties.join(' • '),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(color: Colors.black54),
             ),
-          // Add more profile details here if available in the model
         ],
       ),
     );
@@ -163,7 +173,8 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
               icon: const Icon(Icons.message_rounded),
               label: const Text('Mensaje'),
               onPressed: () => _openChat(professional),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal, foregroundColor: Colors.white),
             ),
           ),
           const SizedBox(width: 12),
@@ -172,7 +183,9 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
               icon: const Icon(Icons.calendar_month_rounded),
               label: const Text('Agendar Cita'),
               onPressed: () => _showAppointmentRequestDialog(professional),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange.shade700, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange.shade700,
+                  foregroundColor: Colors.white),
             ),
           ),
         ],
@@ -217,7 +230,8 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
                         padding: const EdgeInsets.only(right: 4.0),
                         child: CachedNetworkImage(
                           imageUrl: imageUrl,
-                          width: MediaQuery.of(context).size.width * (publication.attachments.length > 1 ? 0.8 : 1),
+                          width: MediaQuery.of(context).size.width *
+                              (publication.attachments.length > 1 ? 0.8 : 1),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -231,16 +245,21 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(publication.title, style: Theme.of(context).textTheme.titleLarge),
+                Text(publication.title,
+                    style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 8),
                 AbsorbPointer(
                   child: QuillEditor.basic(
                     configurations: QuillEditorConfigurations(
                       controller: controller,
-                      readOnly: true,
+                      // CORRECCIÓN: Quitamos readOnly: true (causaba error)
+                      sharedConfigurations: const QuillSharedConfigurations(
+                        locale: Locale('es'),
+                      ),
                       showCursor: false,
-                      padding: EdgeInsets.zero,
                     ),
+                    // CORRECCIÓN: Usamos FocusNode para evitar que el teclado se abra
+                    focusNode: FocusNode(canRequestFocus: false),
                   ),
                 ),
               ],
@@ -256,14 +275,18 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
     if (currentUserId == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Debes iniciar sesiÃ³n para chatear.')),
+        const SnackBar(content: Text('Debes iniciar sesión para chatear.')),
       );
       return;
     }
 
     try {
-      final chatId = await _firebaseService.getOrCreateChat(currentUserId, professional.id);
-      if (!mounted) return; // Re-add this check
+      final chatId = await _firebaseService.getOrCreateChat(
+          currentUserId, professional.id);
+      
+      // CORRECCIÓN: Verificar mounted antes de usar context
+      if (!mounted) return;
+      
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -275,7 +298,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
         ),
       );
     } catch (e) {
-      if (!mounted) return; // Re-add this check
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('No se pudo abrir el chat: $e')),
       );
@@ -287,7 +310,8 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
     if (currentUserId == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Debes iniciar sesiÃ³n para agendar una cita.')),
+        const SnackBar(
+            content: Text('Debes iniciar sesión para agendar una cita.')),
       );
       return;
     }
@@ -300,6 +324,9 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
     );
 
     if (pickedDate == null) return; // User cancelled
+
+    // Verificar mounted después de un await
+    if (!mounted) return;
 
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
@@ -317,10 +344,14 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
     );
 
     try {
-      await _firebaseService.requestAppointment(professional.id, currentUserId, finalDateTime);
+      await _firebaseService.requestAppointment(
+          professional.id, currentUserId, finalDateTime);
+      
+      // CORRECCIÓN: Verificar mounted antes de usar context
       if (!mounted) return;
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Solicitud de cita enviada con Ã©xito.')),
+        const SnackBar(content: Text('Solicitud de cita enviada con éxito.')),
       );
     } catch (e) {
       if (!mounted) return;

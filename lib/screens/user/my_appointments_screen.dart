@@ -40,12 +40,12 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Cancelar Cita'),
-        content: const Text('Â¿EstÃ¡s seguro de que quieres cancelar esta cita?'),
+        content: const Text('¿Estás seguro de que quieres cancelar esta cita?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('No')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('SÃ­, cancelar', style: TextStyle(color: Colors.red)),
+            child: const Text('Sí, cancelar', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

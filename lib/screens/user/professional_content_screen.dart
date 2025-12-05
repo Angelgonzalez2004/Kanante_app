@@ -1,8 +1,14 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import '../../models/publication_model.dart';
-import '../../services/firebase_service.dart';
-import 'professional_profile_page.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+
+// Importa el servicio de Firebase
+import 'package:kanante_app/services/firebase_service.dart';
+
+// ESTA ES LA LÍNEA CLAVE QUE DEBES ASEGURARTE DE TENER:
+import 'package:kanante_app/models/publication_model.dart'; 
+
+// Importa la página de perfil del profesional
+import '../professional/professional_profile_viewer_page.dart';
 
 class ProfessionalContentScreen extends StatefulWidget {
   const ProfessionalContentScreen({super.key});
@@ -33,7 +39,10 @@ class _ProfessionalContentScreenState extends State<ProfessionalContentScreen> {
           }
           if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(
-              child: Text('No hay publicaciones disponibles.', style: TextStyle(color: Colors.white)),
+              child: Text(
+                'No hay publicaciones disponibles.',
+                style: TextStyle(color: Colors.white),
+              ),
             );
           }
 
@@ -58,7 +67,11 @@ class _ProfessionalContentScreenState extends State<ProfessionalContentScreen> {
             ? DecorationImage(
                 image: CachedNetworkImageProvider(publication.attachments.first),
                 fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.3), BlendMode.darken),
+                // 2. CORRECCIÓN: Actualizado para Flutter 3.27+ (antes withOpacity)
+                colorFilter: ColorFilter.mode(
+                  Colors.black.withValues(alpha: 0.3), 
+                  BlendMode.darken,
+                ),
               )
             : null,
       ),
@@ -73,7 +86,9 @@ class _ProfessionalContentScreenState extends State<ProfessionalContentScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ProfessionalProfilePage(professionalId: publication.professionalUid),
+                    builder: (context) => ProfessionalProfileViewerPage(
+                      professionalUid: publication.professionalUid,
+                    ),
                   ),
                 );
               },
@@ -84,29 +99,45 @@ class _ProfessionalContentScreenState extends State<ProfessionalContentScreen> {
                     backgroundImage: publication.authorImageUrl != null
                         ? CachedNetworkImageProvider(publication.authorImageUrl!)
                         : null,
-                                      child: publication.authorImageUrl == null ? const Icon(Icons.person) : null,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      publication.authorName ?? 'Autor Desconocido',
-                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                                    ),
-                                    if (publication.authorVerificationStatus == 'verificado')
-                                      const Padding(
-                                        padding: EdgeInsets.only(left: 6.0),
-                                        child: Icon(Icons.verified, color: Colors.white, size: 16),
-                                      ),
-                                  ],
-                                ),
-                              ),            const SizedBox(height: 12),
+                    child: publication.authorImageUrl == null
+                        ? const Icon(Icons.person)
+                        : null,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    publication.authorName ?? 'Autor Desconocido',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  if (publication.authorVerificationStatus == 'verified')
+                    const Padding(
+                      padding: EdgeInsets.only(left: 6.0),
+                      child: Icon(Icons.verified, color: Colors.white, size: 16),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
             Text(
               publication.title,
-              style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, shadows: [Shadow(blurRadius: 4)]),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                shadows: [Shadow(blurRadius: 4)],
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               publication.contentAsPlainText,
-              style: const TextStyle(color: Colors.white, fontSize: 16, shadows: [Shadow(blurRadius: 2)]),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                shadows: [Shadow(blurRadius: 2)],
+              ),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),

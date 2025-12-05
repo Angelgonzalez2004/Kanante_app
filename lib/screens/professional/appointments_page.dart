@@ -61,7 +61,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'GestiÃ³n de Citas',
+              'Gestión de Citas',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.teal, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),

@@ -26,6 +26,7 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  static const String _kAdminSecretKey = '12345678'; // Keep this secure
   final _formKey = GlobalKey<FormState>();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -230,7 +231,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             ElevatedButton(
               onPressed: () {
-                if (keyController.text.trim() == '12345678') {
+                if (keyController.text.trim() == _kAdminSecretKey) {
                   setState(() => _isAdminKeyVerified = true);
                   Navigator.of(context).pop();
                   _showSnackBar('Clave de administrador correcta.');
@@ -331,17 +332,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 20),
                      FadeInSlide(
                       delay: const Duration(milliseconds: 1000),
-                       child: TextButton(
+                        child: TextButton(
                           onPressed: () => Navigator.of(context).pop(),
                           child: const Text('¿Ya tienes una cuenta? Inicia Sesión', style: TextStyle(color: AppColors.primary)),
                         ),
-                     ),
+                      ),
                   ],
                 ),
               ),
             ),
           ),
-          if (_isLoading) Container(color: Colors.black.withOpacity(0.2), child: const Center(child: CircularProgressIndicator(color: AppColors.primary))),
+          if (_isLoading) Container(color: Colors.black.withValues(alpha: 0.2), child: const Center(child: CircularProgressIndicator(color: AppColors.primary))),
         ],
       ),
     );
@@ -355,6 +356,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       labelText: label,
       icon: icon,
       keyboardType: keyboardType,
+      enabled: enabled,
       validator: validator ?? (val) => null,
     );
   }
@@ -416,6 +418,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         labelStyle: const TextStyle(color: AppColors.textLight),
         prefixIconColor: AppColors.primary,
         filled: true,
+        // Usamos const aquí
         fillColor: const Color.fromRGBO(255, 255, 255, 0.8),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
@@ -445,6 +448,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         labelStyle: const TextStyle(color: AppColors.textLight),
         prefixIconColor: AppColors.primary,
         filled: true,
+        // Usamos const aquí
         fillColor: const Color.fromRGBO(255, 255, 255, 0.8),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),

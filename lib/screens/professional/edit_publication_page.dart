@@ -218,15 +218,17 @@ class _EditPublicationPageState extends State<EditPublicationPage> {
                           ),
                         ),
                         const Divider(height: 1),
-                        SizedBox(
-                          height: size.height * 0.4, // Responsive height
-                          child: QuillEditor.basic(
-                            configurations: QuillEditorConfigurations(
-                              controller: _contentController,
-                              readOnly: false,
-                              padding: const EdgeInsets.all(16),
-                              sharedConfigurations: const QuillSharedConfigurations(
-                                locale: Locale('es'),
+SizedBox(
+  height: size.height * 0.4, // Responsive height
+  child: QuillEditor.basic(
+    configurations: QuillEditorConfigurations(
+      controller: _contentController,
+      // ❌ BORRA ESTA LÍNEA: readOnly: false, 
+      // (El editor básico ya es editable por defecto)
+      
+      padding: const EdgeInsets.all(16),
+      sharedConfigurations: const QuillSharedConfigurations(
+        locale: Locale('es'),
                               ),
                             ),
                           ),
@@ -287,7 +289,7 @@ class _EditPublicationPageState extends State<EditPublicationPage> {
                           spacing: 8.0,
                           runSpacing: 8.0,
                           children: _newPickedXFiles.asMap().entries.map((entry) {
-                            int idx = entry.value.hashCode;
+                            int idx = entry.key;
                             XFile imageFile = entry.value;
                             return Stack(
                               children: [

@@ -9,7 +9,7 @@ import 'appointments_page.dart';
 import 'messages_page.dart';
 import 'publications_page.dart';
 import 'settings_page.dart';
-import 'profile_page.dart'; // New import
+import 'profile_page.dart'; // Este archivo debe contener la clase ProfessionalProfilePage
 
 class ProfessionalDashboard extends StatefulWidget {
   const ProfessionalDashboard({super.key});
@@ -107,17 +107,20 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
       {
         'title': 'Mi Perfil',
         'icon': Icons.person_rounded,
-        'page': const ProfessionalProfilePage()
+        // CORRECCIÓN PRINCIPAL: Usamos el nombre correcto de la clase.
+        // Si tu perfil requiere el ID, usa: ProfessionalProfilePage(professionalUid: _auth.currentUser!.uid)
+        'page': const ProfessionalProfilePage() 
       },
       {
-        'title': 'Cerrar SesiÃ³n',
+        'title': 'Cerrar Sesión',
         'icon': Icons.logout_rounded,
-        'isLogout': true, // Special flag for logout
+        'isLogout': true, // Bandera especial para logout
       },
     ];
   }
 
   List<Widget> _buildProfessionalShortcuts() {
+    // Indices basados en el orden de _sections (0:Inicio, 1:Feed, 2:Pacientes, etc.)
     return [
       _shortcutCard('Pacientes', Icons.people_alt_rounded, () => _onItemTapped(2)),
       _shortcutCard('Citas', Icons.calendar_month_rounded, () => _onItemTapped(3)),
@@ -146,18 +149,28 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
   }
 
   void _onItemTapped(int index) {
+    // Verificación de seguridad: Si es el botón de logout, ejecutamos logout y NO cambiamos de página
+    if (_sections[index]['isLogout'] == true) {
+      _logout();
+      return;
+    }
+
     setState(() {
       _selectedIndex = index;
     });
-    if(Navigator.canPop(context)) Navigator.pop(context);
+    
+    // Si estamos en modo móvil (Drawer), cerramos el drawer
+    if (Scaffold.of(context).hasDrawer && Scaffold.of(context).isDrawerOpen) {
+      Navigator.pop(context);
+    }
   }
 
   Future<void> _logout() async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Confirmar Cierre de SesiÃ³n'),
-        content: const Text('Â¿EstÃ¡s seguro de que deseas cerrar la sesiÃ³n?'),
+        title: const Text('Confirmar Cierre de Sesión'),
+        content: const Text('¿Estás seguro de que deseas cerrar la sesión?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -169,7 +182,7 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('SÃ­, Salir'),
+            child: const Text('Sí, Salir'),
           ),
         ],
       ),
@@ -220,7 +233,7 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded),
-            tooltip: 'Cerrar sesiÃ³n',
+            tooltip: 'Cerrar sesión',
             onPressed: _logout,
           ),
         ],
@@ -233,7 +246,7 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
             child: IndexedStack(
               index: _selectedIndex,
               children: _sections
-                  .where((s) => s['isLogout'] != true) // Filter out logout section
+                  .where((s) => s['isLogout'] != true) // Filtramos el logout para el Stack de páginas
                   .map<Widget>((s) => s['page'])
                   .toList(),
             ),
@@ -306,19 +319,20 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
               itemCount: _sections.length,
               itemBuilder: (context, index) {
                 final section = _sections[index];
-                final selected = _selectedIndex == index;
+                // Resaltamos la opción seleccionada (excepto si es logout)
+                final selected = _selectedIndex == index && section['isLogout'] != true;
 
                 if (section['isLogout'] == true) {
                   return Column(
                     children: [
                       const Divider(),
                       ListTile(
-                        leading: Icon(section['icon'], color: selected ? colorScheme.primary : null),
+                        leading: Icon(section['icon'], color: Colors.red),
                         title: Text(
                           section['title'],
-                          style: TextStyle(color: selected ? colorScheme.primary : null, fontWeight: selected ? FontWeight.bold : null),
+                          style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                         ),
-                        onTap: _logout, // Call _logout directly
+                        onTap: _logout, // Llamada directa
                       ),
                     ],
                   );
@@ -329,7 +343,10 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
                       section['title'],
                       style: TextStyle(color: selected ? colorScheme.primary : null, fontWeight: selected ? FontWeight.bold : null),
                     ),
-                    onTap: () => _onItemTapped(index),
+                    onTap: () {
+                      _onItemTapped(index);
+                      Navigator.pop(context); // Cierra el drawer
+                    },
                   );
                 }
               },

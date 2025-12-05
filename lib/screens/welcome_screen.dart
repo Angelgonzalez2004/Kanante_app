@@ -32,138 +32,130 @@ class WelcomeScreen extends StatelessWidget {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 700.0), // Max width for content on large screens
-              child: Center(
-                child: Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 20.0), // Fixed horizontal margin for the card
-                  elevation: 8,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  color: const Color.fromRGBO(255, 255, 255, 0.9), // Card background color
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 40.0), // Fixed padding inside the card
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        // Use constraints.maxWidth instead of size.width here
-                        return Column(
+              child: Card(
+                margin: const EdgeInsets.all(20.0),
+                elevation: 8,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                color: const Color.fromRGBO(255, 255, 255, 0.9), // Card background color
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 40.0),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            SizedBox(height: size.height * 0.05),
-                            Column(
-                              children: [
                             Text(
                               'Kananté',
                               style: TextStyle(
                                 fontSize: min(constraints.maxWidth * 0.1, maxFontSizeKanante),
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: Colors.teal[800],
                               ),
                             ),
                             Text(
                               'Bienestar Joven Campeche',
                               style: TextStyle(
                                 fontSize: min(constraints.maxWidth * 0.045, maxFontSizeSubtitle),
-                                color: const Color.fromRGBO(255, 255, 255, 0.9),
+                                color: Colors.teal[700],
                               ),
                             ),
-                            SizedBox(height: size.height * 0.04),
+                            const SizedBox(height: 40),
                             Text(
                               '"Tu salud mental también importa."',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: min(constraints.maxWidth * 0.05, maxFontSizeQuote),
-                                color: Colors.white,
+                                color: Colors.black87,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            SizedBox(height: size.height * 0.02),
+                            const SizedBox(height: 20),
                             Text(
                               'Kananté te conecta con apoyo emocional, recursos de salud mental y orientación gratuita en Campeche. Porque nadie debería enfrentar sus batallas en soledad.',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: min(constraints.maxWidth * 0.04, maxFontSizeDescription),
-                                color: const Color.fromRGBO(255, 255, 255, 0.95),
+                                color: Colors.black54,
                                 height: 1.4,
+                              ),
+                            ),
+                            const SizedBox(height: 50),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.teal,
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: min(constraints.maxWidth * 0.25, maxButtonHorizontalPadding),
+                                  vertical: min(size.height * 0.02, maxButtonVerticalPadding),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                                elevation: 4,
+                              ),
+                              onPressed: () {
+                                Navigator.pushNamed(context, '/login');
+                              },
+                              child: Text(
+                                'Iniciar sesión',
+                                style: TextStyle(
+                                  fontSize: min(constraints.maxWidth * 0.045, maxButtonTextFontSize),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 15),
+                            OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: Colors.teal[700]!),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: min(constraints.maxWidth * 0.2, maxButtonHorizontalPadding),
+                                  vertical: min(size.height * 0.02, maxButtonVerticalPadding),
+                                ),
+                              ),
+                              onPressed: () {
+                                Navigator.pushNamed(context, '/register');
+                              },
+                              child: Text(
+                                'Crear cuenta',
+                                style: TextStyle(
+                                  fontSize: min(constraints.maxWidth * 0.045, maxButtonTextFontSize),
+                                  color: Colors.teal[800],
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 15),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pushNamed(context, '/recover');
+                              },
+                              child: Text(
+                                'Recuperar contraseña',
+                                style: TextStyle(
+                                  fontSize: min(constraints.maxWidth * 0.04, maxFontSizeDescription),
+                                  color: Colors.grey[600],
+                                  decoration: TextDecoration.underline,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                        Padding(
-                          padding: EdgeInsets.only(bottom: size.height * 0.08),
-                          child: Column(
-                            children: [
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  foregroundColor: Colors.teal[700],
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: min(constraints.maxWidth * 0.25, maxButtonHorizontalPadding),
-                                    vertical: min(size.height * 0.02, maxButtonVerticalPadding),
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(25),
-                                  ),
-                                  elevation: 4,
-                                ),
-                                onPressed: () {
-                                  Navigator.pushNamed(context, '/login');
-                                },
-                                child: Text(
-                                  'Iniciar sesión',
-                                  style: TextStyle(
-                                                                    fontSize: min(constraints.maxWidth * 0.045, maxButtonTextFontSize),                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 15),
-                              OutlinedButton(
-                                style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(color: Colors.white),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(25),
-                                  ),
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: min(constraints.maxWidth * 0.2, maxButtonHorizontalPadding),
-                                    vertical: min(size.height * 0.02, maxButtonVerticalPadding),
-                                  ),
-                                ),
-                                onPressed: () {
-                                  Navigator.pushNamed(context, '/register');
-                                },
-                                child: Text(
-                                  'Crear cuenta',
-                                  style: TextStyle(
-                                    fontSize: min(constraints.maxWidth * 0.045, maxButtonTextFontSize),
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 15),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pushNamed(context, '/recover');
-                                },
-                                child: Text(
-                                  'Recuperar contraseña',
-                                  style: TextStyle(
-                                    fontSize: min(constraints.maxWidth * 0.04, maxFontSizeDescription),
-                                    color: Colors.white,
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ); // Closing main Column
-                  }), // Closing LayoutBuilder
-                ), // Closing Padding inside Card
-              ), // Closing Card
-            ), // Closing Center inside ConstrainedBox
-          ), // Closing ConstrainedBox
-        ), // Closing Center (outer)
-      ), // Closing SafeArea
-    ), // Closing Container
-  ); // Closing Scaffold
-} // Closing build method
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  } // Closing build method
 }
