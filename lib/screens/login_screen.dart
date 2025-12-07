@@ -309,19 +309,23 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Checkbox(
-                                  value: _rememberMe,
-                                  onChanged: (value) => setState(() => _rememberMe = value!),
-                                  activeColor: AppColors.primary,
-                                ),
-                                const Text('Recordar correo', style: TextStyle(color: AppColors.textLight)),
-                              ],
+                            Flexible( // Added Flexible
+                              child: Row(
+                                children: [
+                                  Checkbox(
+                                    value: _rememberMe,
+                                    onChanged: (value) => setState(() => _rememberMe = value!),
+                                    activeColor: AppColors.primary,
+                                  ),
+                                  const Flexible(child: Text('Recordar correo', style: TextStyle(color: AppColors.textLight))), // Added Flexible
+                                ],
+                              ),
                             ),
-                            TextButton(
-                              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecoverPasswordScreen())),
-                              child: const Text('¿Olvidaste tu contraseña?', style: TextStyle(color: AppColors.primary)),
+                            Flexible( // Added Flexible
+                              child: TextButton(
+                                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecoverPasswordScreen())),
+                                child: const Text('¿Olvidaste tu contraseña?', style: TextStyle(color: AppColors.primary)),
+                              ),
                             ),
                           ],
                         ),
