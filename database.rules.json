@@ -3,7 +3,7 @@
     ".read": true,
     ".write": true,
     "users": {
-      ".indexOn": ["accountType"]
+      ".indexOn": ["accountType", "verificationStatus"]
     },
     "publications": {
       ".indexOn": ["professionalUid"]
@@ -12,7 +12,7 @@
       ".indexOn": ["participants"]
     },
     "appointments": {
-      ".indexOn": ["professionalUid"]
+      ".indexOn": ["professionalUid", "patientUid"]
     }
   }
 }

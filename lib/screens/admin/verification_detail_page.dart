@@ -231,20 +231,24 @@ class _VerificationDetailPageState extends State<VerificationDetailPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        ElevatedButton.icon(
-          onPressed: _rejectVerification,
-          icon: const Icon(Icons.close),
-          label: const Text('Rechazar'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
+        Flexible(
+          child: ElevatedButton.icon(
+            onPressed: _rejectVerification,
+            icon: const Icon(Icons.close),
+            label: const Text('Rechazar'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
           ),
         ),
-        ElevatedButton.icon(
-          onPressed: _approveVerification,
-          icon: const Icon(Icons.check),
-          label: const Text('Aprobar'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
+        Flexible(
+          child: ElevatedButton.icon(
+            onPressed: _approveVerification,
+            icon: const Icon(Icons.check),
+            label: const Text('Aprobar'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+            ),
           ),
         ),
       ],

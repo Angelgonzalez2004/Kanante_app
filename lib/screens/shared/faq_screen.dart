@@ -28,45 +28,52 @@ class _FaqScreenState extends State<FaqScreen> with SingleTickerProviderStateMix
   Widget build(BuildContext context) {
     final categories = widget.faqData.keys.toList();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Preguntas Frecuentes'),
-        backgroundColor: Colors.teal,
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          tabs: categories.map((title) => Tab(text: title)).toList(),
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: categories.map((category) {
-          final qas = widget.faqData[category]!;
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 900.0), // Max width for content on large screens
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16.0),
-                itemCount: qas.length,
-                itemBuilder: (context, index) {
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 8.0),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    elevation: 2,
-                    child: ExpansionTile(
-                      title: Text(qas[index]['q']!, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      childrenPadding: const EdgeInsets.all(16.0),
-                      expandedAlignment: Alignment.centerLeft,
-                      children: [
-                        Text(qas[index]['a']!),
-                      ],
+    return Material( // Added Material widget
+      type: MaterialType.transparency, // Use transparency to avoid visual changes
+      child: Column( // Replaced Scaffold with Column
+        children: [
+          // Moved TabBar from AppBar.bottom here
+          TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            labelColor: Theme.of(context).colorScheme.primary, // Ensure tab labels are visible
+            unselectedLabelColor: Theme.of(context).colorScheme.onSurface,
+            indicatorColor: Theme.of(context).colorScheme.primary,
+            tabs: categories.map((title) => Tab(text: title)).toList(),
+          ),
+          Expanded( // Wrap TabBarView in Expanded
+            child: TabBarView(
+              controller: _tabController,
+              children: categories.map((category) {
+                final qas = widget.faqData[category]!;
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 900.0), // Max width for content on large screens
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16.0),
+                      itemCount: qas.length,
+                      itemBuilder: (context, index) {
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8.0),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          elevation: 2,
+                          child: ExpansionTile(
+                            title: Text(qas[index]['q']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            childrenPadding: const EdgeInsets.all(16.0),
+                            expandedAlignment: Alignment.centerLeft,
+                            children: [
+                              Text(qas[index]['a']!),
+                            ],
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              }).toList(),
             ),
-          );
-        }).toList(),
+          ),
+        ],
       ),
     );
   }

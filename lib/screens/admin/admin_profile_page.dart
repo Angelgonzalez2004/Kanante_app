@@ -51,13 +51,9 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
   Widget build(BuildContext context) {
     final isWide = MediaQuery.of(context).size.width > 600;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mi Perfil (Admin)'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: _isLoading
+    return Material( // Added Material widget
+      type: MaterialType.transparency, // Use transparency to avoid visual changes
+      child: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : Center(
               child: ConstrainedBox(

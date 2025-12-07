@@ -1,21 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:intl/date_symbol_data_local.dart'; // New import
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'firebase_options.dart';
 
-import 'screens/splash_screen.dart'; // Import the new splash screen
+import 'screens/splash_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/recover_password_screen.dart';
 
-// Declarar esto en main.dart
+// Variable global para el manejo del tema
 ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await initializeDateFormatting('es'); // Initialize for Spanish locale, assuming 'es' is the primary locale
+  
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // --- CORRECCIÓN AQUÍ ---
+  // Se usa playIntegrity porque ya registraste la huella SHA-256 en Firebase.
+  await FirebaseAppCheck.instance.activate(
+    androidProvider: AndroidProvider.playIntegrity,
+    appleProvider: AppleProvider.appAttest, 
+  );
+  // -----------------------
+
+  await initializeDateFormatting('es'); // Inicializar formato de fecha en español
+  
   runApp(const MyApp());
 }
 
@@ -25,7 +39,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
-      valueListenable: themeNotifier, // desde main.dart
+      valueListenable: themeNotifier, 
       builder: (context, currentTheme, _) {
         return MaterialApp(
           title: 'Kananté',
@@ -46,7 +60,6 @@ class MyApp extends StatelessWidget {
               centerTitle: true,
               elevation: 4,
             ),
-
           ),
           darkTheme: ThemeData(
             useMaterial3: true,
@@ -64,20 +77,18 @@ class MyApp extends StatelessWidget {
               centerTitle: true,
               elevation: 4,
             ),
-
           ),
           themeMode: currentTheme,
-          home: const SplashScreen(), // Set SplashScreen as the initial home widget
+          home: const SplashScreen(), // SplashScreen es la pantalla inicial
           routes: {
-            // '/': (context) => const WelcomeScreen(), // SplashScreen handles initial navigation
+            // '/welcome' no es necesario si SplashScreen redirige, pero lo dejo por si acaso
+            '/welcome': (context) => const WelcomeScreen(), 
             '/login': (context) => const LoginScreen(),
             '/register': (context) => const RegisterScreen(),
             '/recover': (context) => const RecoverPasswordScreen(),
-            '/welcome': (context) => const WelcomeScreen(), // Add welcome screen as a named route if needed later
           },
         );
       },
     );
   }
 }
-

@@ -282,30 +282,34 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             if (_isEditing)
-                              ElevatedButton.icon(
-                                icon: const Icon(Icons.check),
-                                label: const Text('Guardar Cambios'),
-                                onPressed: _saveProfile,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.teal,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              Flexible( // Added Flexible
+                                child: ElevatedButton.icon(
+                                  icon: const Icon(Icons.check),
+                                  label: const Text('Guardar Cambios'),
+                                  onPressed: _saveProfile,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.teal,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                  ),
                                 ),
                               ),
                             if (_isEditing) const SizedBox(width: 16),
-                            ElevatedButton.icon(
-                              icon: Icon(_isEditing ? Icons.cancel : Icons.edit_outlined),
-                              label: Text(_isEditing ? 'Cancelar Edición' : 'Editar Perfil'),
-                              onPressed: () => setState(() {
-                                _isEditing = !_isEditing;
-                                if (!_isEditing) { // If canceling edit, reload original profile
-                                  _loadProfile();
-                                }
-                              }),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: _isEditing ? Colors.red : Colors.blue,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            Flexible( // Added Flexible
+                              child: ElevatedButton.icon(
+                                icon: Icon(_isEditing ? Icons.cancel : Icons.edit_outlined),
+                                label: Text(_isEditing ? 'Cancelar Edición' : 'Editar Perfil'),
+                                onPressed: () => setState(() {
+                                  _isEditing = !_isEditing;
+                                  if (!_isEditing) { // If canceling edit, reload original profile
+                                    _loadProfile();
+                                  }
+                                }),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _isEditing ? Colors.red : Colors.blue,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                ),
                               ),
                             ),
                           ],

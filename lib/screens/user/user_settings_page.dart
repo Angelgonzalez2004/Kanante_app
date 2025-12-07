@@ -15,11 +15,10 @@ class UserSettingsPage extends StatefulWidget {
 class _UserSettingsPageState extends State<UserSettingsPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
-  // Removed final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();   
+  
   bool _darkMode = false;
   bool _notifications = true;
-  bool _isLoading = true; // Use this for loading preferences initially
-
+  
   void _showSnackBar(String message, {Color color = Colors.teal}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -39,7 +38,6 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
       setState(() {
         _darkMode = prefs.getBool('darkMode') ?? false;
         _notifications = prefs.getBool('notifications') ?? true;
-        _isLoading = false;
       });
     }
   }
@@ -195,104 +193,83 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width > 600;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ajustes'),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
-      ),
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.teal))
-          : Center(
+    return Material( // Added Material widget
+      type: MaterialType.transparency, // Use transparency to avoid visual changes
+      child: Center( // Removed Scaffold and AppBar
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 900),
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: isWide ? 40 : 24, vertical: 32),
-                  child: Card(
-                    elevation: 6,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column( // Used Column directly as there's no form validation here
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Ajustes de la Aplicación',
-                            style: TextStyle(
-                                fontSize: MediaQuery.of(context).size.width * 0.055,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.teal),
-                          ),
-                          SizedBox(height: MediaQuery.of(context).size.height * 0.015),
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Icons.lock_rounded, color: Colors.teal),
-                            title: const Text('Cambiar contraseña'),
-                            trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
-                            onTap: _changePassword,
-                          ),
-                          const Divider(),
-                          SwitchListTile(
-                            contentPadding: EdgeInsets.zero,
-                            value: _darkMode,
-                            activeTrackColor: Colors.teal.withAlpha((255 * 0.5).round()),
-                            activeThumbColor: Colors.teal,
-                            title: const Text('Modo oscuro'),
-                            onChanged: _toggleTheme,
-                          ),
-                          SwitchListTile(
-                            contentPadding: EdgeInsets.zero,
-                            value: _notifications,
-                            activeTrackColor: Colors.teal.withAlpha((255 * 0.5).round()),
-                            activeThumbColor: Colors.teal,
-                            title: const Text('Notificaciones'),
-                            onChanged: _toggleNotifications,
-                          ),
-                          Divider(height: MediaQuery.of(context).size.height * 0.04),
-                          Center(
-                            child: ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.redAccent.withAlpha((255 * 0.1).round()),
-                                foregroundColor: Colors.redAccent,
-                                elevation: 0,
-                                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    side: const BorderSide(color: Colors.redAccent)),
-                              ),
-                              onPressed: _logout,
-                              icon: const Icon(Icons.logout_rounded),
-                              label: const Text('Cerrar Sesión', style: TextStyle(fontSize: 16)),
-                            ),
-                          ),
-                          SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-                           Center(
-                            child: ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.redAccent,
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
-                              ),
-                              onPressed: _deleteAccount,
-                              icon: const Icon(Icons.delete_forever),
-                              label: const Text('Eliminar Cuenta', style: TextStyle(fontSize: 16)),
-                            ),
-                          ),
-                        ],
+                constraints: const BoxConstraints(maxWidth: 800), // Smaller max width
+                child: ListView(
+                  padding: const EdgeInsets.all(24),
+                  children: [
+                    Text(
+                      'Ajustes de la Aplicación',
+                      style: TextStyle(
+                          fontSize: MediaQuery.of(context).size.width * 0.055,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal),
+                    ),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.015),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.lock_rounded, color: Colors.teal),
+                      title: const Text('Cambiar contraseña'),
+                      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
+                      onTap: _changePassword,
+                    ),
+                    const Divider(),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: _darkMode,
+                      activeTrackColor: Colors.teal.withAlpha((255 * 0.5).round()),
+                      activeThumbColor: Colors.teal,
+                      title: const Text('Modo oscuro'),
+                      onChanged: _toggleTheme,
+                    ),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: _notifications,
+                      activeTrackColor: Colors.teal.withAlpha((255 * 0.5).round()),
+                      activeThumbColor: Colors.teal,
+                      title: const Text('Notificaciones'),
+                      onChanged: _toggleNotifications,
+                    ),
+                    Divider(height: MediaQuery.of(context).size.height * 0.04),
+                    Center(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent.withAlpha((255 * 0.1).round()),
+                          foregroundColor: Colors.redAccent,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: const BorderSide(color: Colors.redAccent)),
+                        ),
+                        onPressed: _logout,
+                        icon: const Icon(Icons.logout_rounded),
+                        label: const Text('Cerrar Sesión', style: TextStyle(fontSize: 16)),
                       ),
                     ),
-                  ),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    Center(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: _deleteAccount,
+                        icon: const Icon(Icons.delete_forever),
+                        label: const Text('Eliminar Cuenta', style: TextStyle(fontSize: 16)),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          );
+    );
   }
 }

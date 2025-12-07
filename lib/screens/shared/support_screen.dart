@@ -87,12 +87,9 @@ class _SupportScreenState extends State<SupportScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ayuda y Soporte'),
-        backgroundColor: Colors.teal,
-      ),
-      body: Center( // Added Center
+    return Material( // Added Material widget
+      type: MaterialType.transparency, // Use transparency to avoid visual changes
+      child: Center( // Added Center
         child: ConstrainedBox( // Added ConstrainedBox
           constraints: const BoxConstraints(maxWidth: 800.0), // Set max width
           child: ListView(

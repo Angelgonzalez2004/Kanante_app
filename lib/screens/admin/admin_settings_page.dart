@@ -145,16 +145,11 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
   Widget build(BuildContext context) {
     final isWide = MediaQuery.of(context).size.width > 600;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ajustes de Administrador'),
-        backgroundColor: Colors.indigo,
-        foregroundColor: Colors.white,
-      ),
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : Center(
+    return Material( // Added Material widget
+      type: MaterialType.transparency, // Use transparency to avoid visual changes
+      child: _isLoading
+        ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+        : Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 800),
                 child: SingleChildScrollView(

@@ -6,14 +6,9 @@ class PublicationFeedPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: const Text('Explorar', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black,
-        elevation: 0,
-      ),
-      body: const PublicationFeedBody(), // Use the new reusable widget
+    return const Material( // Added Material widget
+      type: MaterialType.transparency, // Use transparency to avoid visual changes
+      child: PublicationFeedBody(), // Use the new reusable widget
     );
   }
 }

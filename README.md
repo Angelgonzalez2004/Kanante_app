@@ -44,7 +44,11 @@ La aplicación está estructurada en tres roles principales:
     *   Formularios de quejas y sugerencias (anónimos o identificados).
     *   Acceso a políticas de privacidad.
     *   Secciones de Preguntas Frecuentes (FAQ) personalizadas por rol.
-*   **🧹 Código Limpio y Sin Errores:** Se han resuelto todos los errores, advertencias e hints reportados por `flutter analyze`.
+*   **✅ Estabilidad y Mantenimiento del Código:**
+    *   Resolución de todos los errores, advertencias y sugerencias reportados por `flutter analyze`.
+    *   Corrección del error de tiempo de ejecución "No Material widget found" en pantallas de contenido principal, envolviendo sus cuerpos en widgets `Material`.
+    *   Refinamiento de `UserProfilePage` para cargar datos internamente, eliminando la necesidad del parámetro `userData`.
+    *   Eliminación de errores de argumentos duplicados y aplicación de las mejores prácticas de sintaxis (`curly_braces_in_flow_control_structures`).
 
 ## 🛠️ Tecnologías Utilizadas
 

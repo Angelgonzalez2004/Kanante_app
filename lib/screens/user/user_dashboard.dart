@@ -38,7 +38,8 @@ class _UserDashboardState extends State<UserDashboard> {
   void initState() {
     super.initState();
     _loadUserData();
-    _pageTitles = [ // Initialize _pageTitles here
+    _pageTitles = [
+      // Initialize _pageTitles here
       'Inicio',
       'Feed de Contenido',
       'Mis Citas',
@@ -106,14 +107,15 @@ class _UserDashboardState extends State<UserDashboard> {
       {
         'title': _pageTitles[4], // Use pageTitles - Mi Perfil
         'icon': Icons.person,
-        'page': UserProfilePage(userData: {'name': _userName, 'phone': _phone, 'profileImageUrl': _profileImageUrl}) // Pass current data
+        'page': const UserProfilePage()
       },
       {
         'title': _pageTitles[5], // Use pageTitles - Configuración
         'icon': Icons.settings,
         'page': const UserSettingsPage()
       },
-      { // REMOVED THE 'n' HERE
+      {
+        // REMOVED THE 'n' HERE
         'title': _pageTitles[6], // Use pageTitles - Soporte
         'icon': Icons.support_agent,
         'page': const SupportScreen()
@@ -129,10 +131,12 @@ class _UserDashboardState extends State<UserDashboard> {
   List<Widget> _buildUserShortcuts() {
     // Tapping these cards will now correctly navigate using the index from the _sections list.
     return [
-      _shortcutCard('Feed de Contenido', Icons.explore, () => _onItemTapped(1)),
+      _shortcutCard(
+          'Feed de Contenido', Icons.explore, () => _onItemTapped(1)),
       _shortcutCard('Mensajes', Icons.chat, () => _onItemTapped(3)),
       _shortcutCard('Mis Citas', Icons.calendar_today, () => _onItemTapped(2)),
-      _shortcutCard('Mi Perfil', Icons.person, () => _onItemTapped(4)), // Link to new profile page
+      _shortcutCard('Mi Perfil', Icons.person,
+          () => _onItemTapped(4)), // Link to new profile page
     ];
   }
 
@@ -148,7 +152,9 @@ class _UserDashboardState extends State<UserDashboard> {
           children: [
             Icon(icon, size: 40, color: Colors.teal),
             const SizedBox(height: 12),
-            Text(title, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
       ),
@@ -180,7 +186,10 @@ class _UserDashboardState extends State<UserDashboard> {
     if (confirm == true) {
       await _auth.signOut();
       await _googleSignIn.signOut();
-      if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+      if (mounted) {
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+      }
     }
   }
 
@@ -224,35 +233,43 @@ class _UserDashboardState extends State<UserDashboard> {
                   ]
                 : null, // No actions for narrow screens, logout is in drawer
           ),
-          drawer: isLargeScreen ? null : _buildDrawer(context), // Only show drawer on narrow screens
-                body: Row(
-                  children: [
-                    if (isLargeScreen) _buildSideBar(context), // Show sidebar on large screens
-                    Expanded(
-                      child: IndexedStack(
-                        index: _selectedIndex,
-                        children: _sections
-                            .where((s) => s['isLogout'] != true) // Filter out logout for page stack
-                            .map<Widget>((s) => s['page'])
-                            .toList(),
-                      ),
-                    ),
-                  ],
+          drawer: isLargeScreen
+              ? null
+              : _buildDrawer(context), // Only show drawer on narrow screens
+          body: Row(
+            children: [
+              if (isLargeScreen)
+                _buildSideBar(context), // Show sidebar on large screens
+              Expanded(
+                child: IndexedStack(
+                  index: _selectedIndex,
+                  children: _sections
+                      .where((s) =>
+                          s['isLogout'] != true) // Filter out logout for page stack
+                      .map<Widget>((s) => s['page'])
+                      .toList(),
                 ),
-                floatingActionButton: _selectedIndex == 3 // Check if 'Mensajes' is selected
-                    ? FloatingActionButton(
-                        heroTag: 'newChatFab', // Unique tag
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const ProfessionalSearchPage()),
-                          );
-                        },
-                        backgroundColor: Colors.teal,
-                        child: const Icon(Icons.add_comment, color: Colors.white),
-                      )
-                    : null, // No FAB for other pages
-              );      },
+              ),
+            ],
+          ),
+          floatingActionButton:
+              _selectedIndex == 3 // Check if 'Mensajes' is selected
+                  ? FloatingActionButton(
+                      heroTag: 'newChatFab', // Unique tag
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const ProfessionalSearchPage()),
+                        );
+                      },
+                      backgroundColor: Colors.teal,
+                      child: const Icon(Icons.add_comment, color: Colors.white),
+                    )
+                  : null, // No FAB for other pages
+        );
+      },
     );
   }
 
@@ -266,9 +283,10 @@ class _UserDashboardState extends State<UserDashboard> {
           const SizedBox(height: 20),
           CircleAvatar(
             radius: 40,
-            backgroundImage: (_profileImageUrl != null && _profileImageUrl!.isNotEmpty)
-                ? NetworkImage(_profileImageUrl!)
-                : null,
+            backgroundImage:
+                (_profileImageUrl != null && _profileImageUrl!.isNotEmpty)
+                    ? NetworkImage(_profileImageUrl!)
+                    : null,
             child: (_profileImageUrl == null || _profileImageUrl!.isEmpty)
                 ? const Icon(Icons.person, size: 40)
                 : null,
@@ -279,11 +297,23 @@ class _UserDashboardState extends State<UserDashboard> {
             style: Theme.of(context).textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
+          // CORRECCIÓN: Usar _phone aquí
+          if (_phone.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4.0),
+              child: Text(
+                _phone,
+                style: Theme.of(context).textTheme.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            ),
           const SizedBox(height: 20),
           const Divider(),
         ],
       ),
-      destinations: _sections.where((s) => s['isLogout'] != true).map<NavigationRailDestination>((section) {
+      destinations: _sections
+          .where((s) => s['isLogout'] != true)
+          .map<NavigationRailDestination>((section) {
         return NavigationRailDestination(
           icon: Icon(section['icon']),
           label: Text(section['title']),
@@ -300,11 +330,13 @@ class _UserDashboardState extends State<UserDashboard> {
         children: [
           UserAccountsDrawerHeader(
             accountName: Text(_userName),
-            accountEmail: Text(_userEmail),
+            // CORRECCIÓN: Usar _phone aquí combinado con el email
+            accountEmail: Text(_phone.isNotEmpty ? '$_userEmail\n$_phone' : _userEmail),
             currentAccountPicture: CircleAvatar(
-              backgroundImage: (_profileImageUrl != null && _profileImageUrl!.isNotEmpty)
-                  ? NetworkImage(_profileImageUrl!)
-                  : null,
+              backgroundImage:
+                  (_profileImageUrl != null && _profileImageUrl!.isNotEmpty)
+                      ? NetworkImage(_profileImageUrl!)
+                      : null,
               child: (_profileImageUrl == null || _profileImageUrl!.isEmpty)
                   ? const Icon(Icons.person, size: 40, color: Colors.white)
                   : null,
@@ -319,7 +351,8 @@ class _UserDashboardState extends State<UserDashboard> {
               itemCount: _sections.length,
               itemBuilder: (context, index) {
                 final section = _sections[index];
-                final selected = _selectedIndex == index && section['isLogout'] != true;
+                final selected =
+                    _selectedIndex == index && section['isLogout'] != true;
 
                 if (section['isLogout'] == true) {
                   return Column(
@@ -329,7 +362,8 @@ class _UserDashboardState extends State<UserDashboard> {
                         leading: Icon(section['icon'], color: Colors.red),
                         title: Text(
                           section['title'],
-                          style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                              color: Colors.red, fontWeight: FontWeight.bold),
                         ),
                         onTap: _logout,
                       ),
@@ -337,10 +371,13 @@ class _UserDashboardState extends State<UserDashboard> {
                   );
                 } else {
                   return ListTile(
-                    leading: Icon(section['icon'], color: selected ? colorScheme.primary : null),
+                    leading: Icon(section['icon'],
+                        color: selected ? colorScheme.primary : null),
                     title: Text(
                       section['title'],
-                      style: TextStyle(color: selected ? colorScheme.primary : null, fontWeight: selected ? FontWeight.bold : null),
+                      style: TextStyle(
+                          color: selected ? colorScheme.primary : null,
+                          fontWeight: selected ? FontWeight.bold : null),
                     ),
                     selected: selected,
                     onTap: () {
@@ -355,5 +392,4 @@ class _UserDashboardState extends State<UserDashboard> {
       ),
     );
   }
-
 }
