@@ -11,7 +11,6 @@ import 'messages_page.dart';
 import 'publications_page.dart';
 import 'settings_page.dart';
 import 'new_publication_page.dart'; // Added for FAB
-import 'select_chat_participants_page.dart'; // New import
 import '../shared/support_screen.dart';
 import 'profile_page.dart'; // Este archivo debe contener la clase ProfessionalProfilePage
 
@@ -268,19 +267,7 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
               },
               child: const Icon(Icons.add),
             )
-          : (_selectedIndex == 4) // 'Mensajes'
-              ? FloatingActionButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SelectChatParticipantsPage()),
-                    );
-                  },
-                  backgroundColor: Colors.teal,
-                  heroTag: 'newChatFab', // Unique tag
-                  child: const Icon(Icons.add_comment, color: Colors.white),
-                )
-              : null, // No FAB for other pages
+          : null, // No FAB for other pages
     );
   }
 

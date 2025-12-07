@@ -375,10 +375,28 @@ class _SettingsPageState extends State<SettingsPage> {
                           _buildNotificationsSwitch(),
                         ]),
                         SizedBox(height: MediaQuery.of(context).size.height * 0.03),
-                        _buildSectionTitle(context, 'Cuenta'),
+                        _buildSectionTitle(context, 'Privacidad'),
+                        _buildSettingsCard([
+                          _buildAccountOption(context, 'Ver política de privacidad', Icons.policy, () {
+                            // TODO: Implement navigation to privacy policy page
+                          }),
+                          const Divider(),
+                          _buildAccountOption(context, 'Gestionar preferencias de datos', Icons.data_usage, () {
+                            // TODO: Implement navigation to data preferences management
+                          }),
+                        ]),
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+                        _buildSectionTitle(context, 'Seguridad'),
                         _buildSettingsCard([
                           _buildAccountOption(context, 'Cambiar contraseña', Icons.lock_outline, _changePassword),
                           const Divider(),
+                          _buildAccountOption(context, 'Configuración de autenticación de dos factores', Icons.security, () {
+                            // TODO: Implement navigation to 2FA settings
+                          }),
+                        ]),
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+                        _buildSectionTitle(context, 'Cuenta'),
+                        _buildSettingsCard([
                           _buildAccountOption(context, 'Cerrar Sesión', Icons.logout, _logout, isDestructive: true),
                            const Divider(),
                           _buildAccountOption(context, 'Eliminar cuenta', Icons.delete_outline, _deleteAccount, isDestructive: true),

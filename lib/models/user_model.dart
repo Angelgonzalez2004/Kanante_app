@@ -7,6 +7,13 @@ class UserModel {
   final String? birthDate;
   final String? phone;
   final String? rfc; // Added rfc field
+  final String? gender; // New field
+  final String? preferredLanguage; // New field
+  final String? timezone; // New field
+  final String? website; // New field for professionals
+  final Map<String, String>? socialMediaLinks; // New field for professionals
+  final List<String>? education; // New field for professionals
+  final List<String>? certifications; // New field for professionals
   
   // Verification fields for professionals
   final String? verificationStatus; // e.g., 'unverified', 'pending', 'verified', 'rejected'
@@ -28,6 +35,13 @@ class UserModel {
     this.birthDate,
     this.phone,
     this.rfc, // Added rfc to constructor
+    this.gender, // New field
+    this.preferredLanguage, // New field
+    this.timezone, // New field
+    this.website, // New field for professionals
+    this.socialMediaLinks, // New field for professionals
+    this.education, // New field for professionals
+    this.certifications, // New field for professionals
     this.verificationStatus,
     this.verificationNotes,
     this.verificationDocuments,
@@ -48,6 +62,13 @@ class UserModel {
       birthDate: data['birthDate'],
       phone: data['phone'],
       rfc: data['rfc'], // Added rfc to fromMap
+      gender: data['gender'], // New field
+      preferredLanguage: data['preferredLanguage'], // New field
+      timezone: data['timezone'], // New field
+      website: data['website'], // New field
+      socialMediaLinks: (data['socialMediaLinks'] as Map<String, dynamic>?)?.map((key, value) => MapEntry(key, value as String)), // New field
+      education: List<String>.from(data['education'] ?? []), // New field
+      certifications: List<String>.from(data['certifications'] ?? []), // New field
       verificationStatus: data['verificationStatus'] ?? 'unverified',
       verificationNotes: data['verificationNotes'],
       verificationDocuments: List<String>.from(data['verificationDocuments'] ?? []),
@@ -68,6 +89,13 @@ class UserModel {
       'birthDate': birthDate,
       'phone': phone,
       'rfc': rfc, // Added rfc to toMap
+      'gender': gender, // New field
+      'preferredLanguage': preferredLanguage, // New field
+      'timezone': timezone, // New field
+      'website': website, // New field
+      'socialMediaLinks': socialMediaLinks, // New field
+      'education': education, // New field
+      'certifications': certifications, // New field
       'verificationStatus': verificationStatus,
       'verificationNotes': verificationNotes,
       'verificationDocuments': verificationDocuments,

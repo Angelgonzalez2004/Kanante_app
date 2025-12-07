@@ -50,6 +50,30 @@ La aplicación está estructurada en tres roles principales:
     *   Refinamiento de `UserProfilePage` para cargar datos internamente, eliminando la necesidad del parámetro `userData`.
     *   Eliminación de errores de argumentos duplicados y aplicación de las mejores prácticas de sintaxis (`curly_braces_in_flow_control_structures`).
 
+## 🚀 Nuevas Características y Mejoras Recientes
+
+Hemos implementado una serie de mejoras significativas en la aplicación para enriquecer la experiencia de usuario y la funcionalidad en todos los roles:
+
+*   **Perfiles y Configuraciones Mejorados:**
+    *   Ampliación de `UserModel` con campos adicionales como género, idioma preferido, zona horaria, sitio web, enlaces a redes sociales, educación y certificaciones para perfiles más completos.
+    *   Actualización de las páginas de perfil de Usuarios y Profesionales para permitir la visualización y edición de estos nuevos campos.
+    *   La página de perfil del Administrador ahora muestra los nuevos campos relevantes en modo de solo lectura.
+    *   Todas las páginas de configuración (Administrador, Profesional, Usuario) incluyen nuevas secciones de "Privacidad" y "Seguridad", ofreciendo opciones para políticas de privacidad, gestión de datos, cambio de contraseña y configuración de autenticación de dos factores.
+
+*   **Interfaz de Mensajería con Pestañas:**
+    *   El dashboard del Administrador ahora incluye una opción de "Mensajes" para acceder a las comunicaciones.
+    *   Las páginas de mensajes de Usuarios y Profesionales se han rediseñado con una interfaz de dos pestañas:
+        *   **"Chats":** Para ver las conversaciones existentes.
+        *   **"Contactos":** Permite iniciar nuevas conversaciones. Para usuarios, lista a profesionales de la salud. Para profesionales, lista a usuarios normales (filtrando otros profesionales y administradores).
+    *   Los botones flotantes de acción (FAB) para iniciar chats en los dashboards de Usuario y Profesional han sido eliminados, ya que la funcionalidad de iniciar chat se integra ahora en las páginas de mensajes.
+
+*   **Sistema de Soporte Optimizado:**
+    *   La sección de "Soporte" ahora incluye una opción "Mis Tickets de Soporte", donde usuarios y profesionales pueden revisar el estado de sus quejas y sugerencias, y ver las respuestas del administrador.
+    *   La funcionalidad de chat directo con soporte y el sistema de gestión de quejas/sugerencias (incluyendo las respuestas del administrador) han sido verificados y están funcionando.
+
+*   **Mejora de la Pantalla de Preguntas Frecuentes (FAQ):**
+    *   La `FaqScreen` ha sido actualizada para utilizar un `Scaffold` y un `AppBar`, moviendo la barra de pestañas al `bottom` del `AppBar`. Esto resuelve problemas de visualización del fondo y mejora la consistencia del diseño.
+
 ## 🛠️ Tecnologías Utilizadas
 
 Este proyecto está construido con una pila de tecnologías modernas para el desarrollo de aplicaciones multiplataforma:

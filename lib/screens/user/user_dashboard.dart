@@ -10,7 +10,7 @@ import 'professional_content_screen.dart';
 import 'my_appointments_screen.dart';
 import '../shared/support_screen.dart';
 import 'messages_page.dart'; // Changed import
-import 'professional_search_page.dart'; // Added for FAB
+
 
 class UserDashboard extends StatefulWidget {
   const UserDashboard({super.key});
@@ -252,22 +252,7 @@ class _UserDashboardState extends State<UserDashboard> {
               ),
             ],
           ),
-          floatingActionButton:
-              _selectedIndex == 3 // Check if 'Mensajes' is selected
-                  ? FloatingActionButton(
-                      heroTag: 'newChatFab', // Unique tag
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  const ProfessionalSearchPage()),
-                        );
-                      },
-                      backgroundColor: Colors.teal,
-                      child: const Icon(Icons.add_comment, color: Colors.white),
-                    )
-                  : null, // No FAB for other pages
+          floatingActionButton: null, // No FAB for any page now that MessagesPage handles its own chat initiation
         );
       },
     );

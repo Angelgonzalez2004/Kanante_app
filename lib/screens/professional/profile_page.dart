@@ -37,6 +37,13 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
   final _phoneController = TextEditingController();
   final _rfcController = TextEditingController();
   final _birthController = TextEditingController();
+  final _genderController = TextEditingController(); // New
+  final _preferredLanguageController = TextEditingController(); // New
+  final _timezoneController = TextEditingController(); // New
+  final _websiteController = TextEditingController(); // New
+  final _socialMediaLinkController = TextEditingController(); // For one link as placeholder
+  final _educationController = TextEditingController(); // For one entry as placeholder
+  final _certificationsController = TextEditingController(); // For one entry as placeholder
   late QuillController _biographyQuillController;
   final _institutionNameController = TextEditingController();
 
@@ -67,6 +74,13 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
     _phoneController.dispose();
     _rfcController.dispose();
     _birthController.dispose();
+    _genderController.dispose(); // New
+    _preferredLanguageController.dispose(); // New
+    _timezoneController.dispose(); // New
+    _websiteController.dispose(); // New
+    _socialMediaLinkController.dispose(); // New
+    _educationController.dispose(); // New
+    _certificationsController.dispose(); // New
     _biographyQuillController.dispose();
     _institutionNameController.dispose();
     super.dispose();
@@ -98,6 +112,13 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
           _phoneController.text = _user!.phone ?? '';
           _rfcController.text = _user!.rfc ?? '';
           _birthController.text = _user!.birthDate ?? '';
+          _genderController.text = _user!.gender ?? ''; // New
+          _preferredLanguageController.text = _user!.preferredLanguage ?? ''; // New
+          _timezoneController.text = _user!.timezone ?? ''; // New
+          _websiteController.text = _user!.website ?? ''; // New
+          _socialMediaLinkController.text = _user!.socialMediaLinks?['default'] ?? ''; // Placeholder
+          _educationController.text = _user!.education?.join(', ') ?? ''; // Placeholder
+          _certificationsController.text = _user!.certifications?.join(', ') ?? ''; // Placeholder
           _institutionNameController.text = ''; // Placeholder
 
           final biographyContent = _user!.bio;
@@ -233,6 +254,19 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
         'phone': _phoneController.text.trim(),
         'rfc': _rfcController.text.trim(),
         'birthDate': _birthController.text.trim(),
+        'gender': _genderController.text.trim(), // New
+        'preferredLanguage': _preferredLanguageController.text.trim(), // New
+        'timezone': _timezoneController.text.trim(), // New
+        'website': _websiteController.text.trim(), // New
+        'socialMediaLinks': _socialMediaLinkController.text.trim().isNotEmpty // New
+            ? {'default': _socialMediaLinkController.text.trim()} // Simple map for now
+            : null,
+        'education': _educationController.text.trim().isNotEmpty // New
+            ? _educationController.text.trim().split(',').map((e) => e.trim()).toList() // Convert to list
+            : null,
+        'certifications': _certificationsController.text.trim().isNotEmpty // New
+            ? _certificationsController.text.trim().split(',').map((e) => e.trim()).toList() // Convert to list
+            : null,
         'bio': jsonEncode(_biographyQuillController.document.toDelta().toJson()),
         if (profileImageUrl != null) 'profileImageUrl': profileImageUrl,
         if (_pickedDocuments.isNotEmpty) 'verificationStatus': 'pending',
@@ -394,6 +428,20 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
         _buildTextField(_rfcController, 'RFC / Cédula', Icons.badge_outlined, enabled: _isEditing),
         const SizedBox(height: 16),
         _buildTextField(_birthController, 'Fecha de Nacimiento (DD/MM/AAAA)', Icons.calendar_today_outlined, enabled: _isEditing),
+        const SizedBox(height: 16),
+        _buildTextField(_genderController, 'Género', Icons.transgender, enabled: _isEditing), // New
+        const SizedBox(height: 16),
+        _buildTextField(_preferredLanguageController, 'Idioma Preferido', Icons.language, enabled: _isEditing), // New
+        const SizedBox(height: 16),
+        _buildTextField(_timezoneController, 'Zona Horaria', Icons.access_time, enabled: _isEditing), // New
+        const SizedBox(height: 16),
+        _buildTextField(_websiteController, 'Sitio Web', Icons.language, enabled: _isEditing), // New
+        const SizedBox(height: 16),
+        _buildTextField(_socialMediaLinkController, 'Enlace Red Social (principal)', Icons.link, enabled: _isEditing), // New
+        const SizedBox(height: 16),
+        _buildTextField(_educationController, 'Educación (separado por comas)', Icons.school, enabled: _isEditing, maxLines: 3), // New
+        const SizedBox(height: 16),
+        _buildTextField(_certificationsController, 'Certificaciones (separado por comas)', Icons.verified_user, enabled: _isEditing, maxLines: 3), // New
         const SizedBox(height: 24),
 
         // --- Editor de Biografía ---

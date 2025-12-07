@@ -7,6 +7,7 @@ import 'package:kanante_app/data/faq_data.dart';
 import 'privacy_policy_screen.dart';
 import 'feedback_form_screen.dart';
 import 'faq_screen.dart';
+import 'my_support_tickets_screen.dart'; // New import
 
 class SupportScreen extends StatefulWidget {
   const SupportScreen({super.key});
@@ -112,6 +113,19 @@ class _SupportScreenState extends State<SupportScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const FeedbackFormScreen()),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildSupportCard(
+                context,
+                icon: Icons.receipt_long, // New icon
+                title: 'Mis Tickets de Soporte', // New title
+                subtitle: 'Revisa el estado de tus quejas y sugerencias.', // New subtitle
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const MySupportTicketsScreen()), // Navigate to new screen
                   );
                 },
               ),

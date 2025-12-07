@@ -18,6 +18,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   String _name = '';
   String _phone = '';
+  String _gender = ''; // New field
+  String _preferredLanguage = ''; // New field
+  String _timezone = ''; // New field
   String? _profileImageUrl; // To display existing photo
   bool _isLoading = true;
   bool _isEditing = false;
@@ -50,6 +53,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
       setState(() {
         _name = data['name'] ?? '';
         _phone = data['phone'] ?? '';
+        _gender = data['gender'] ?? ''; // Load new field
+        _preferredLanguage = data['preferredLanguage'] ?? ''; // Load new field
+        _timezone = data['timezone'] ?? ''; // Load new field
         _profileImageUrl = data['profileImageUrl'];
         _isLoading = false;
       });
@@ -69,6 +75,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
       await _dbRef.child('users/${user.uid}').update({
         'name': _name,
         'phone': _phone,
+        'gender': _gender, // Save new field
+        'preferredLanguage': _preferredLanguage, // Save new field
+        'timezone': _timezone, // Save new field
       });
 
       if (mounted) {
@@ -185,6 +194,46 @@ class _UserProfilePageState extends State<UserProfilePage> {
                               ),
                               keyboardType: TextInputType.phone,
                               onChanged: (v) => _phone = v,
+                              readOnly: !_isEditing,
+                            ),
+                            SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.02),
+                            // New Fields
+                            TextFormField(
+                              initialValue: _gender,
+                              decoration: const InputDecoration(
+                                labelText: 'Género',
+                                prefixIcon: Icon(Icons.transgender),
+                                border: OutlineInputBorder(),
+                              ),
+                              onChanged: (v) => _gender = v,
+                              readOnly: !_isEditing,
+                            ),
+                            SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.02),
+                            TextFormField(
+                              initialValue: _preferredLanguage,
+                              decoration: const InputDecoration(
+                                labelText: 'Idioma Preferido',
+                                prefixIcon: Icon(Icons.language),
+                                border: OutlineInputBorder(),
+                              ),
+                              onChanged: (v) => _preferredLanguage = v,
+                              readOnly: !_isEditing,
+                            ),
+                            SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.02),
+                            TextFormField(
+                              initialValue: _timezone,
+                              decoration: const InputDecoration(
+                                labelText: 'Zona Horaria',
+                                prefixIcon: Icon(Icons.access_time),
+                                border: OutlineInputBorder(),
+                              ),
+                              onChanged: (v) => _timezone = v,
                               readOnly: !_isEditing,
                             ),
                             SizedBox(

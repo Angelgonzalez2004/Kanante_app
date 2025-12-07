@@ -189,6 +189,59 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                             onChanged: _toggleNotifications,
                           ),
                           Divider(height: MediaQuery.of(context).size.height * 0.04),
+                          Text(
+                            'Privacidad',
+                            style: Theme.of(context).textTheme.titleMedium!.copyWith(color: AppColors.primary),
+                          ),
+                          const SizedBox(height: 10),
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: const Text('Ver política de privacidad'),
+                            leading: const Icon(Icons.policy),
+                            onTap: () {
+                              _showSnackBar('Navegar a la política de privacidad.');
+                              // TODO: Implement navigation to privacy policy page
+                            },
+                          ),
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: const Text('Gestionar preferencias de datos'),
+                            leading: const Icon(Icons.data_usage),
+                            onTap: () {
+                              _showSnackBar('Navegar a la gestión de preferencias de datos.');
+                              // TODO: Implement navigation to data preferences management
+                            },
+                          ),
+                          Divider(height: MediaQuery.of(context).size.height * 0.04),
+                          Text(
+                            'Seguridad',
+                            style: Theme.of(context).textTheme.titleMedium!.copyWith(color: AppColors.primary),
+                          ),
+                          const SizedBox(height: 10),
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: const Text('Cambiar contraseña'),
+                            leading: const Icon(Icons.lock_reset),
+                            onTap: () async {
+                              final email = _auth.currentUser?.email;
+                              if (email != null) {
+                                await _auth.sendPasswordResetEmail(email: email);
+                                _showSnackBar('Se ha enviado un enlace de restablecimiento de contraseña a tu correo.', color: Colors.green);
+                              } else {
+                                _showSnackBar('No se pudo enviar el enlace de restablecimiento. Por favor, inicia sesión con un correo válido.', color: Colors.red);
+                              }
+                            },
+                          ),
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: const Text('Configuración de autenticación de dos factores'),
+                            leading: const Icon(Icons.security),
+                            onTap: () {
+                              _showSnackBar('Navegar a la configuración de 2FA.');
+                              // TODO: Implement navigation to 2FA settings
+                            },
+                          ),
+                          Divider(height: MediaQuery.of(context).size.height * 0.04),
                           Center(
                             child: ElevatedButton.icon(
                               style: ElevatedButton.styleFrom(
@@ -221,6 +274,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                               label: const Text('Eliminar Cuenta', style: TextStyle(fontSize: 16)),
                             ),
                           ),
+
                         ],
                       ),
                     ),

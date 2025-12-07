@@ -9,6 +9,7 @@ import 'package:kanante_app/data/faq_data.dart';
 import 'admin_publication_list.dart'; // Correct import for publication list
 import 'admin_profile_page.dart'; // New import
 import 'admin_settings_page.dart'; // New import
+import 'admin_messages_page.dart'; // New import
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -35,6 +36,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       const AdminPublicationList(), // Use AdminPublicationListPage
       const SupportCenterScreen(),
       const FaqScreen(faqData: FaqData.forAdmin),
+      const AdminMessagesPage(), // New Admin Messages Page
       const AdminProfilePage(), // Placeholder - Admin Profile Page
       const AdminSettingsPage(), // Placeholder - Admin Settings Page
       const Center(child: Text('Gestionar Cuentas (TODO)')), // Placeholder, was index 4
@@ -44,6 +46,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       'Supervisar Publicaciones',
       'Centro de Soporte',
       'Preguntas Frecuentes',
+      'Mensajes', // New title
       'Mi Perfil (Admin)', // New title
       'Configuración (Admin)', // New title
       'Gestionar Cuentas', // Shifted index
@@ -115,16 +118,20 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       label: Text(_pageTitles[3]),
                     ),
                     NavigationRailDestination(
-                      icon: const Icon(Icons.people),
-                      label: Text(_pageTitles[4]),
+                      icon: const Icon(Icons.message_outlined), // New Icon
+                      label: Text(_pageTitles[4]), // Corresponds to 'Mensajes'
                     ),
                     NavigationRailDestination(
                       icon: const Icon(Icons.person_outline),
-                      label: Text(_pageTitles[5]),
+                      label: Text(_pageTitles[5]), // Corresponds to 'Mi Perfil (Admin)'
                     ),
                     NavigationRailDestination(
                       icon: const Icon(Icons.settings_outlined),
-                      label: Text(_pageTitles[6]),
+                      label: Text(_pageTitles[6]), // Corresponds to 'Configuración (Admin)'
+                    ),
+                    NavigationRailDestination(
+                      icon: const Icon(Icons.people), // Shifted index
+                      label: Text(_pageTitles[7]), // Corresponds to 'Gestionar Cuentas'
                     ),
                   ],
                 ),
@@ -204,10 +211,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       Navigator.pop(context); // Close the drawer
                     },
                   ),
-                  const Divider(),
+                  const Divider(), // New Divider
                   ListTile(
-                    leading: const Icon(Icons.people),
-                    title: Text(_pageTitles[4]),
+                    leading: const Icon(Icons.message_outlined), // New Icon
+                    title: Text(_pageTitles[4]), // Corresponds to 'Mensajes'
                     selected: _selectedIndex == 4,
                     onTap: () {
                       setState(() {
@@ -216,10 +223,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       Navigator.pop(context); // Close the drawer
                     },
                   ),
-                  const Divider(),
                   ListTile(
                     leading: const Icon(Icons.person_outline),
-                    title: Text(_pageTitles[5]),
+                    title: Text(_pageTitles[5]), // Corresponds to 'Mi Perfil (Admin)'
                     selected: _selectedIndex == 5,
                     onTap: () {
                       setState(() {
@@ -230,11 +236,23 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.settings_outlined),
-                    title: Text(_pageTitles[6]),
+                    title: Text(_pageTitles[6]), // Corresponds to 'Configuración (Admin)'
                     selected: _selectedIndex == 6,
                     onTap: () {
                       setState(() {
                         _selectedIndex = 6;
+                      });
+                      Navigator.pop(context); // Close the drawer
+                    },
+                  ),
+                  const Divider(), // Shifted
+                  ListTile(
+                    leading: const Icon(Icons.people),
+                    title: Text(_pageTitles[7]), // Corresponds to 'Gestionar Cuentas'
+                    selected: _selectedIndex == 7,
+                    onTap: () {
+                      setState(() {
+                        _selectedIndex = 7;
                       });
                       Navigator.pop(context); // Close the drawer
                     },
