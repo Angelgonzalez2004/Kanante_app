@@ -4,18 +4,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../main.dart'; // Para themeNotifier
 import '../login_screen.dart';
+import '../../theme/app_colors.dart'; // Added missing import
 
-class UserSettingsPage extends StatefulWidget {
-  const UserSettingsPage({super.key});
+class AdminSettingsPage extends StatefulWidget {
+  const AdminSettingsPage({super.key});
 
   @override
-  State<UserSettingsPage> createState() => _UserSettingsPageState();
+  State<AdminSettingsPage> createState() => _AdminSettingsPageState();
 }
 
-class _UserSettingsPageState extends State<UserSettingsPage> {
+class _AdminSettingsPageState extends State<AdminSettingsPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
-  // Removed final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();   
+  
   bool _darkMode = false;
   bool _notifications = true;
   bool _isLoading = true; // Use this for loading preferences initially
@@ -41,59 +42,6 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
         _notifications = prefs.getBool('notifications') ?? true;
         _isLoading = false;
       });
-    }
-  }
-
-  Future<void> _changePassword() async {
-    final TextEditingController newPassword = TextEditingController();
-
-    String? snackBarMessage;
-    Color snackBarColor = Colors.red;
-
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Cambiar contraseña'),
-        content: TextField(
-          controller: newPassword,
-          obscureText: true,
-          decoration: const InputDecoration(
-            labelText: 'Nueva contraseña',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancelar')),
-          ElevatedButton(
-            onPressed: () async {
-              try {
-                await _auth.currentUser?.updatePassword(newPassword.text);
-                snackBarMessage = 'Contraseña actualizada correctamente';
-                snackBarColor = Colors.green;
-                
-                if (!dialogContext.mounted) return;
-                Navigator.pop(dialogContext);
-              } catch (e) {
-                snackBarMessage = 'Error: ${e.toString()}';
-                snackBarColor = Colors.red;
-                
-                if (!dialogContext.mounted) return;
-                Navigator.pop(dialogContext);
-              }
-            },
-            child: const Text('Guardar'),
-          ),
-        ],
-      ),
-    );
-
-    if (!mounted) return;
-    if (snackBarMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(snackBarMessage!), backgroundColor: snackBarColor),
-      );
     }
   }
 
@@ -199,16 +147,16 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ajustes'),
-        backgroundColor: Colors.teal,
+        title: const Text('Ajustes de Administrador'),
+        backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
       ),
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.teal))
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 900),
+                constraints: const BoxConstraints(maxWidth: 800),
                 child: SingleChildScrollView(
                   padding: EdgeInsets.symmetric(
                       horizontal: isWide ? 40 : 24, vertical: 32),
@@ -218,7 +166,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                         borderRadius: BorderRadius.circular(20)),
                     child: Padding(
                       padding: const EdgeInsets.all(24),
-                      child: Column( // Used Column directly as there's no form validation here
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
@@ -226,30 +174,22 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                             style: TextStyle(
                                 fontSize: MediaQuery.of(context).size.width * 0.055,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.teal),
+                                color: AppColors.primary),
                           ),
                           SizedBox(height: MediaQuery.of(context).size.height * 0.015),
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Icons.lock_rounded, color: Colors.teal),
-                            title: const Text('Cambiar contraseña'),
-                            trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
-                            onTap: _changePassword,
-                          ),
-                          const Divider(),
                           SwitchListTile(
                             contentPadding: EdgeInsets.zero,
                             value: _darkMode,
-                            activeTrackColor: Colors.teal.withAlpha((255 * 0.5).round()),
-                            activeThumbColor: Colors.teal,
+                            activeTrackColor: AppColors.primary.withAlpha((255 * 0.5).round()),
+                            activeThumbColor: AppColors.primary,
                             title: const Text('Modo oscuro'),
                             onChanged: _toggleTheme,
                           ),
                           SwitchListTile(
                             contentPadding: EdgeInsets.zero,
                             value: _notifications,
-                            activeTrackColor: Colors.teal.withAlpha((255 * 0.5).round()),
-                            activeThumbColor: Colors.teal,
+                            activeTrackColor: AppColors.primary.withAlpha((255 * 0.5).round()),
+                            activeThumbColor: AppColors.primary,
                             title: const Text('Notificaciones'),
                             onChanged: _toggleNotifications,
                           ),

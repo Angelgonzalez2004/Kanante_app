@@ -352,9 +352,8 @@ class _EditPublicationPageState extends State<EditPublicationPage> {
                 ),
               ),
             ),
-          ), // Fin del Center
-
-          if (isLoading) // <--- ¡AQUÍ ESTABA EL ERROR! (Faltaba la coma anterior)
+          ),
+          if (isLoading)
             Container(
               color: Colors.black38,
               child: const Center(

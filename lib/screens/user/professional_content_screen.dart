@@ -29,32 +29,34 @@ class _ProfessionalContentScreenState extends State<ProfessionalContentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: FutureBuilder<List<Publication>>(
-        future: _publicationsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
-              child: Text(
-                'No hay publicaciones disponibles.',
-                style: TextStyle(color: Colors.white),
-              ),
-            );
-          }
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800.0), // Max width for the feed
+        child: FutureBuilder<List<Publication>>(
+          future: _publicationsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(
+                child: Text(
+                  'No hay publicaciones disponibles.',
+                  style: TextStyle(color: Colors.white),
+                ),
+              );
+            }
 
-          final publications = snapshot.data!;
-          return PageView.builder(
-            scrollDirection: Axis.vertical,
-            itemCount: publications.length,
-            itemBuilder: (context, index) {
-              return _buildFeedItem(publications[index]);
-            },
-          );
-        },
+            final publications = snapshot.data!;
+            return PageView.builder(
+              scrollDirection: Axis.vertical,
+              itemCount: publications.length,
+              itemBuilder: (context, index) {
+                return _buildFeedItem(publications[index]);
+              },
+            );
+          },
+        ),
       ),
     );
   }

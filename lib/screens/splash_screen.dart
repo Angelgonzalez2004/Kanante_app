@@ -6,6 +6,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'login_screen.dart'; // login_screen is in the same directory
 import 'user/user_dashboard.dart';
 import 'professional/professional_dashboard.dart';
+import 'welcome_screen.dart'; // Added missing import
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -27,10 +28,10 @@ class _SplashScreenState extends State<SplashScreen> {
     User? user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      if (!mounted) return; // Add this line
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        MaterialPageRoute(builder: (context) => const WelcomeScreen()), // Navigate to WelcomeScreen
       );
       return;
     }

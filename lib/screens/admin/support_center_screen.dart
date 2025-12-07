@@ -30,25 +30,25 @@ class _SupportCenterScreenState extends State<SupportCenterScreen> with SingleTi
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Centro de Soporte'),
-        backgroundColor: Colors.indigo,
-        bottom: TabBar(
+    return Column(
+      children: [
+        TabBar(
           controller: _tabController,
           tabs: const [
             Tab(icon: Icon(Icons.chat), text: 'Chats'),
             Tab(icon: Icon(Icons.feedback), text: 'Quejas y Sugerencias'),
           ],
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: const [
-          SupportChatsTab(),
-          SupportTicketsTab(),
-        ],
-      ),
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: const [
+              SupportChatsTab(),
+              SupportTicketsTab(),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

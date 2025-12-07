@@ -54,70 +54,74 @@ class _ProfessionalSearchPageState extends State<ProfessionalSearchPage> {
         title: const Text('Buscar Profesionales'),
         backgroundColor: Colors.teal,
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Buscar por nombre o especialidad...',
-                prefixIcon: const Icon(Icons.search, color: Colors.teal),
-                filled: true,
-                fillColor: Colors.grey[200],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30.0),
-                  borderSide: BorderSide.none,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800.0), // Max width for content
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Buscar por nombre o especialidad...',
+                    prefixIcon: const Icon(Icons.search, color: Colors.teal),
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  onChanged: _onSearchChanged,
                 ),
               ),
-              onChanged: _onSearchChanged,
-            ),
-          ),
-          Expanded(
-            child: FutureBuilder<List<UserModel>>(
-              future: _searchResults,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return const Center(child: Text('Error al buscar profesionales.'));
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No se encontraron profesionales.'));
-                }
+              Expanded(
+                child: FutureBuilder<List<UserModel>>(
+                  future: _searchResults,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return const Center(child: Text('Error al buscar profesionales.'));
+                    }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text('No se encontraron profesionales.'));
+                    }
 
-                final professionals = snapshot.data!;
-                return ListView.builder(
-                  itemCount: professionals.length,
-                  itemBuilder: (context, index) {
-                    final professional = professionals[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          radius: 30,
-                          backgroundImage: professional.profileImageUrl != null
-                              ? CachedNetworkImageProvider(professional.profileImageUrl!)
-                              : null,
-                          child: professional.profileImageUrl == null
-                              ? const Icon(Icons.person, size: 30)
-                              : null,
-                        ),
-                        title: Text(professional.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(professional.specialties.join(', ')),
-                        onTap: () => _navigateToChat(professional),
-                      ),
+                    final professionals = snapshot.data!;
+                    return ListView.builder(
+                      itemCount: professionals.length,
+                      itemBuilder: (context, index) {
+                        final professional = professionals[index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              radius: 30,
+                              backgroundImage: professional.profileImageUrl != null
+                                  ? CachedNetworkImageProvider(professional.profileImageUrl!)
+                                  : null,
+                              child: professional.profileImageUrl == null
+                                  ? const Icon(Icons.person, size: 30)
+                                  : null,
+                            ),
+                            title: Text(professional.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Text(professional.specialties.join(', ')),
+                            onTap: () => _navigateToChat(professional),
+                          ),
+                        );
+                      },
                     );
                   },
-                );
-              },
-            ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
+        ),
+      ),    );
   }
 }

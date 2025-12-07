@@ -152,22 +152,6 @@ class _LoginScreenState extends State<LoginScreen> {
       User? user = userCredential.user;
 
       if (user != null) {
-        // ADMIN BACKDOOR for Google Sign-in
-        if (user.email == 'admin@kanante.app') {
-          UserModel? userModel = await _firebaseService.getUserProfile(user.uid);
-          if (userModel == null) { 
-            await _firebaseService.createNewUser(
-              uid: user.uid,
-              email: user.email!,
-              name: user.displayName ?? 'Admin',
-              accountType: 'Admin',
-            );
-          }
-          _navigateToDashboard('Admin');
-          return;
-        }
-        // END OF BACKDOOR
-
         UserModel? userModel = await _firebaseService.getUserProfile(user.uid);
 
         if (!mounted) return;

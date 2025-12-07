@@ -107,44 +107,6 @@ class WelcomeScreen extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 15),
-                            OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: Colors.teal[700]!),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(25),
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: min(constraints.maxWidth * 0.2, maxButtonHorizontalPadding),
-                                  vertical: min(size.height * 0.02, maxButtonVerticalPadding),
-                                ),
-                              ),
-                              onPressed: () {
-                                Navigator.pushNamed(context, '/register');
-                              },
-                              child: Text(
-                                'Crear cuenta',
-                                style: TextStyle(
-                                  fontSize: min(constraints.maxWidth * 0.045, maxButtonTextFontSize),
-                                  color: Colors.teal[800],
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 15),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pushNamed(context, '/recover');
-                              },
-                              child: Text(
-                                'Recuperar contraseña',
-                                style: TextStyle(
-                                  fontSize: min(constraints.maxWidth * 0.04, maxFontSizeDescription),
-                                  color: Colors.grey[600],
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                       );

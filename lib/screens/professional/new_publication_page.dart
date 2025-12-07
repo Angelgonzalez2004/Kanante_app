@@ -203,17 +203,14 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
                               ),
                             ),
                             const Divider(height: 1),
-SizedBox(
-  height: size.height * 0.4, // Responsive height
-  child: QuillEditor.basic(
-    configurations: QuillEditorConfigurations(
-      controller: _contentController,
-      // ❌ BORRA ESTA LÍNEA: readOnly: false, 
-      // (El editor básico ya es editable por defecto)
-      
-      padding: const EdgeInsets.all(16),
-      sharedConfigurations: const QuillSharedConfigurations(
-        locale: Locale('es'),
+                            SizedBox(
+                              height: size.height * 0.4, // Responsive height
+                              child: QuillEditor.basic(
+                                configurations: QuillEditorConfigurations(
+                                  controller: _contentController,
+                                  padding: const EdgeInsets.all(16),
+                                  sharedConfigurations: const QuillSharedConfigurations(
+                                    locale: Locale('es'),
                                   ),
                                 ),
                               ),

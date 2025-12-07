@@ -4,11 +4,13 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../login_screen.dart';
 import '../shared/home_page.dart';
-import 'user_settings_page.dart';
+import 'user_profile_page.dart'; // Added new UserProfilePage
+import 'user_settings_page.dart'; // Added new UserSettingsPage
 import 'professional_content_screen.dart';
 import 'my_appointments_screen.dart';
 import '../shared/support_screen.dart';
 import 'messages_page.dart'; // Changed import
+import 'professional_search_page.dart'; // Added for FAB
 
 class UserDashboard extends StatefulWidget {
   const UserDashboard({super.key});
@@ -24,6 +26,7 @@ class _UserDashboardState extends State<UserDashboard> {
 
   String _userName = 'Usuario';
   String _userEmail = '';
+  String _phone = ''; // Added phone number
   String? _profileImageUrl; // Add for profile image
   int _selectedIndex = 0;
 
@@ -40,7 +43,8 @@ class _UserDashboardState extends State<UserDashboard> {
       'Feed de Contenido',
       'Mis Citas',
       'Mensajes',
-      'Ajustes',
+      'Mi Perfil', // Renamed from Ajustes
+      'Configuración', // New entry
       'Soporte',
       'Cerrar Sesión' // Added logout title for consistency
     ];
@@ -60,6 +64,7 @@ class _UserDashboardState extends State<UserDashboard> {
           if (snapshot.exists) {
             final data = Map<String, dynamic>.from(snapshot.value as Map);
             _userName = data['name'] ?? 'Usuario';
+            _phone = data['phone'] ?? ''; // Load phone number
             _profileImageUrl = data['profileImageUrl']; // Get profile image
           }
           _userEmail = user.email ?? '';
@@ -99,17 +104,22 @@ class _UserDashboardState extends State<UserDashboard> {
         'page': const MessagesPage()
       },
       {
-        'title': _pageTitles[4], // Use pageTitles
+        'title': _pageTitles[4], // Use pageTitles - Mi Perfil
+        'icon': Icons.person,
+        'page': UserProfilePage(userData: {'name': _userName, 'phone': _phone, 'profileImageUrl': _profileImageUrl}) // Pass current data
+      },
+      {
+        'title': _pageTitles[5], // Use pageTitles - Configuración
         'icon': Icons.settings,
         'page': const UserSettingsPage()
       },
-       {
-        'title': _pageTitles[5], // Use pageTitles
+      { // REMOVED THE 'n' HERE
+        'title': _pageTitles[6], // Use pageTitles - Soporte
         'icon': Icons.support_agent,
         'page': const SupportScreen()
       },
       {
-        'title': _pageTitles[6], // Use pageTitles
+        'title': _pageTitles[7], // Use pageTitles - Cerrar Sesión
         'icon': Icons.logout_rounded,
         'isLogout': true, // Added isLogout flag
       },
@@ -120,9 +130,9 @@ class _UserDashboardState extends State<UserDashboard> {
     // Tapping these cards will now correctly navigate using the index from the _sections list.
     return [
       _shortcutCard('Feed de Contenido', Icons.explore, () => _onItemTapped(1)),
-      _shortcutCard('Mensajes', Icons.chat, () => _onItemTapped(3)), // Changed title and potentially action
+      _shortcutCard('Mensajes', Icons.chat, () => _onItemTapped(3)),
       _shortcutCard('Mis Citas', Icons.calendar_today, () => _onItemTapped(2)),
-      _shortcutCard('Ajustes', Icons.settings, () => _onItemTapped(4)),
+      _shortcutCard('Mi Perfil', Icons.person, () => _onItemTapped(4)), // Link to new profile page
     ];
   }
 
@@ -215,22 +225,34 @@ class _UserDashboardState extends State<UserDashboard> {
                 : null, // No actions for narrow screens, logout is in drawer
           ),
           drawer: isLargeScreen ? null : _buildDrawer(context), // Only show drawer on narrow screens
-          body: Row(
-            children: [
-              if (isLargeScreen) _buildSideBar(context), // Show sidebar on large screens
-              Expanded(
-                child: IndexedStack(
-                  index: _selectedIndex,
-                  children: _sections
-                      .where((s) => s['isLogout'] != true) // Filter out logout for page stack
-                      .map<Widget>((s) => s['page'])
-                      .toList(),
+                body: Row(
+                  children: [
+                    if (isLargeScreen) _buildSideBar(context), // Show sidebar on large screens
+                    Expanded(
+                      child: IndexedStack(
+                        index: _selectedIndex,
+                        children: _sections
+                            .where((s) => s['isLogout'] != true) // Filter out logout for page stack
+                            .map<Widget>((s) => s['page'])
+                            .toList(),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-        );
-      },
+                floatingActionButton: _selectedIndex == 3 // Check if 'Mensajes' is selected
+                    ? FloatingActionButton(
+                        heroTag: 'newChatFab', // Unique tag
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ProfessionalSearchPage()),
+                          );
+                        },
+                        backgroundColor: Colors.teal,
+                        child: const Icon(Icons.add_comment, color: Colors.white),
+                      )
+                    : null, // No FAB for other pages
+              );      },
     );
   }
 

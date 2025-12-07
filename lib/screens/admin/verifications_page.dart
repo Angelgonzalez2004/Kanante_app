@@ -49,72 +49,66 @@ class _VerificationsPageState extends State<VerificationsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profesionales Pendientes'),
-        backgroundColor: Colors.indigo,
-      ),
-      body: FutureBuilder<List<UserModel>>(
-        future: _pendingProfessionals,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return const Center(child: Text('Ocurrió un error al cargar los datos.'));
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
-              child: Text(
-                'No hay profesionales pendientes de verificación.',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
-              ),
-            );
-          }
-
-          final professionals = snapshot.data!;
-
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 900.0), // Max width for the list on large screens
-              child: ListView.builder(
-                itemCount: professionals.length,
-                itemBuilder: (context, index) {
-                  final professional = professionals[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage: professional.profileImageUrl != null
-                            ? NetworkImage(professional.profileImageUrl!)
-                            : null,
-                        child: professional.profileImageUrl == null
-                            ? const Icon(Icons.person)
-                            : null,
-                      ),
-                      title: Text(professional.name),
-                      subtitle: Text(professional.email),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => VerificationDetailPage(professionalId: professional.id),
-                          ),
-                        ).then((_) {
-                          // Refresh the list when coming back
-                          setState(() {
-                            _pendingProfessionals = _fetchPendingProfessionals();
-                          });
-                        });
-                      },
-                    ),
-                  );
-                },
-              ),
+    return FutureBuilder<List<UserModel>>(
+      future: _pendingProfessionals,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return const Center(child: Text('Ocurrió un error al cargar los datos.'));
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(
+            child: Text(
+              'No hay profesionales pendientes de verificación.',
+              style: TextStyle(fontSize: 18, color: Colors.grey),
             ),
           );
-        },
-      ),
+        }
+
+        final professionals = snapshot.data!;
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900.0), // Max width for the list on large screens
+            child: ListView.builder(
+              itemCount: professionals.length,
+              itemBuilder: (context, index) {
+                final professional = professionals[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundImage: professional.profileImageUrl != null
+                          ? NetworkImage(professional.profileImageUrl!)
+                          : null,
+                      child: professional.profileImageUrl == null
+                          ? const Icon(Icons.person)
+                          : null,
+                    ),
+                    title: Text(professional.name),
+                    subtitle: Text(professional.email),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => VerificationDetailPage(professionalId: professional.id),
+                        ),
+                      ).then((_) {
+                        // Refresh the list when coming back
+                        setState(() {
+                          _pendingProfessionals = _fetchPendingProfessionals();
+                        });
+                      });
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }

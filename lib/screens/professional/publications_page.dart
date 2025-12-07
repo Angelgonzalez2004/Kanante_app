@@ -4,7 +4,6 @@ import 'package:firebase_database/firebase_database.dart';
 
 import 'package:intl/intl.dart';
 
-import 'new_publication_page.dart';
 import 'publication_detail_page.dart';
 import '../image_viewer_screen.dart'; // Import the new image viewer screen
 import 'edit_publication_page.dart'; // Import the new edit publication screen
@@ -53,80 +52,72 @@ class PublicationsPageState extends State<PublicationsPage> {
       return const Center(child: Text('Inicia sesión para ver tus publicaciones.'));
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mis Publicaciones'),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Buscar publicaciones...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200.0),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Buscar publicaciones...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
             ),
-          ),
-          Expanded(
-            child: StreamBuilder(
-              stream: _publicationsQuery.onValue,
-              builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final rawData = snapshot.data!.snapshot.value;
-                debugPrint('DEBUG: Raw data from Firebase: $rawData');
+            Expanded(
+              child: StreamBuilder(
+                stream: _publicationsQuery.onValue,
+                builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final rawData = snapshot.data!.snapshot.value;
+                  debugPrint('DEBUG: Raw data from Firebase: $rawData');
 
-                Map<String, dynamic> publicationsMap = {};
-                if (rawData is Map) {
-                  publicationsMap = Map<String, dynamic>.from(rawData);
-                } else {
-                  debugPrint('DEBUG: Unexpected data format (not a Map): $rawData');
-                  return const Center(child: Text('Formato de publicaciones inesperado.'));
-                }
+                  Map<String, dynamic> publicationsMap = {};
+                  if (rawData is Map) {
+                    publicationsMap = Map<String, dynamic>.from(rawData);
+                  } else {
+                    debugPrint('DEBUG: Unexpected data format (not a Map): $rawData');
+                    return const Center(child: Text('Formato de publicaciones inesperado.'));
+                  }
 
-                final publications = publicationsMap;
-                final publicationList = publications.entries.toList();
-                debugPrint('DEBUG: Processed publication list: $publicationList');
+                  final publications = publicationsMap;
+                  final publicationList = publications.entries.toList();
+                  debugPrint('DEBUG: Processed publication list: $publicationList');
 
-                final filteredPublicationList = publicationList.where((entry) {
-                  final publication = Map<String, dynamic>.from(entry.value);
-                  final title = publication['title']?.toString().toLowerCase() ?? '';
-                  return title.contains(_searchQuery.toLowerCase());
-                }).toList();
+                  final filteredPublicationList = publicationList.where((entry) {
+                    final publication = Map<String, dynamic>.from(entry.value);
+                    final title = publication['title']?.toString().toLowerCase() ?? '';
+                    return title.contains(_searchQuery.toLowerCase());
+                  }).toList();
 
-                return GridView.builder(
-                  padding: const EdgeInsets.all(8),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                    childAspectRatio: 0.65,
-                  ),
-                  itemCount: filteredPublicationList.length,
-                  itemBuilder: (context, index) {
-                    final publicationId = filteredPublicationList[index].key;
-                    final publication = Map<String, dynamic>.from(filteredPublicationList[index].value);
-                    return _PublicationCard(publication: publication, publicationId: publicationId, onDelete: _deletePublication);
-                  },
-                );
-              },
+                  return GridView.builder(
+                    padding: const EdgeInsets.all(8),
+                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 350, // Each item can have a max width of 350
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                      childAspectRatio: 0.65,
+                    ),
+                    itemCount: filteredPublicationList.length,
+                    itemBuilder: (context, index) {
+                      final publicationId = filteredPublicationList[index].key;
+                      final publication = Map<String, dynamic>.from(filteredPublicationList[index].value);
+                      return _PublicationCard(publication: publication, publicationId: publicationId, onDelete: _deletePublication);
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const NewPublicationPage()),
-          );
-        },
-        child: const Icon(Icons.add),
+          ],
+        ),
       ),
     );
   }

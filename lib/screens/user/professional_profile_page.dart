@@ -49,32 +49,21 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
   Widget _buildTabView(UserModel professional) {
     return DefaultTabController(
       length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(professional.name),
-          bottom: const TabBar(
-            tabs: [
-              Tab(icon: Icon(Icons.person), text: 'Perfil'),
-              Tab(icon: Icon(Icons.article), text: 'Publicaciones'),
-            ],
-          ),
-        ),
-        body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800.0), // Max width for content on large screens
-            child: Column(
-              children: [
-                _buildActionButtons(professional),
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      _buildProfileInfoTab(professional),
-                      _buildPublicationsTab(professional.id),
-                    ],
-                  ),
+      child: Center( // Content wrapped in Center and ConstrainedBox
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800.0), // Already added this wrapper
+          child: Column( // This column was the body of the nested Scaffold
+            children: [
+              _buildActionButtons(professional),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    _buildProfileInfoTab(professional),
+                    _buildPublicationsTab(professional.id),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

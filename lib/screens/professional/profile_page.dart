@@ -81,7 +81,12 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
       return;
     }
 
+    // Determine if the current user is viewing their own profile or another's
+    // If professionalUid is null, it's the current user's profile, so they can edit.
+    // If professionalUid is provided and it matches current user's uid, they can edit.
+    // Otherwise, it's a view-only for another professional.
     _isEditing = (widget.professionalUid == null || widget.professionalUid == _auth.currentUser?.uid);
+
 
     try {
       final snapshot = await _db.child('users/$targetUid').get();
@@ -143,6 +148,49 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
     }
   }
   
+  Future<void> _deleteProfileImage() async {
+    final user = _auth.currentUser;
+    if (user == null || _user?.profileImageUrl == null) return;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Foto de Perfil'),
+        content: const Text('¿Estás seguro de que quieres eliminar tu foto de perfil?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Sí, Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      setState(() => _isLoading = true);
+      try {
+        await _storage.refFromURL(_user!.profileImageUrl!).delete();
+        await _db.child('users/${user.uid}').update({
+          'profileImageUrl': null, // Use null to delete field in Realtime Database
+        });
+        if (mounted) {
+          setState(() {
+            // _user!.profileImageUrl = null; // No longer needed, _loadProfile() will refresh
+            _showAppSnackBar('Foto de perfil eliminada.');
+          });
+        }
+      } on FirebaseException catch (e) {
+        _showAppSnackBar('Error al eliminar la imagen: ${e.message}', isError: true);
+      } catch (e) {
+        _showAppSnackBar('Error inesperado: $e', isError: true);
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
+    }
+  }
+
   Future<void> _saveProfile() async {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
@@ -165,9 +213,9 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
         }
       }
 
-      // 2. Upload Profile Image (if changed)
+      // 2. Upload Profile Image (if changed AND not a Google user)
       String? profileImageUrl = _user?.profileImageUrl;
-      if (_pickedProfileImage != null) {
+      if (_pickedProfileImage != null && !_isGoogleUser) { // Only upload if not Google user
         final ref = _storage.ref().child('profile_images/$uid.jpg');
         TaskSnapshot uploadTask;
         if (kIsWeb) {
@@ -206,49 +254,76 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
     }
   }
 
+  // Check if the current user is a Google user
+  bool get _isGoogleUser => _auth.currentUser?.providerData.any((info) => info.providerId == 'google.com') ?? false;
+  // Professional can upload photo, but this is a user page.
+  // So, manual user can upload photo.
+  bool get _canManagePhoto => _isEditing && !_isGoogleUser;
+
   // --- BUILD METHODS ---
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEditing ? "Editar Perfil" : "Mi Perfil Profesional"),
-        actions: [
-          if (_isEditing)
-            IconButton(icon: const Icon(Icons.check), onPressed: _saveProfile),
-          if (!_isEditing)
-            IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () => setState(() => _isEditing = true)),
-        ],
-      ),
-      body: _isLoading || _user == null
-          ? const Center(child: CircularProgressIndicator())
-          : LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 800),
-                      child: Column(
-                        children: [
-                          _buildEditableForm(),
-                          const SizedBox(height: 20),
-                          if (!_isEditing) _buildVerificationCard(),
-                        ],
-                      ),
+    return _isLoading || _user == null
+        ? const Center(child: CircularProgressIndicator())
+        : LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 800),
+                    child: Column(
+                      children: [
+                        _buildEditableForm(),
+                        const SizedBox(height: 20),
+                        if (!_isEditing) _buildVerificationCard(),
+                        const SizedBox(height: 30), // Spacing before action buttons
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (_isEditing)
+                              ElevatedButton.icon(
+                                icon: const Icon(Icons.check),
+                                label: const Text('Guardar Cambios'),
+                                onPressed: _saveProfile,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.teal,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                ),
+                              ),
+                            if (_isEditing) const SizedBox(width: 16),
+                            ElevatedButton.icon(
+                              icon: Icon(_isEditing ? Icons.cancel : Icons.edit_outlined),
+                              label: Text(_isEditing ? 'Cancelar Edición' : 'Editar Perfil'),
+                              onPressed: () => setState(() {
+                                _isEditing = !_isEditing;
+                                if (!_isEditing) { // If canceling edit, reload original profile
+                                  _loadProfile();
+                                }
+                              }),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _isEditing ? Colors.red : Colors.blue,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                );
-              },
-            ),
-    );
+                ),
+              );
+            },
+          );
   }
 
   Widget _buildEditableForm() {
     return Column(
       children: [
         // --- Avatar / Foto de Perfil ---
-        GestureDetector(
-          onTap: _isEditing ? _pickProfileImage : null,
+        Center(
           child: Stack(
             children: [
               CircleAvatar(
@@ -265,7 +340,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
                     ? const Icon(Icons.person, size: 60, color: Colors.grey)
                     : null,
               ),
-              if (_isEditing)
+              if (_canManagePhoto) // Show camera icon only if can manage photo
                 Positioned(
                   bottom: 0,
                   right: 0,
@@ -275,12 +350,36 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
                       color: Theme.of(context).primaryColor,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                    child: IconButton(
+                      icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                      onPressed: _pickProfileImage,
+                    ),
                   ),
                 ),
             ],
           ),
         ),
+        if (_isGoogleUser && _isEditing) // Message for Google users when editing
+          Padding(
+            padding: const EdgeInsets.only(top: 16.0),
+            child: Center(
+              child: TextButton.icon(
+                icon: const Icon(Icons.open_in_new),
+                label: const Text('Gestionar foto en cuenta de Google', style: TextStyle(color: Colors.blue)),
+                onPressed: () {
+                  _showAppSnackBar('Por favor, gestiona tu foto de perfil directamente en tu cuenta de Google.');
+                },
+              ),
+            ),
+          ),
+        if (_canManagePhoto && _user?.profileImageUrl != null && _isEditing) // Delete button for manual users
+          Center(
+            child: TextButton.icon(
+              icon: const Icon(Icons.delete_forever, color: Colors.red),
+              label: const Text('Eliminar foto de perfil', style: TextStyle(color: Colors.red)),
+              onPressed: _deleteProfileImage,
+            ),
+          ),
         const SizedBox(height: 24),
 
         // --- Campos de Texto ---

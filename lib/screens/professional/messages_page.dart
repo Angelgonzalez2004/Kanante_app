@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../../models/chat_model.dart';
 import '../../services/firebase_service.dart';
 import '../shared/chat_screen.dart';
-import 'select_chat_participants_page.dart'; // New import
 
 class MessagesPage extends StatefulWidget {
   const MessagesPage({super.key});
@@ -35,59 +34,51 @@ class _MessagesPageState extends State<MessagesPage> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Mensajes',
-              style: TextStyle(
-                fontSize: size.width * 0.06,
-                fontWeight: FontWeight.bold,
-                color: Colors.teal,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 900.0),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Mensajes',
+                style: TextStyle(
+                  fontSize: size.width * 0.06,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.teal,
+                ),
               ),
-            ),
-            SizedBox(height: size.height * 0.02),
-            Expanded(
-              child: FutureBuilder<List<ChatConversation>>(
-                future: _conversationsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  }
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('No tienes mensajes.'));
-                  }
+              SizedBox(height: size.height * 0.02),
+              Expanded(
+                child: FutureBuilder<List<ChatConversation>>(
+                  future: _conversationsFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text('No tienes mensajes.'));
+                    }
 
-                  final conversations = snapshot.data!;
-                  return ListView.builder(
-                    itemCount: conversations.length,
-                    itemBuilder: (context, index) {
-                      final conversation = conversations[index];
-                      return _messageCard(conversation);
-                    },
-                  );
-                },
+                    final conversations = snapshot.data!;
+                    return ListView.builder(
+                      itemCount: conversations.length,
+                      itemBuilder: (context, index) {
+                        final conversation = conversations[index];
+                        return _messageCard(conversation);
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'newChatFab', // Unique tag
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const SelectChatParticipantsPage()),
-          );
-        },
-        backgroundColor: Colors.teal,
-        child: const Icon(Icons.add_comment, color: Colors.white),
       ),
     );
   }

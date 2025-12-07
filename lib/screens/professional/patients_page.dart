@@ -42,55 +42,60 @@ class _PatientsPageState extends State<PatientsPage> {
       color: Colors.teal,
     );
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Mis Pacientes', style: titleStyle),
-          SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-          Expanded(
-            child: FutureBuilder<List<UserModel>>(
-              future: _patientsFuture,
-              builder: (context, snapshot) {
-                // Loading State
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 900.0),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Mis Pacientes', style: titleStyle),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+              Expanded(
+                child: FutureBuilder<List<UserModel>>(
+                  future: _patientsFuture,
+                  builder: (context, snapshot) {
+                    // Loading State
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                // Error State
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text('Error al cargar pacientes: ${snapshot.error}'),
-                  );
-                }
+                    // Error State
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text('Error al cargar pacientes: ${snapshot.error}'),
+                      );
+                    }
 
-                // Empty State
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                    child: Text('No tienes pacientes asignados aún.'),
-                  );
-                }
+                    // Empty State
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(
+                        child: Text('No tienes pacientes asignados aún.'),
+                      );
+                    }
 
-                // Data State
-                final patients = snapshot.data!;
-                return GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: isWide ? 2 : 1,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: isWide ? 4 : 5,
-                  ),
-                  itemCount: patients.length,
-                  itemBuilder: (context, index) {
-                    final patient = patients[index];
-                    return _patientCard(patient);
+                    // Data State
+                    final patients = snapshot.data!;
+                    return GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: isWide ? 2 : 1,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: isWide ? 4 : 5,
+                      ),
+                      itemCount: patients.length,
+                      itemBuilder: (context, index) {
+                        final patient = patients[index];
+                        return _patientCard(patient);
+                      },
+                    );
                   },
-                );
-              },
-            ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

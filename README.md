@@ -24,9 +24,16 @@ La aplicación está estructurada en tres roles principales:
 
 ## ✨ Características Principales
 
+*   **🚀 Flujo de Inicio de Aplicación Mejorado:** La aplicación ahora sigue un flujo claro de `Splash Screen` (logo) -> `Welcome Screen` (información atractiva) -> `Login Screen`. La `Welcome Screen` es la puerta de entrada principal para nuevos usuarios o aquellos que desean iniciar sesión, y la `Login Screen` permite regresar a la `Welcome Screen`.
 *   **🔐 Autenticación Multi-plataforma:** Registro e inicio de sesión con correo/contraseña y Google Sign-In, con flujos seguros y persistencia de sesión.
 *   **🎨 Diseño Responsivo y Adaptativo:** Interfaz de usuario completamente responsiva que se adapta a móviles, tabletas y web, utilizando `LayoutBuilder` para cambiar entre menús laterales (`Drawer`) y barras de navegación persistentes (`NavigationRail`) para una experiencia de usuario óptima.
-*   **👤 Perfiles Detallados:** Perfiles personalizables para usuarios y profesionales, con campos para biografía (usando un editor de texto enriquecido), especialidades, foto de perfil y más.
+*   **👤 Perfiles y Configuraciones Claramente Separados:**
+    *   **Páginas de Perfil:** Dedicadas a la información de identidad del usuario (nombre, teléfono, foto de perfil, biografía, etc.).
+    *   **Páginas de Configuración:** Enfocadas en las preferencias y el comportamiento de la aplicación (notificaciones, tema, seguridad, cerrar sesión, etc.).
+    *   **Gestión de Fotos de Perfil:**
+        *   Solo los **Profesionales con cuentas manuales** pueden subir, cambiar y eliminar su foto de perfil directamente en la aplicación.
+        *   Los usuarios con **cuentas de Google** (tanto Usuarios como Profesionales) deben gestionar su foto directamente desde su cuenta de Google; la app no permite la subida en estos casos.
+        *   Los **Usuarios Normales y Administradores** no pueden subir fotos de perfil, aunque sus perfiles las mostrarán si existen (e.g., de una cuenta de Google).
 *   **✅ Sistema de Verificación:** Los profesionales deben subir documentos para ser verificados por un administrador, aumentando la confianza y seguridad en la plataforma.
 *   **📝 Feed de Contenido Dinámico:** Los profesionales pueden crear, editar y publicar artículos con un editor de texto enriquecido e imágenes. Los usuarios pueden explorar este contenido en un feed interactivo.
 *   **🗓️ Gestión de Citas:** Sistema para que los usuarios soliciten citas y los profesionales las gestionen.
@@ -37,6 +44,7 @@ La aplicación está estructurada en tres roles principales:
     *   Formularios de quejas y sugerencias (anónimos o identificados).
     *   Acceso a políticas de privacidad.
     *   Secciones de Preguntas Frecuentes (FAQ) personalizadas por rol.
+*   **🧹 Código Limpio y Sin Errores:** Se han resuelto todos los errores, advertencias e hints reportados por `flutter analyze`.
 
 ## 🛠️ Tecnologías Utilizadas
 

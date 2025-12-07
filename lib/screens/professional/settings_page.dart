@@ -351,16 +351,9 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Ajustes"),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-      ),
-      body: _isLoading
+    @override
+    Widget build(BuildContext context) {
+      return _isLoading
           ? const Center(child: CircularProgressIndicator())
           : LayoutBuilder(builder: (context, constraints) {
               return SingleChildScrollView(
@@ -395,10 +388,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
               );
-            }),
-    );
-  }
-
+            });
+    }
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, bottom: 8.0),

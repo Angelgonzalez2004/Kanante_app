@@ -62,11 +62,20 @@ class _ContactProfessionalScreenState extends State<ContactProfessionalScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          _buildSearchBar(),
-          Expanded(child: _buildProfessionalsList()),
-        ],
+      appBar: AppBar(
+        title: const Text('Contactar Profesional'),
+        backgroundColor: Colors.teal,
+      ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800.0), // Max width for content
+          child: Column(
+            children: [
+              _buildSearchBar(),
+              Expanded(child: _buildProfessionalsList()),
+            ],
+          ),
+        ),
       ),
     );
   }

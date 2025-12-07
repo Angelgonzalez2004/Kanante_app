@@ -70,33 +70,36 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () async => _loadAppointments(),
-        child: FutureBuilder<List<Appointment>>(
-          future: _appointmentsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return const Center(child: Text('Error al cargar las citas.'));
-            }
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(
-                child: Text('No tienes citas solicitadas.', style: TextStyle(fontSize: 16, color: Colors.grey)),
-              );
-            }
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 900.0), // Max width for list on large screens
+        child: RefreshIndicator(
+          onRefresh: () async => _loadAppointments(),
+          child: FutureBuilder<List<Appointment>>(
+            future: _appointmentsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return const Center(child: Text('Error al cargar las citas.'));
+              }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(
+                  child: Text('No tienes citas solicitadas.', style: TextStyle(fontSize: 16, color: Colors.grey)),
+                );
+              }
 
-            final appointments = snapshot.data!;
-            return ListView.builder(
-              padding: const EdgeInsets.all(12.0),
-              itemCount: appointments.length,
-              itemBuilder: (context, index) {
-                return _buildAppointmentCard(appointments[index]);
-              },
-            );
-          },
+              final appointments = snapshot.data!;
+              return ListView.builder(
+                padding: const EdgeInsets.all(12.0),
+                itemCount: appointments.length,
+                itemBuilder: (context, index) {
+                  return _buildAppointmentCard(appointments[index]);
+                },
+              );
+            },
+          ),
         ),
       ),
     );

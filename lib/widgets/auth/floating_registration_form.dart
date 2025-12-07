@@ -15,10 +15,74 @@ class FloatingRegistrationForm extends StatefulWidget {
 }
 
 class _FloatingRegistrationFormState extends State<FloatingRegistrationForm> {
+  static const String _kAdminSecretKey = '12345678'; // Keep this secure
   final _formKey = GlobalKey<FormState>();
   final FirebaseService _firebaseService = FirebaseService();
   String? _selectedRole;
   bool _isLoading = false;
+  bool _isAdminKeyVerified = false;
+
+  void _onAccountTypeChanged(String? newValue) {
+    if (newValue == null) return;
+    
+    setState(() {
+      _selectedRole = newValue;
+      // Reset admin verification if user switches away from Admin
+      if (newValue != 'Admin') {
+        _isAdminKeyVerified = false;
+      }
+    });
+
+    if (newValue == 'Admin') {
+      _showAdminKeyDialog();
+    }
+  }
+
+  void _showAdminKeyDialog() {
+    final keyController = TextEditingController();
+    showDialog(
+      context: context,
+      barrierDismissible: false, // User must interact with dialog
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Clave de Administrador'),
+          content: TextField(
+            controller: keyController,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'Ingresa la clave secreta',
+              icon: Icon(Icons.key),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                // If user cancels, revert account type selection
+                setState(() {
+                  _selectedRole = null;
+                  _isAdminKeyVerified = false;
+                });
+              },
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (keyController.text.trim() == _kAdminSecretKey) {
+                  setState(() => _isAdminKeyVerified = true);
+                  Navigator.of(dialogContext).pop();
+                  _showSnackBar('Clave de administrador correcta.', isError: false);
+                } else {
+                   _showSnackBar("Clave incorrecta.", isError: true);
+                }
+              },
+              child: const Text('Verificar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   void _showSnackBar(String message, {bool isError = false}) {
     if (!mounted) return;
@@ -35,6 +99,12 @@ class _FloatingRegistrationFormState extends State<FloatingRegistrationForm> {
     if (_formKey.currentState!.validate()) {
       if (_selectedRole == null) {
         _showSnackBar('Por favor, selecciona un rol.', isError: true);
+        return;
+      }
+
+      if (_selectedRole == 'Admin' && !_isAdminKeyVerified) {
+        _showSnackBar('Debes verificar la clave de administrador para registrarte como uno.', isError: true);
+        _showAdminKeyDialog(); // Re-prompt for key
         return;
       }
 
@@ -110,23 +180,20 @@ class _FloatingRegistrationFormState extends State<FloatingRegistrationForm> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              initialValue: _selectedRole,
+              // ignore: deprecated_member_use
+              value: _selectedRole,
               decoration: const InputDecoration(
                 labelText: 'Selecciona tu rol',
                 prefixIcon: Icon(Icons.person_pin_outlined),
                 border: OutlineInputBorder(),
               ),
-              items: ['Usuario', 'Profesional']
+              items: ['Usuario', 'Profesional', 'Admin'] // Added 'Admin'
                   .map((role) => DropdownMenuItem(
                         value: role,
                         child: Text(role),
                       ))
                   .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedRole = value;
-                });
-              },
+              onChanged: _onAccountTypeChanged, // Changed to new handler
               validator: (value) =>
                   value == null ? 'Debes seleccionar un rol' : null,
             ),

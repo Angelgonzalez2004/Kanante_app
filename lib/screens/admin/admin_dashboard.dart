@@ -7,6 +7,8 @@ import 'support_center_screen.dart';
 import '../shared/faq_screen.dart'; // Ensure FaqScreen is imported from shared
 import 'package:kanante_app/data/faq_data.dart';
 import 'admin_publication_list.dart'; // Correct import for publication list
+import 'admin_profile_page.dart'; // New import
+import 'admin_settings_page.dart'; // New import
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -30,21 +32,21 @@ class _AdminDashboardState extends State<AdminDashboard> {
     super.initState();
     _pages = [
       const VerificationsPage(),
-      const AdminPublicationList(), // Corrected class name
+      const AdminPublicationList(), // Use AdminPublicationListPage
       const SupportCenterScreen(),
       const FaqScreen(faqData: FaqData.forAdmin),
-      const Center(child: Text('Gestión de Cuentas (TODO)')), // Placeholder
-      const Center(child: Text('Perfil de Administrador (TODO)')), // Placeholder
-      const Center(child: Text('Configuración (TODO)')), // Placeholder
+      const AdminProfilePage(), // Placeholder - Admin Profile Page
+      const AdminSettingsPage(), // Placeholder - Admin Settings Page
+      const Center(child: Text('Gestionar Cuentas (TODO)')), // Placeholder, was index 4
     ];
     _pageTitles = [
       'Verificar Profesionales',
       'Supervisar Publicaciones',
       'Centro de Soporte',
       'Preguntas Frecuentes',
-      'Gestionar Cuentas',
-      'Perfil',
-      'Configuración',
+      'Mi Perfil (Admin)', // New title
+      'Configuración (Admin)', // New title
+      'Gestionar Cuentas', // Shifted index
     ];
   }
 

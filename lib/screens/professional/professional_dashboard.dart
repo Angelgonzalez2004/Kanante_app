@@ -10,6 +10,8 @@ import 'appointments_page.dart';
 import 'messages_page.dart';
 import 'publications_page.dart';
 import 'settings_page.dart';
+import 'new_publication_page.dart'; // Added for FAB
+import 'select_chat_participants_page.dart'; // New import
 import '../shared/support_screen.dart';
 import 'profile_page.dart'; // Este archivo debe contener la clase ProfessionalProfilePage
 
@@ -166,11 +168,6 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
     setState(() {
       _selectedIndex = index;
     });
-    
-    // Si estamos en modo móvil (Drawer), cerramos el drawer
-    if (Scaffold.of(context).hasDrawer && Scaffold.of(context).isDrawerOpen) {
-      Navigator.pop(context);
-    }
   }
 
   Future<void> _logout() async {
@@ -262,6 +259,28 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
           ),
         ],
       ),
+      floatingActionButton: (_selectedIndex == 5) // 'Publicaciones'
+          ? FloatingActionButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const NewPublicationPage()),
+                );
+              },
+              child: const Icon(Icons.add),
+            )
+          : (_selectedIndex == 4) // 'Mensajes'
+              ? FloatingActionButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SelectChatParticipantsPage()),
+                    );
+                  },
+                  backgroundColor: Colors.teal,
+                  heroTag: 'newChatFab', // Unique tag
+                  child: const Icon(Icons.add_comment, color: Colors.white),
+                )
+              : null, // No FAB for other pages
     );
   }
 
