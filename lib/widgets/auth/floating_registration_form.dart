@@ -110,7 +110,7 @@ class _FloatingRegistrationFormState extends State<FloatingRegistrationForm> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: _selectedRole,
+              initialValue: _selectedRole,
               decoration: const InputDecoration(
                 labelText: 'Selecciona tu rol',
                 prefixIcon: Icon(Icons.person_pin_outlined),

@@ -35,65 +35,70 @@ class _AdminPublicationListState extends State<AdminPublicationList> {
         }
 
         final publications = snapshot.data!;
-        return ListView.builder(
-          padding: const EdgeInsets.all(8.0),
-          itemCount: publications.length,
-          itemBuilder: (context, index) {
-            final publication = publications[index];
-            return Card(
-              elevation: 2,
-              margin: const EdgeInsets.symmetric(vertical: 8.0),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      publication.title,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      publication.contentAsPlainText,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const Divider(height: 20),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ProfessionalProfilePage(professionalId: publication.professionalUid),
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900.0), // Max width for the list on large screens
+            child: ListView.builder(
+              padding: const EdgeInsets.all(8.0),
+              itemCount: publications.length,
+              itemBuilder: (context, index) {
+                final publication = publications[index];
+                return Card(
+                  elevation: 2,
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          publication.title,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          publication.contentAsPlainText,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const Divider(height: 20),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ProfessionalProfilePage(professionalId: publication.professionalUid),
+                              ),
+                            );
+                          },
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 16,
+                                backgroundImage: publication.authorImageUrl != null
+                                    ? NetworkImage(publication.authorImageUrl!)
+                                    : null,
+                                child: publication.authorImageUrl == null ? const Icon(Icons.person, size: 16) : null,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  publication.authorName ?? 'Autor Desconocido',
+                                  style: const TextStyle(fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                              const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+                            ],
                           ),
-                        );
-                      },
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 16,
-                            backgroundImage: publication.authorImageUrl != null
-                                ? NetworkImage(publication.authorImageUrl!)
-                                : null,
-                            child: publication.authorImageUrl == null ? const Icon(Icons.person, size: 16) : null,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              publication.authorName ?? 'Autor Desconocido',
-                              style: const TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                          const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            );
-          },
+                  ),
+                );
+              },
+            ),
+          ),
         );
       },
     );

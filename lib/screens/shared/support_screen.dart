@@ -92,56 +92,61 @@ class _SupportScreenState extends State<SupportScreen> {
         title: const Text('Ayuda y Soporte'),
         backgroundColor: Colors.teal,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          _buildSupportCard(
-            context,
-            icon: Icons.chat_bubble_outline_rounded,
-            title: 'Contactar a Soporte',
-            subtitle: 'Inicia un chat en vivo con nuestro equipo de soporte.',
-            onTap: _navigateToChat,
-          ),
-          const SizedBox(height: 16),
-          _buildSupportCard(
-            context,
-            icon: Icons.feedback_outlined,
-            title: 'Enviar Queja o Sugerencia',
-            subtitle: 'Tu opinión nos ayuda a mejorar la aplicación.',
-            onTap: () {
-              Navigator.push(
+      body: Center( // Added Center
+        child: ConstrainedBox( // Added ConstrainedBox
+          constraints: const BoxConstraints(maxWidth: 800.0), // Set max width
+          child: ListView(
+            padding: const EdgeInsets.all(16.0),
+            children: [
+              _buildSupportCard(
                 context,
-                MaterialPageRoute(builder: (context) => const FeedbackFormScreen()),
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-          _buildSupportCard(
-            context,
-            icon: Icons.question_answer_outlined,
-            title: 'Preguntas Frecuentes',
-            subtitle: 'Encuentra respuestas a tus dudas más comunes.',
-            onTap: () {
-              Navigator.push(
+                icon: Icons.chat_bubble_outline_rounded,
+                title: 'Contactar a Soporte',
+                subtitle: 'Inicia un chat en vivo con nuestro equipo de soporte.',
+                onTap: _navigateToChat,
+              ),
+              const SizedBox(height: 16),
+              _buildSupportCard(
                 context,
-                MaterialPageRoute(builder: (context) => FaqScreen(faqData: _getFaqDataForRole())),
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-          _buildSupportCard(
-            context,
-            icon: Icons.privacy_tip_outlined,
-            title: 'Política de Privacidad',
-            subtitle: 'Lee cómo manejamos tus datos.',
-            onTap: () {
-              Navigator.push(
+                icon: Icons.feedback_outlined,
+                title: 'Enviar Queja o Sugerencia',
+                subtitle: 'Tu opinión nos ayuda a mejorar la aplicación.',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const FeedbackFormScreen()),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildSupportCard(
                 context,
-                MaterialPageRoute(builder: (context) => const PrivacyPolicyScreen()),
-              );
-            },
+                icon: Icons.question_answer_outlined,
+                title: 'Preguntas Frecuentes',
+                subtitle: 'Encuentra respuestas a tus dudas más comunes.',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => FaqScreen(faqData: _getFaqDataForRole())),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildSupportCard(
+                context,
+                icon: Icons.privacy_tip_outlined,
+                title: 'Política de Privacidad',
+                subtitle: 'Lee cómo manejamos tus datos.',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const PrivacyPolicyScreen()),
+                  );
+                },
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

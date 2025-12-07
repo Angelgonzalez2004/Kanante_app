@@ -59,18 +59,23 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
             ],
           ),
         ),
-        body: Column(
-          children: [
-            _buildActionButtons(professional),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  _buildProfileInfoTab(professional),
-                  _buildPublicationsTab(professional.id),
-                ],
-              ),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800.0), // Max width for content on large screens
+            child: Column(
+              children: [
+                _buildActionButtons(professional),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      _buildProfileInfoTab(professional),
+                      _buildPublicationsTab(professional.id),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

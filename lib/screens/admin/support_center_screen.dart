@@ -69,30 +69,35 @@ class SupportChatsTab extends StatelessWidget {
           return const Center(child: Text('No hay chats de soporte.'));
         }
         final chats = snapshot.data!;
-        return ListView.builder(
-          itemCount: chats.length,
-          itemBuilder: (context, index) {
-            final chat = chats[index];
-            return ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.person)),
-              title: Text(chat.otherParticipantName ?? 'Usuario Desconocido'),
-              subtitle: Text(chat.lastMessage),
-              trailing: Text(DateFormat('dd/MM/yy').format(chat.timestamp)),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ChatScreen(
-                      chatId: chat.id,
-                      otherUserName: chat.otherParticipantName ?? 'Usuario de Soporte',
-                      otherUserId: chat.participants.firstWhere((id) => id != 'support_admin', orElse: () => ''),
-                      otherUserImageUrl: null,
-                    ),
-                  ),
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900.0), // Max width for list on large screens
+            child: ListView.builder(
+              itemCount: chats.length,
+              itemBuilder: (context, index) {
+                final chat = chats[index];
+                return ListTile(
+                  leading: const CircleAvatar(child: Icon(Icons.person)),
+                  title: Text(chat.otherParticipantName ?? 'Usuario Desconocido'),
+                  subtitle: Text(chat.lastMessage),
+                  trailing: Text(DateFormat('dd/MM/yy').format(chat.timestamp)),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChatScreen(
+                          chatId: chat.id,
+                          otherUserName: chat.otherParticipantName ?? 'Usuario de Soporte',
+                          otherUserId: chat.participants.firstWhere((id) => id != 'support_admin', orElse: () => ''),
+                          otherUserImageUrl: null,
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
-            );
-          },
+            ),
+          ),
         );
       },
     );
@@ -115,25 +120,30 @@ class SupportTicketsTab extends StatelessWidget {
           return const Center(child: Text('No hay tickets de soporte.'));
         }
         final tickets = snapshot.data!;
-        return ListView.builder(
-          itemCount: tickets.length,
-          itemBuilder: (context, index) {
-            final ticket = tickets[index];
-            return ListTile(
-              leading: Icon(ticket.status == 'open' ? Icons.folder_open : Icons.folder, color: ticket.status == 'open' ? Colors.blue : Colors.grey),
-              title: Text(ticket.subject),
-              subtitle: Text('De: ${ticket.userName ?? 'Anónimo'}'),
-              trailing: Text(DateFormat('dd/MM/yy').format(ticket.createdAt)),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SupportTicketDetailScreen(ticket: ticket),
-                  ),
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900.0), // Max width for list on large screens
+            child: ListView.builder(
+              itemCount: tickets.length,
+              itemBuilder: (context, index) {
+                final ticket = tickets[index];
+                return ListTile(
+                  leading: Icon(ticket.status == 'open' ? Icons.folder_open : Icons.folder, color: ticket.status == 'open' ? Colors.blue : Colors.grey),
+                  title: Text(ticket.subject),
+                  subtitle: Text('De: ${ticket.userName ?? 'Anónimo'}'),
+                  trailing: Text(DateFormat('dd/MM/yy').format(ticket.createdAt)),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SupportTicketDetailScreen(ticket: ticket),
+                      ),
+                    );
+                  },
                 );
               },
-            );
-          },
+            ),
+          ),
         );
       },
     );

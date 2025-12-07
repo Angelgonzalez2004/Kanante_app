@@ -2,7 +2,7 @@
   <img src="assets/images/logoapp.jpg" alt="Logo" width="150" height="150">
   <h1 align="center">Kanante App</h1>
   <p align="center">
-    Una aplicación móvil construida con Flutter para conectar usuarios y profesionales.
+    Una aplicación móvil construida con Flutter para conectar usuarios y profesionales del bienestar.
     <br />
     <a href="https://github.com/Angelgonzalez2004/Kanante_app"><strong>Explora la documentación »</strong></a>
     <br />
@@ -15,24 +15,24 @@
 
 ## 📜 Descripción
 
-**Kanante App** es una plataforma móvil que facilita la conexión entre usuarios que buscan servicios y profesionales que los ofrecen. La aplicación permite a los profesionales crear publicaciones, gestionar su perfil y agenda, mientras que los usuarios pueden buscar profesionales, ver su contenido, agendar citas y comunicarse directamente.
+**Kanante App** es una plataforma móvil, construida con Flutter y Firebase, diseñada para ser un ecosistema de bienestar integral. Facilita la conexión entre usuarios que buscan servicios de salud y bienestar y los profesionales que los ofrecen. La aplicación permite a los profesionales verificados crear contenido, gestionar su perfil y agenda, mientras que los usuarios pueden buscar profesionales, consumir su contenido, agendar citas y comunicarse de forma segura.
 
-La aplicación cuenta con tres roles principales:
-*   **👤 Usuario:** Busca y contacta profesionales, agenda citas, gestiona su perfil y accede a soporte técnico y FAQs.
-*   **🧑‍⚕️ Profesional:** Publica contenido, gestiona su perfil, su agenda de citas, se comunica con los usuarios y accede a soporte técnico y FAQs.
-*   **👑 Administrador:** Modera el contenido, gestiona las verificaciones de los profesionales, supervisa tickets de soporte, chats y FAQs de la plataforma.
+La aplicación está estructurada en tres roles principales:
+*   **👤 Usuario:** Busca y contacta profesionales, agenda citas, consume el feed de contenido, gestiona su perfil y accede a soporte y FAQs.
+*   **🧑‍⚕️ Profesional:** Publica artículos en el feed, gestiona su perfil (biografía, especialidades), su agenda de citas, se comunica con los usuarios y solicita la verificación de su cuenta.
+*   **👑 Administrador:** Modera el contenido, gestiona las verificaciones de los profesionales, supervisa tickets de soporte y chats de la plataforma.
 
 ## ✨ Características Principales
 
-*   **🔐 Autenticación:** Registro e inicio de sesión con correo/contraseña y Google Sign-In.
-*   **👤 Perfiles de Usuario:** Perfiles personalizables para usuarios y profesionales.
-*   **📝 Publicaciones:** Los profesionales pueden crear y editar publicaciones con un editor de texto enriquecido.
-*   **🗓️ Gestión de Citas:** Sistema para que los usuarios agenden citas y los profesionales las gestionen.
-*   **💬 Chat en Tiempo Real:** Comunicación directa entre usuarios y profesionales.
-*   **🗺️ Geolocalización:** Búsqueda de profesionales basada en la ubicación.
-*   **🎨 Panel de Administración:** Interfaz para la moderación de contenido y la gestión de la plataforma.
-*   **Soporte Multi-rol:** Experiencias de usuario adaptadas para Usuarios, Profesionales y Administradores.
-*   **Soporte y Ayuda Integrado:**
+*   **🔐 Autenticación Multi-plataforma:** Registro e inicio de sesión con correo/contraseña y Google Sign-In, con flujos seguros y persistencia de sesión.
+*   **🎨 Diseño Responsivo y Adaptativo:** Interfaz de usuario completamente responsiva que se adapta a móviles, tabletas y web, utilizando `LayoutBuilder` para cambiar entre menús laterales (`Drawer`) y barras de navegación persistentes (`NavigationRail`) para una experiencia de usuario óptima.
+*   **👤 Perfiles Detallados:** Perfiles personalizables para usuarios y profesionales, con campos para biografía (usando un editor de texto enriquecido), especialidades, foto de perfil y más.
+*   **✅ Sistema de Verificación:** Los profesionales deben subir documentos para ser verificados por un administrador, aumentando la confianza y seguridad en la plataforma.
+*   **📝 Feed de Contenido Dinámico:** Los profesionales pueden crear, editar y publicar artículos con un editor de texto enriquecido e imágenes. Los usuarios pueden explorar este contenido en un feed interactivo.
+*   **🗓️ Gestión de Citas:** Sistema para que los usuarios soliciten citas y los profesionales las gestionen.
+*   **💬 Chat en Tiempo Real:** Comunicación directa y segura entre usuarios y profesionales, y entre usuarios y el equipo de soporte.
+*   **🧭 Navegación por Roles:** Paneles de control (`Dashboards`) personalizados para cada rol (Usuario, Profesional, Administrador), mostrando solo las opciones y vistas relevantes para cada uno.
+*   **🆘 Soporte y Ayuda Integrado:**
     *   Chat directo con administradores de soporte.
     *   Formularios de quejas y sugerencias (anónimos o identificados).
     *   Acceso a políticas de privacidad.
@@ -40,17 +40,80 @@ La aplicación cuenta con tres roles principales:
 
 ## 🛠️ Tecnologías Utilizadas
 
-Este proyecto está construido con una pila de tecnologías modernas para el desarrollo de aplicaciones móviles:
+Este proyecto está construido con una pila de tecnologías modernas para el desarrollo de aplicaciones multiplataforma:
 
 *   **Framework:** [Flutter](https://flutter.dev/)
 *   **Lenguaje:** [Dart](https://dart.dev/)
 *   **Backend:** [Firebase](https://firebase.google.com/)
-    *   **🔥 Autenticación:** Firebase Auth
+    *   **🔥 Autenticación:** Firebase Auth (Email/Password & Google Sign-In)
     *   **🗄️ Base de Datos:** Firebase Realtime Database
     *   **📦 Almacenamiento:** Firebase Storage
 *   **Gestión de Estado:** [Provider](https://pub.dev/packages/provider)
 *   **Mapas:** [Google Maps Flutter](https://pub.dev/packages/google_maps_flutter)
 *   **Editor de Texto:** [Flutter Quill](https://pub.dev/packages/flutter_quill)
+
+## 🚀 Comenzando
+
+Para obtener una copia local y ponerla en marcha, sigue estos sencillos pasos.
+
+### Prerrequisitos
+
+Asegúrate de tener instalado el SDK de Flutter y las herramientas de línea de comandos de Java (`keytool`) en tu `PATH`. Para más información, consulta la [documentación oficial de Flutter](https://flutter.dev/docs/get-started/install).
+
+*   Flutter SDK
+*   Java Development Kit (JDK)
+
+### Configuración de Firebase
+
+Este proyecto requiere una configuración de Firebase para funcionar. **No podrás ejecutar la aplicación sin completar estos pasos.**
+
+1.  **Crear un Proyecto en Firebase:**
+    *   Ve a la [Consola de Firebase](https://console.firebase.google.com/) y crea un nuevo proyecto.
+    *   Habilita los siguientes servicios: **Authentication** (con proveedores de Email/Contraseña y Google), **Realtime Database**, y **Firebase Storage**.
+
+2.  **Configurar la App para Android:**
+    *   En la configuración de tu proyecto de Firebase, añade una nueva aplicación de Android con el `package name`: `com.example.kanante_app`.
+    *   Genera una huella digital de certificado **SHA-1** para tu keystore de depuración. Puedes obtenerla ejecutando el siguiente comando en tu terminal:
+        ```sh
+        keytool -list -v -keystore "%USERPROFILE%\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
+        ```
+    *   Añade esta huella digital SHA-1 a la configuración de tu app de Android en Firebase.
+    *   Descarga el archivo `google-services.json` y colócalo en el directorio `android/app/` de tu proyecto.
+
+3.  **Configurar la App para iOS:**
+    *   En Firebase, añade una nueva aplicación de iOS con el `bundle ID`: `com.example.kananteApp`.
+    *   Descarga el archivo `GoogleService-Info.plist` y colócalo en el directorio `ios/Runner/` de tu proyecto usando Xcode.
+
+4.  **Configurar la App para Web:**
+    *   En Firebase, añade una nueva aplicación Web.
+    *   Ve a la [Consola de Google Cloud](https://console.cloud.google.com/), selecciona tu proyecto, y en **APIs y servicios > Credenciales**, crea un nuevo **ID de cliente de OAuth 2.0** para "Aplicación web".
+    *   Copia el **ID de cliente** generado (un string que termina en `.apps.googleusercontent.com`).
+    *   Abre el archivo `web/index.html` y reemplaza el marcador de posición en la siguiente etiqueta meta:
+        ```html
+        <meta name="google-signin-client_id" content="YOUR_WEB_CLIENT_ID_HERE">
+        ```
+    *   **Habilitar People API:** En la consola de Google Cloud, ve a **APIs y servicios > Biblioteca** y busca y habilita la **People API**.
+
+### Instalación
+
+1.  Clona el repositorio:
+    ```sh
+    git clone https://github.com/Angelgonzalez2004/Kanante_app.git
+    ```
+2.  Navega al directorio del proyecto:
+    ```sh
+    cd Kanante_app
+    ```
+3.  Instala las dependencias:
+    ```sh
+    flutter pub get
+    ```
+4.  Ejecuta la aplicación en el dispositivo deseado:
+    ```sh
+    flutter run
+    # Para web
+    flutter run -d chrome
+    ```
 
 ## 📂 Estructura del Proyecto
 
@@ -58,6 +121,7 @@ La estructura del proyecto está organizada para mantener una separación clara 
 
 ```
 ├── lib
+│   ├── data            # Datos estáticos (ej. FAQs)
 │   ├── models          # Clases de modelo de datos (Usuario, Cita, etc.)
 │   ├── screens         # Widgets de pantalla principal para cada flujo de la app
 │   │   ├── admin
@@ -70,35 +134,6 @@ La estructura del proyecto está organizada para mantener una separación clara 
 ├── assets              # Archivos estáticos como imágenes y fuentes
 ├── pubspec.yaml        # Definiciones y dependencias del proyecto
 ```
-
-## 🚀 Comenzando
-
-Para obtener una copia local y ponerla en marcha, sigue estos sencillos pasos.
-
-### Prerrequisitos
-
-Asegúrate de tener instalado el SDK de Flutter. Para más información, consulta la [documentación oficial de Flutter](https://flutter.dev/docs/get-started/install).
-
-*   **Flutter SDK**
-
-### Instalación
-
-1.  Clona el repositorio:
-    ```sh
-    git clone https://github.com/Angelgonzalez2004/Kanante_app.git
-    ```
-2.  Navega al directorio del proyecto:
-    ```sh
-    cd kanante_app
-    ```
-3.  Instala las dependencias:
-    ```sh
-    flutter pub get
-    ```
-4.  Ejecuta la aplicación:
-    ```sh
-    flutter run
-    ```
 
 ## 📄 Licencia
 

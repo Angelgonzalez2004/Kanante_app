@@ -37,12 +37,17 @@ class _PublicationFeedBodyState extends State<PublicationFeedBody> {
         }
 
         final publications = snapshot.data!;
-        return PageView.builder(
-          scrollDirection: Axis.vertical,
-          itemCount: publications.length,
-          itemBuilder: (context, index) {
-            return _buildFeedItem(publications[index]);
-          },
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800.0), // Max width for feed items on large screens
+            child: PageView.builder(
+              scrollDirection: Axis.vertical,
+              itemCount: publications.length,
+              itemBuilder: (context, index) {
+                return _buildFeedItem(publications[index]);
+              },
+            ),
+          ),
         );
       },
     );

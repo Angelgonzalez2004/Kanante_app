@@ -75,62 +75,67 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
       body: Stack(
         children: [
           SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const FadeInSlide(
-                    duration: Duration(milliseconds: 400),
-                    child: Icon(Icons.lock_open_outlined, size: 60, color: AppColors.primary),
-                  ),
-                  const SizedBox(height: 24),
-                  const FadeInSlide(
-                    delay: Duration(milliseconds: 100),
-                    child: Text(
-                      'Recupera tu Cuenta',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const FadeInSlide(
+                        duration: Duration(milliseconds: 400),
+                        child: Icon(Icons.lock_open_outlined, size: 60, color: AppColors.primary),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const FadeInSlide(
-                    delay: Duration(milliseconds: 200),
-                    child: Text(
-                      'Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16, color: AppColors.textLight),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  FadeInSlide(
-                    delay: const Duration(milliseconds: 300),
-                    child: Form(
-                      key: _formKey,
-                      child: AuthTextField(
-                        controller: _emailController,
-                        labelText: 'Correo electrónico',
-                        icon: Icons.email_outlined,
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (value) => (value == null || !value.contains('@')) ? 'Correo inválido' : null,
+                      const SizedBox(height: 24),
+                      const FadeInSlide(
+                        delay: Duration(milliseconds: 100),
+                        child: Text(
+                          'Recupera tu Cuenta',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textDark,
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 12),
+                      const FadeInSlide(
+                        delay: Duration(milliseconds: 200),
+                        child: Text(
+                          'Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 16, color: AppColors.textLight),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      FadeInSlide(
+                        delay: const Duration(milliseconds: 300),
+                        child: Form(
+                          key: _formKey,
+                          child: AuthTextField(
+                            controller: _emailController,
+                            labelText: 'Correo electrónico',
+                            icon: Icons.email_outlined,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) => (value == null || !value.contains('@')) ? 'Correo inválido' : null,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      FadeInSlide(
+                        delay: const Duration(milliseconds: 400),
+                        child: PrimaryAuthButton(
+                          text: 'Enviar Enlace',
+                          isLoading: isLoading,
+                          onPressed: _recoverPassword,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 30),
-                  FadeInSlide(
-                    delay: const Duration(milliseconds: 400),
-                    child: PrimaryAuthButton(
-                      text: 'Enviar Enlace',
-                      isLoading: isLoading,
-                      onPressed: _recoverPassword,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),

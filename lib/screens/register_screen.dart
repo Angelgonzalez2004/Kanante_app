@@ -263,82 +263,87 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: Stack(
         children: [
           SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    if (_accountType == 'Profesional') ...[
-                      FadeInSlide(
-                        duration: const Duration(milliseconds: 400),
-                        child: GestureDetector(
-                          onTap: _pickImage,
-                          child: CircleAvatar(
-                            radius: 60,
-                            backgroundColor: Colors.grey[200],
-                            backgroundImage: _pickedXFile != null ? FileImage(File(_pickedXFile!.path)) : null,
-                            child: _pickedXFile == null ? const Icon(Icons.camera_alt_outlined, size: 50, color: Colors.grey) : null,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        if (_accountType == 'Profesional') ...[
+                          FadeInSlide(
+                            duration: const Duration(milliseconds: 400),
+                            child: GestureDetector(
+                              onTap: _pickImage,
+                              child: CircleAvatar(
+                                radius: 60,
+                                backgroundColor: Colors.grey[200],
+                                backgroundImage: _pickedXFile != null ? FileImage(File(_pickedXFile!.path)) : null,
+                                child: _pickedXFile == null ? const Icon(Icons.camera_alt_outlined, size: 50, color: Colors.grey) : null,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const FadeInSlide(
+                            delay: Duration(milliseconds: 100),
+                            child: Text('Añadir foto de perfil', style: TextStyle(color: AppColors.textLight)),
+                          ),
+                          const SizedBox(height: 30),
+                        ],
+
+                        FadeInSlide(delay: const Duration(milliseconds: 200), child: _buildTextField(controller: _nameController, label: 'Nombre completo', icon: Icons.person_outline, validator: (val) => val!.isEmpty ? 'Ingresa tu nombre' : null)),
+                        const SizedBox(height: 20),
+                        FadeInSlide(delay: const Duration(milliseconds: 300), child: _buildTextField(controller: _emailController, label: 'Correo electrónico', icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress, enabled: !isGoogleUser, validator: (val) => (val == null || !val.contains('@')) ? 'Correo inválido' : null)),
+                        if (!isGoogleUser) ...[
+                          const SizedBox(height: 20),
+                          FadeInSlide(delay: const Duration(milliseconds: 400), child: _buildPasswordField(_passwordController, 'Contraseña')),
+                          const SizedBox(height: 20),
+                          FadeInSlide(delay: const Duration(milliseconds: 500), child: _buildConfirmPasswordField()),
+                        ],
+                        const SizedBox(height: 20),
+                        FadeInSlide(delay: const Duration(milliseconds: 600), child: _buildDropdown()),
+                        const SizedBox(height: 20),
+                        FadeInSlide(delay: const Duration(milliseconds: 700), child: _buildDatePicker()),
+                        const SizedBox(height: 20),
+
+                        FadeInSlide(
+                          delay: const Duration(milliseconds: 800),
+                          child: CheckboxListTile(
+                            value: _acceptTerms,
+                            onChanged: (value) => setState(() => _acceptTerms = value!),
+                            activeColor: AppColors.primary,
+                            title: const Text('Acepto los términos y condiciones', style: TextStyle(color: AppColors.textLight)),
+                            controlAffinity: ListTileControlAffinity.leading,
+                            contentPadding: EdgeInsets.zero,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      const FadeInSlide(
-                        delay: Duration(milliseconds: 100),
-                        child: Text('Añadir foto de perfil', style: TextStyle(color: AppColors.textLight)),
-                      ),
-                      const SizedBox(height: 30),
-                    ],
-
-                    FadeInSlide(delay: const Duration(milliseconds: 200), child: _buildTextField(controller: _nameController, label: 'Nombre completo', icon: Icons.person_outline, validator: (val) => val!.isEmpty ? 'Ingresa tu nombre' : null)),
-                    const SizedBox(height: 20),
-                    FadeInSlide(delay: const Duration(milliseconds: 300), child: _buildTextField(controller: _emailController, label: 'Correo electrónico', icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress, enabled: !isGoogleUser, validator: (val) => (val == null || !val.contains('@')) ? 'Correo inválido' : null)),
-                    if (!isGoogleUser) ...[
-                      const SizedBox(height: 20),
-                      FadeInSlide(delay: const Duration(milliseconds: 400), child: _buildPasswordField(_passwordController, 'Contraseña')),
-                      const SizedBox(height: 20),
-                      FadeInSlide(delay: const Duration(milliseconds: 500), child: _buildConfirmPasswordField()),
-                    ],
-                    const SizedBox(height: 20),
-                    FadeInSlide(delay: const Duration(milliseconds: 600), child: _buildDropdown()),
-                    const SizedBox(height: 20),
-                    FadeInSlide(delay: const Duration(milliseconds: 700), child: _buildDatePicker()),
-                    const SizedBox(height: 20),
-
-                    FadeInSlide(
-                      delay: const Duration(milliseconds: 800),
-                      child: CheckboxListTile(
-                        value: _acceptTerms,
-                        onChanged: (value) => setState(() => _acceptTerms = value!),
-                        activeColor: AppColors.primary,
-                        title: const Text('Acepto los términos y condiciones', style: TextStyle(color: AppColors.textLight)),
-                        controlAffinity: ListTileControlAffinity.leading,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    FadeInSlide(
-                      delay: const Duration(milliseconds: 900),
-                      child: PrimaryAuthButton(
-                        text: 'Crear Cuenta',
-                        isLoading: _isLoading,
-                        onPressed: _register,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                     FadeInSlide(
-                      delay: const Duration(milliseconds: 1000),
-                        child: TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: const Text('¿Ya tienes una cuenta? Inicia Sesión', style: TextStyle(color: AppColors.primary)),
+                        const SizedBox(height: 24),
+                        FadeInSlide(
+                          delay: const Duration(milliseconds: 900),
+                          child: PrimaryAuthButton(
+                            text: 'Crear Cuenta',
+                            isLoading: _isLoading,
+                            onPressed: _register,
+                          ),
                         ),
-                      ),
-                  ],
+                        const SizedBox(height: 20),
+                         FadeInSlide(
+                          delay: const Duration(milliseconds: 1000),
+                            child: TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('¿Ya tienes una cuenta? Inicia Sesión', style: TextStyle(color: AppColors.primary)),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-          if (_isLoading) Container(color: Colors.black.withValues(alpha: 0.2), child: const Center(child: CircularProgressIndicator(color: AppColors.primary))),
+          if (_isLoading) Container(color: Colors.black.withAlpha((255 * 0.2).round()), child: const Center(child: CircularProgressIndicator(color: AppColors.primary))),
         ],
       ),
     );
@@ -430,7 +435,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _buildDropdown() {
     return DropdownButtonFormField<String>(
-      value: _accountType,
+      initialValue: _accountType,
       onChanged: _onAccountTypeChanged,
       items: const [
         DropdownMenuItem(value: 'Usuario', child: Text('Usuario (busco ayuda)')),

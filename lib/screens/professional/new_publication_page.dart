@@ -168,39 +168,41 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.all(size.width * 0.04), // Responsive padding
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    TextFormField(
-                      controller: _titleController,
-                      style: Theme.of(context).textTheme.headlineSmall,
-                      decoration: const InputDecoration(
-                        labelText: 'Título de la publicación',
-                        border: OutlineInputBorder(),
+          : Center( // Added Center
+              child: ConstrainedBox( // Added ConstrainedBox
+                constraints: const BoxConstraints(maxWidth: 800.0), // Set max width
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(size.width * 0.04), // Responsive padding
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TextFormField(
+                        controller: _titleController,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                        decoration: const InputDecoration(
+                          labelText: 'Título de la publicación',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
-                    ),
-                    SizedBox(height: size.height * 0.03), // Responsive spacing
-                    _buildAttachmentsSection(),
-                    SizedBox(height: size.height * 0.03), // Responsive spacing
-                    Text('Contenido de la publicación', style: Theme.of(context).textTheme.titleLarge),
-                    SizedBox(height: size.height * 0.01), // Responsive spacing
-                    Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      child: Column(
-                        children: [
-                          QuillToolbar.simple(
-                            configurations: QuillSimpleToolbarConfigurations(
-                              controller: _contentController,
-                              sharedConfigurations: const QuillSharedConfigurations(
-                                locale: Locale('es'),
+                      SizedBox(height: size.height * 0.03), // Responsive spacing
+                      _buildAttachmentsSection(),
+                      SizedBox(height: size.height * 0.03), // Responsive spacing
+                      Text('Contenido de la publicación', style: Theme.of(context).textTheme.titleLarge),
+                      SizedBox(height: size.height * 0.01), // Responsive spacing
+                      Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: Column(
+                          children: [
+                            QuillToolbar.simple(
+                              configurations: QuillSimpleToolbarConfigurations(
+                                controller: _contentController,
+                                sharedConfigurations: const QuillSharedConfigurations(
+                                  locale: Locale('es'),
+                                ),
                               ),
                             ),
-                          ),
-                          const Divider(height: 1),
+                            const Divider(height: 1),
 SizedBox(
   height: size.height * 0.4, // Responsive height
   child: QuillEditor.basic(
@@ -212,14 +214,15 @@ SizedBox(
       padding: const EdgeInsets.all(16),
       sharedConfigurations: const QuillSharedConfigurations(
         locale: Locale('es'),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -1,3 +1,5 @@
+import 'dart:async'; // Added for StreamSubscription
+import 'package:flutter/foundation.dart' show kIsWeb; // Added for kIsWeb
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -15,6 +17,7 @@ import '../../widgets/fade_in_slide.dart';
 
 import 'register_screen.dart';
 import 'recover_password_screen.dart';
+import 'welcome_screen.dart';
 import 'user/user_dashboard.dart';
 import 'professional/professional_dashboard.dart';
 import 'admin/admin_dashboard.dart';
@@ -40,16 +43,31 @@ class _LoginScreenState extends State<LoginScreen> {
   bool showPassword = false;
   bool _rememberMe = false;
 
+  StreamSubscription<GoogleSignInAccount?>? _googleSignInSubscription; // Added
+
   @override
   void initState() {
     super.initState();
     _loadSavedCredentials();
+    if (kIsWeb) {
+      _googleSignInSubscription = _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? googleUser) {
+        if (googleUser != null) {
+          _handleSuccessfulGoogleSignIn(googleUser);
+        } else {
+          // User signed out or sign-in failed. Reset loading state if set.
+          if (mounted) setState(() => isLoading = false);
+        }
+      });
+      // Try to sign in silently if user is already authenticated
+      _googleSignIn.signInSilently();
+    }
   }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _googleSignInSubscription?.cancel(); // Cancel subscription
     super.dispose();
   }
 
@@ -120,15 +138,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _signInWithGoogle() async {
-    setState(() => isLoading = true);
+  // New helper method to handle successful Google Sign-In and Firebase authentication
+  Future<void> _handleSuccessfulGoogleSignIn(GoogleSignInAccount googleUser) async {
+    setState(() => isLoading = true); // Ensure loading is true while handling
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        if (mounted) setState(() => isLoading = false);
-        return;
-      }
-
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
@@ -169,6 +182,29 @@ class _LoginScreenState extends State<LoginScreen> {
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
+  }
+
+  // Refactored _signInWithGoogle method
+  Future<void> _signInWithGoogle() async {
+    setState(() => isLoading = true); // Start loading immediately
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn(); // Initiate interactive sign-in
+      if (googleUser == null) {
+        // User cancelled the sign-in process
+        if (mounted) setState(() => isLoading = false);
+        return;
+      }
+      // For non-web, we call _handleSuccessfulGoogleSignIn directly.
+      // For web, the _googleSignIn.onCurrentUserChanged listener will pick up the googleUser
+      // and call _handleSuccessfulGoogleSignIn.
+      if (!kIsWeb) { 
+        _handleSuccessfulGoogleSignIn(googleUser);
+      }
+    } on Exception catch (e) { // Catch Exception here to avoid Firebase specific catch for Google Sign In on web
+      _showSnackBar('Error al iniciar sesión con Google: ${e.toString()}', isError: true);
+      if (mounted) setState(() => isLoading = false); // Reset loading on error
+    } 
+    // No finally block to reset isLoading for web here, as _handleSuccessfulGoogleSignIn or cancellation handles it.
   }
   
   void _showFloatingRegisterSheet(User googleUser) async {
@@ -368,6 +404,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       SizedBox(height: size.height * 0.04),
+                      SizedBox(height: size.height * 0.04),
                       
                       FadeInSlide(
                         duration: const Duration(milliseconds: 500),
@@ -382,6 +419,15 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: const Text('Crea una aquí', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
                             ),
                           ],
+                        ),
+                      ),
+                      const SizedBox(height: 16), // Add some space
+                      FadeInSlide(
+                        duration: const Duration(milliseconds: 500),
+                        delay: const Duration(milliseconds: 1000),
+                        child: TextButton(
+                          onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const WelcomeScreen())), // Use pushReplacement
+                          child: const Text('‹ Volver a la Bienvenida', style: TextStyle(color: AppColors.textLight)),
                         ),
                       ),
                     ],

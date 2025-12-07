@@ -72,70 +72,75 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
         title: Text(widget.ticket.subject),
         backgroundColor: Colors.indigo,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDetailItem('De', widget.ticket.userName ?? 'Anónimo'),
-            _buildDetailItem('Rol', widget.ticket.userRole ?? 'N/A'),
-            _buildDetailItem('Fecha', DateFormat('dd/MM/yyyy, HH:mm').format(widget.ticket.createdAt)),
-            _buildDetailItem('Estado', widget.ticket.status, isStatus: true),
-            const Divider(height: 30),
-            _buildSectionTitle('Mensaje del Usuario'),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(widget.ticket.message),
-            ),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Respuesta del Administrador'),
-            const SizedBox(height: 8),
-            if (canRespond)
-              Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _responseController,
-                      decoration: const InputDecoration(
-                        labelText: 'Escribe tu respuesta aquí...',
-                        border: OutlineInputBorder(),
-                      ),
-                      maxLines: 5,
-                      validator: (value) => value == null || value.isEmpty ? 'La respuesta no puede estar vacía.' : null,
-                      readOnly: widget.ticket.status == 'closed',
-                    ),
-                    const SizedBox(height: 16),
-                    if (widget.ticket.status != 'closed')
-                      ElevatedButton.icon(
-                        onPressed: _isLoading ? null : _submitResponse,
-                        icon: const Icon(Icons.send),
-                        label: const Text('Enviar Respuesta y Cerrar Ticket'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          minimumSize: const Size(double.infinity, 50),
+      body: Center( // Added Center
+        child: ConstrainedBox( // Added ConstrainedBox
+          constraints: const BoxConstraints(maxWidth: 800.0), // Set max width
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildDetailItem('De', widget.ticket.userName ?? 'Anónimo'),
+                _buildDetailItem('Rol', widget.ticket.userRole ?? 'N/A'),
+                _buildDetailItem('Fecha', DateFormat('dd/MM/yyyy, HH:mm').format(widget.ticket.createdAt)),
+                _buildDetailItem('Estado', widget.ticket.status, isStatus: true),
+                const Divider(height: 30),
+                _buildSectionTitle('Mensaje del Usuario'),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(widget.ticket.message),
+                ),
+                const SizedBox(height: 24),
+                _buildSectionTitle('Respuesta del Administrador'),
+                const SizedBox(height: 8),
+                if (canRespond)
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _responseController,
+                          decoration: const InputDecoration(
+                            labelText: 'Escribe tu respuesta aquí...',
+                            border: OutlineInputBorder(),
+                          ),
+                          maxLines: 5,
+                          validator: (value) => value == null || value.isEmpty ? 'La respuesta no puede estar vacía.' : null,
+                          readOnly: widget.ticket.status == 'closed',
                         ),
-                      ),
-                  ],
-                ),
-              )
-            else
-              const Text('No se puede responder a un ticket anónimo.'),
-            if (widget.ticket.respondedAt != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Text(
-                  'Respondido el: ${DateFormat('dd/MM/yyyy, HH:mm').format(widget.ticket.respondedAt!)}',
-                  style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
-                ),
-              ),
-          ],
+                        const SizedBox(height: 16),
+                        if (widget.ticket.status != 'closed')
+                          ElevatedButton.icon(
+                            onPressed: _isLoading ? null : _submitResponse,
+                            icon: const Icon(Icons.send),
+                            label: const Text('Enviar Respuesta y Cerrar Ticket'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              minimumSize: const Size(double.infinity, 50),
+                            ),
+                          ),
+                      ],
+                    ),
+                  )
+                else
+                  const Text('No se puede responder a un ticket anónimo.'),
+                if (widget.ticket.respondedAt != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      'Respondido el: ${DateFormat('dd/MM/yyyy, HH:mm').format(widget.ticket.respondedAt!)}',
+                      style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -188,170 +188,173 @@ class _EditPublicationPageState extends State<EditPublicationPage> {
       ),
       body: Stack(
         children: [
-          SingleChildScrollView(
-            padding: EdgeInsets.all(size.width * 0.04), // Responsive padding
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextFormField(
-                    controller: _titleController,
-                    decoration: const InputDecoration(
-                      labelText: 'Título',
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) => value!.isEmpty ? 'El título no puede estar vacío' : null,
-                  ),
-                  SizedBox(height: size.height * 0.02), // Responsive spacing
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: Column(
-                      children: [
-                        QuillToolbar.simple(
-                          configurations: QuillSimpleToolbarConfigurations(
-                            controller: _contentController,
-                            sharedConfigurations: const QuillSharedConfigurations(
-                              locale: Locale('es'),
-                            ),
-                          ),
+          Center( // Added Center
+            child: ConstrainedBox( // Added ConstrainedBox
+              constraints: const BoxConstraints(maxWidth: 800.0), // Set max width
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(size.width * 0.04), // Responsive padding
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextFormField(
+                        controller: _titleController,
+                        decoration: const InputDecoration(
+                          labelText: 'Título',
+                          border: OutlineInputBorder(),
                         ),
-                        const Divider(height: 1),
-SizedBox(
-  height: size.height * 0.4, // Responsive height
-  child: QuillEditor.basic(
-    configurations: QuillEditorConfigurations(
-      controller: _contentController,
-      // ❌ BORRA ESTA LÍNEA: readOnly: false, 
-      // (El editor básico ya es editable por defecto)
-      
-      padding: const EdgeInsets.all(16),
-      sharedConfigurations: const QuillSharedConfigurations(
-        locale: Locale('es'),
+                        validator: (value) => value!.isEmpty ? 'El título no puede estar vacío' : null,
+                      ),
+                      SizedBox(height: size.height * 0.02), // Responsive spacing
+                      Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: Column(
+                          children: [
+                            QuillToolbar.simple(
+                              configurations: QuillSimpleToolbarConfigurations(
+                                controller: _contentController,
+                                sharedConfigurations: const QuillSharedConfigurations(
+                                  locale: Locale('es'),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: size.height * 0.02), // Responsive spacing
-
-                  // Existing Images
-                  if (_existingImageUrls.isNotEmpty)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Imágenes existentes:', style: TextStyle(fontWeight: FontWeight.bold)),
-                        SizedBox(height: size.height * 0.01), // Responsive spacing
-                        Wrap(
-                          spacing: 8.0,
-                          runSpacing: 8.0,
-                          children: _existingImageUrls.asMap().entries.map((entry) {
-                            int idx = entry.key;
-                            String imageUrl = entry.value;
-                            return Stack(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  child: Image.network(imageUrl, width: 100, height: 100, fit: BoxFit.cover),
+                            const Divider(height: 1),
+                            SizedBox(
+                              height: size.height * 0.4,
+                              child: QuillEditor.basic(
+                                configurations: QuillEditorConfigurations(
+                                  controller: _contentController,
+                                  padding: const EdgeInsets.all(16),
+                                  sharedConfigurations: const QuillSharedConfigurations(
+                                    locale: Locale('es'),
+                                  ),
                                 ),
-                                Positioned(
-                                  right: 0,
-                                  child: GestureDetector(
-                                    onTap: () => _removeExistingImage(idx),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.red,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: const Icon(Icons.remove_circle, color: Colors.white, size: 20),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: size.height * 0.02), // Responsive spacing
+
+                      // Existing Images
+                      if (_existingImageUrls.isNotEmpty)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Imágenes existentes:', style: TextStyle(fontWeight: FontWeight.bold)),
+                            SizedBox(height: size.height * 0.01), // Responsive spacing
+                            Wrap(
+                              spacing: 8.0,
+                              runSpacing: 8.0,
+                              children: _existingImageUrls.asMap().entries.map((entry) {
+                                int idx = entry.key;
+                                String imageUrl = entry.value;
+                                return Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      child: Image.network(imageUrl, width: 100, height: 100, fit: BoxFit.cover),
                                     ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          }).toList(),
-                        ),
-                        SizedBox(height: size.height * 0.02), // Responsive spacing
-                      ],
-                    ),
-
-                  // New Images
-                  if (_newPickedXFiles.isNotEmpty)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Nuevas imágenes a subir:', style: TextStyle(fontWeight: FontWeight.bold)),
-                        SizedBox(height: size.height * 0.01), // Responsive spacing
-                        Wrap(
-                          spacing: 8.0,
-                          runSpacing: 8.0,
-                          children: _newPickedXFiles.asMap().entries.map((entry) {
-                            int idx = entry.key;
-                            XFile imageFile = entry.value;
-                            return Stack(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  child: FutureBuilder<Uint8List>(
-                                    future: imageFile.readAsBytes(),
-                                    builder: (context, snapshot) {
-                                      if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-                                        return Image.memory(
-                                          snapshot.data!,
-                                          width: 100, height: 100, fit: BoxFit.cover,
-                                        );
-                                      }
-                                      return Container(
-                                        width: 100,
-                                        height: 100,
-                                        color: Colors.grey[200],
-                                        child: const Center(child: CircularProgressIndicator()),
-                                      );
-                                    },
-                                  ),
-                                ),
-                                Positioned(
-                                  right: 0,
-                                  child: GestureDetector(
-                                    onTap: () => _removeNewImage(idx),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.red,
-                                        borderRadius: BorderRadius.circular(10),
+                                    Positioned(
+                                      right: 0,
+                                      child: GestureDetector(
+                                        onTap: () => _removeExistingImage(idx),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.red,
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          child: const Icon(Icons.remove_circle, color: Colors.white, size: 20),
+                                        ),
                                       ),
-                                      child: const Icon(Icons.remove_circle, color: Colors.white, size: 20),
                                     ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          }).toList(),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                            SizedBox(height: size.height * 0.02), // Responsive spacing
+                          ],
                         ),
-                        SizedBox(height: size.height * 0.02), // Responsive spacing
-                      ],
-                    ),
 
-                  ElevatedButton.icon(
-                    onPressed: _pickImage,
-                    icon: const Icon(Icons.image),
-                    label: const Text('Seleccionar imágenes'),
-                  ),
-                  SizedBox(height: size.height * 0.02), // Responsive spacing
+                      // New Images
+                      if (_newPickedXFiles.isNotEmpty)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Nuevas imágenes a subir:', style: TextStyle(fontWeight: FontWeight.bold)),
+                            SizedBox(height: size.height * 0.01), // Responsive spacing
+                            Wrap(
+                              spacing: 8.0,
+                              runSpacing: 8.0,
+                              children: _newPickedXFiles.asMap().entries.map((entry) {
+                                int idx = entry.key;
+                                XFile imageFile = entry.value;
+                                return Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      child: FutureBuilder<Uint8List>(
+                                        future: imageFile.readAsBytes(),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                                            return Image.memory(
+                                              snapshot.data!,
+                                              width: 100, height: 100, fit: BoxFit.cover,
+                                            );
+                                          }
+                                          return Container(
+                                            width: 100,
+                                            height: 100,
+                                            color: Colors.grey[200],
+                                            child: const Center(child: CircularProgressIndicator()),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    Positioned(
+                                      right: 0,
+                                      child: GestureDetector(
+                                        onTap: () => _removeNewImage(idx),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.red,
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          child: const Icon(Icons.remove_circle, color: Colors.white, size: 20),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                            SizedBox(height: size.height * 0.02), // Responsive spacing
+                          ],
+                        ),
 
-                  ElevatedButton(
-                    onPressed: isLoading ? null : _updatePublication,
-                    child: isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('Guardar Cambios'),
+                      ElevatedButton.icon(
+                        onPressed: _pickImage,
+                        icon: const Icon(Icons.image),
+                        label: const Text('Seleccionar imágenes'),
+                      ),
+                      SizedBox(height: size.height * 0.02), // Responsive spacing
+
+                      ElevatedButton(
+                        onPressed: isLoading ? null : _updatePublication,
+                        child: isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text('Guardar Cambios'),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
-          if (isLoading)
+          ), // Fin del Center
+
+          if (isLoading) // <--- ¡AQUÍ ESTABA EL ERROR! (Faltaba la coma anterior)
             Container(
               color: Colors.black38,
               child: const Center(

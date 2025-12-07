@@ -42,24 +42,29 @@ class _FaqScreenState extends State<FaqScreen> with SingleTickerProviderStateMix
         controller: _tabController,
         children: categories.map((category) {
           final qas = widget.faqData[category]!;
-          return ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: qas.length,
-            itemBuilder: (context, index) {
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 8.0),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                elevation: 2,
-                child: ExpansionTile(
-                  title: Text(qas[index]['q']!, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  childrenPadding: const EdgeInsets.all(16.0),
-                  expandedAlignment: Alignment.centerLeft,
-                  children: [
-                    Text(qas[index]['a']!),
-                  ],
-                ),
-              );
-            },
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 900.0), // Max width for content on large screens
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16.0),
+                itemCount: qas.length,
+                itemBuilder: (context, index) {
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8.0),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    elevation: 2,
+                    child: ExpansionTile(
+                      title: Text(qas[index]['q']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      childrenPadding: const EdgeInsets.all(16.0),
+                      expandedAlignment: Alignment.centerLeft,
+                      children: [
+                        Text(qas[index]['a']!),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
           );
         }).toList(),
       ),

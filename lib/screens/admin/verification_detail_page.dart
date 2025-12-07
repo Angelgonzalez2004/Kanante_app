@@ -138,17 +138,22 @@ class _VerificationDetailPageState extends State<VerificationDetailPage> {
           ? const Center(child: CircularProgressIndicator())
           : _professional == null
               ? const Center(child: Text('No se pudo cargar el profesional.'))
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildDetailCard(),
-                      const SizedBox(height: 20),
-                      _buildDocumentsCard(),
-                      const SizedBox(height: 30),
-                      _buildActionButtons(),
-                    ],
+              : Center( // Added Center
+                  child: ConstrainedBox( // Added ConstrainedBox
+                    constraints: const BoxConstraints(maxWidth: 800.0), // Set max width
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildDetailCard(),
+                          const SizedBox(height: 20),
+                          _buildDocumentsCard(),
+                          const SizedBox(height: 30),
+                          _buildActionButtons(),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
     );

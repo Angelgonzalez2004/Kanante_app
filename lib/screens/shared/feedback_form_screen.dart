@@ -87,54 +87,59 @@ class _FeedbackFormScreenState extends State<FeedbackFormScreen> {
         title: const Text('Quejas y Sugerencias'),
         backgroundColor: Colors.teal,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _subjectController,
-                decoration: const InputDecoration(
-                  labelText: 'Asunto',
-                  hintText: 'Ej: Sugerencia para la sección de perfil',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'El asunto es requerido.' : null,
+      body: Center( // Added Center
+        child: ConstrainedBox( // Added ConstrainedBox
+          constraints: const BoxConstraints(maxWidth: 800.0), // Set max width
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextFormField(
+                    controller: _subjectController,
+                    decoration: const InputDecoration(
+                      labelText: 'Asunto',
+                      hintText: 'Ej: Sugerencia para la sección de perfil',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'El asunto es requerido.' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _messageController,
+                    decoration: const InputDecoration(
+                      labelText: 'Mensaje',
+                      hintText: 'Describe tu queja o sugerencia detalladamente...',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 8,
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'El mensaje es requerido.' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    title: const Text('Enviar de forma anónima'),
+                    subtitle: const Text('Si no marcas esta opción, podremos responderte.'),
+                    value: _isAnonymous,
+                    onChanged: (value) {
+                      setState(() {
+                        _isAnonymous = value;
+                      });
+                    },
+                    activeTrackColor: Colors.teal,
+                  ),
+                  const SizedBox(height: 24),
+                  PrimaryAuthButton(
+                    text: 'Enviar Comentarios',
+                    isLoading: _isLoading,
+                    onPressed: _submitFeedback,
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _messageController,
-                decoration: const InputDecoration(
-                  labelText: 'Mensaje',
-                  hintText: 'Describe tu queja o sugerencia detalladamente...',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 8,
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'El mensaje es requerido.' : null,
-              ),
-              const SizedBox(height: 16),
-              SwitchListTile(
-                title: const Text('Enviar de forma anónima'),
-                subtitle: const Text('Si no marcas esta opción, podremos responderte.'),
-                value: _isAnonymous,
-                onChanged: (value) {
-                  setState(() {
-                    _isAnonymous = value;
-                  });
-                },
-                activeTrackColor: Colors.teal,
-              ),
-              const SizedBox(height: 24),
-              PrimaryAuthButton(
-                text: 'Enviar Comentarios',
-                isLoading: _isLoading,
-                onPressed: _submitFeedback,
-              ),
-            ],
+            ),
           ),
         ),
       ),

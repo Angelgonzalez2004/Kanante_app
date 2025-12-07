@@ -24,15 +24,26 @@ class _UserDashboardState extends State<UserDashboard> {
 
   String _userName = 'Usuario';
   String _userEmail = '';
+  String? _profileImageUrl; // Add for profile image
   int _selectedIndex = 0;
 
-  List<Map<String, dynamic>> _sections = [];
+  late final List<Map<String, dynamic>> _sections; // Made late final
+  late final List<String> _pageTitles; // Added _pageTitles list
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _pageTitles = [ // Initialize _pageTitles here
+      'Inicio',
+      'Feed de Contenido',
+      'Mis Citas',
+      'Mensajes',
+      'Ajustes',
+      'Soporte',
+      'Cerrar Sesión' // Added logout title for consistency
+    ];
   }
 
   Future<void> _loadUserData() async {
@@ -49,6 +60,7 @@ class _UserDashboardState extends State<UserDashboard> {
           if (snapshot.exists) {
             final data = Map<String, dynamic>.from(snapshot.value as Map);
             _userName = data['name'] ?? 'Usuario';
+            _profileImageUrl = data['profileImageUrl']; // Get profile image
           }
           _userEmail = user.email ?? '';
           _initializeSections();
@@ -64,7 +76,7 @@ class _UserDashboardState extends State<UserDashboard> {
   void _initializeSections() {
     _sections = [
       {
-        'title': 'Inicio',
+        'title': _pageTitles[0], // Use pageTitles
         'icon': Icons.home,
         'page': HomePage(
           userName: _userName,
@@ -72,29 +84,34 @@ class _UserDashboardState extends State<UserDashboard> {
         )
       },
       {
-        'title': 'Feed de Contenido',
+        'title': _pageTitles[1], // Use pageTitles
         'icon': Icons.explore,
         'page': const ProfessionalContentScreen()
       },
       {
-        'title': 'Mis Citas',
+        'title': _pageTitles[2], // Use pageTitles
         'icon': Icons.calendar_today,
         'page': const MyAppointmentsScreen()
       },
       {
-        'title': 'Mensajes', // Changed title
-        'icon': Icons.chat, // Icon can remain the same
-        'page': const MessagesPage() // Changed page
+        'title': _pageTitles[3], // Use pageTitles
+        'icon': Icons.chat,
+        'page': const MessagesPage()
       },
       {
-        'title': 'Ajustes',
+        'title': _pageTitles[4], // Use pageTitles
         'icon': Icons.settings,
         'page': const UserSettingsPage()
       },
        {
-        'title': 'Soporte',
+        'title': _pageTitles[5], // Use pageTitles
         'icon': Icons.support_agent,
         'page': const SupportScreen()
+      },
+      {
+        'title': _pageTitles[6], // Use pageTitles
+        'icon': Icons.logout_rounded,
+        'isLogout': true, // Added isLogout flag
       },
     ];
   }
@@ -129,22 +146,46 @@ class _UserDashboardState extends State<UserDashboard> {
   }
 
   Future<void> _logout() async {
-    await _auth.signOut();
-    await _googleSignIn.signOut();
-    if (mounted) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (Route<dynamic> route) => false,
-      );
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Confirmar Cierre de Sesión'),
+        content: const Text('¿Estás seguro de que deseas cerrar la sesión?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Sí, Salir'),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      await _auth.signOut();
+      await _googleSignIn.signOut();
+      if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
     }
   }
 
   void _onItemTapped(int index) {
+    if (_sections[index]['isLogout'] == true) {
+      _logout();
+      return;
+    }
     setState(() {
       _selectedIndex = index;
     });
-    if (Navigator.canPop(context)) Navigator.pop(context); // Close drawer
+    // For narrow screens, close the drawer after selection
+    if (MediaQuery.of(context).size.width < 600 && Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -153,50 +194,144 @@ class _UserDashboardState extends State<UserDashboard> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_sections[_selectedIndex]['title']!),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            UserAccountsDrawerHeader(
-              accountName: Text(_userName),
-              accountEmail: Text(_userEmail),
-              currentAccountPicture: CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Text(
-                  _userName.isNotEmpty ? _userName[0].toUpperCase() : 'U',
-                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.1, color: Colors.teal),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isLargeScreen = constraints.maxWidth >= 600;
+
+        return Scaffold(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          appBar: AppBar(
+            title: Text(_pageTitles[_selectedIndex]),
+            backgroundColor: Colors.teal,
+            foregroundColor: Colors.white,
+            actions: isLargeScreen
+                ? [
+                    IconButton(
+                      icon: const Icon(Icons.logout_rounded),
+                      tooltip: 'Cerrar sesión',
+                      onPressed: _logout,
+                    ),
+                  ]
+                : null, // No actions for narrow screens, logout is in drawer
+          ),
+          drawer: isLargeScreen ? null : _buildDrawer(context), // Only show drawer on narrow screens
+          body: Row(
+            children: [
+              if (isLargeScreen) _buildSideBar(context), // Show sidebar on large screens
+              Expanded(
+                child: IndexedStack(
+                  index: _selectedIndex,
+                  children: _sections
+                      .where((s) => s['isLogout'] != true) // Filter out logout for page stack
+                      .map<Widget>((s) => s['page'])
+                      .toList(),
                 ),
               ),
-              decoration: const BoxDecoration(
-                color: Colors.teal,
-              ),
-            ),
-            for (int i = 0; i < _sections.length; i++)
-              ListTile(
-                leading: Icon(_sections[i]['icon']!),
-                title: Text(_sections[i]['title']!),
-                selected: _selectedIndex == i,
-                onTap: () => _onItemTapped(i),
-              ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Cerrar Sesión'),
-              onTap: _logout,
-            ),
-          ],
-        ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSideBar(BuildContext context) {
+    return NavigationRail(
+      selectedIndex: _selectedIndex,
+      onDestinationSelected: _onItemTapped,
+      labelType: NavigationRailLabelType.all,
+      leading: Column(
+        children: [
+          const SizedBox(height: 20),
+          CircleAvatar(
+            radius: 40,
+            backgroundImage: (_profileImageUrl != null && _profileImageUrl!.isNotEmpty)
+                ? NetworkImage(_profileImageUrl!)
+                : null,
+            child: (_profileImageUrl == null || _profileImageUrl!.isEmpty)
+                ? const Icon(Icons.person, size: 40)
+                : null,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _userName,
+            style: Theme.of(context).textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          const Divider(),
+        ],
       ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _sections.map<Widget>((s) => s['page']).toList(),
+      destinations: _sections.where((s) => s['isLogout'] != true).map<NavigationRailDestination>((section) {
+        return NavigationRailDestination(
+          icon: Icon(section['icon']),
+          label: Text(section['title']),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildDrawer(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Drawer(
+      child: Column(
+        children: [
+          UserAccountsDrawerHeader(
+            accountName: Text(_userName),
+            accountEmail: Text(_userEmail),
+            currentAccountPicture: CircleAvatar(
+              backgroundImage: (_profileImageUrl != null && _profileImageUrl!.isNotEmpty)
+                  ? NetworkImage(_profileImageUrl!)
+                  : null,
+              child: (_profileImageUrl == null || _profileImageUrl!.isEmpty)
+                  ? const Icon(Icons.person, size: 40, color: Colors.white)
+                  : null,
+            ),
+            decoration: BoxDecoration(
+              color: colorScheme.primary,
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: EdgeInsets.zero,
+              itemCount: _sections.length,
+              itemBuilder: (context, index) {
+                final section = _sections[index];
+                final selected = _selectedIndex == index && section['isLogout'] != true;
+
+                if (section['isLogout'] == true) {
+                  return Column(
+                    children: [
+                      const Divider(),
+                      ListTile(
+                        leading: Icon(section['icon'], color: Colors.red),
+                        title: Text(
+                          section['title'],
+                          style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                        ),
+                        onTap: _logout,
+                      ),
+                    ],
+                  );
+                } else {
+                  return ListTile(
+                    leading: Icon(section['icon'], color: selected ? colorScheme.primary : null),
+                    title: Text(
+                      section['title'],
+                      style: TextStyle(color: selected ? colorScheme.primary : null, fontWeight: selected ? FontWeight.bold : null),
+                    ),
+                    selected: selected,
+                    onTap: () {
+                      _onItemTapped(index);
+                    },
+                  );
+                }
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
+
 }

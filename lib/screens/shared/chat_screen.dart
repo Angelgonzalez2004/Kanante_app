@@ -136,63 +136,68 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         backgroundColor: Colors.teal,
       ),
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: Column(
-          children: [
-            Expanded(
-              child: StreamBuilder<List<Message>>(
-                stream: _firebaseService.getMessagesStream(widget.chatId),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.chat_bubble_outline_rounded),
-                        label: const Text('Iniciar conversación'),
-                        onPressed: () {
-                          _messageFocusNode.requestFocus();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        ),
-                      ),
-                    );
-                  }
-                  final messages = snapshot.data!;
-                  return ListView.builder(
-                    reverse: true,
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      final message = messages[index];
-                      final isMe = message.senderId == _currentUserId;
-                      final bool showDate;
-                      if (index == messages.length - 1) {
-                        showDate = true;
-                      } else {
-                        final currentMessage = messages[index];
-                        final nextMessage = messages[index + 1];
-                        showDate = currentMessage.timestamp.day != nextMessage.timestamp.day;
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 700.0), // Max width for chat on large screens
+          child: GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: Column(
+              children: [
+                Expanded(
+                  child: StreamBuilder<List<Message>>(
+                    stream: _firebaseService.getMessagesStream(widget.chatId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
                       }
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.chat_bubble_outline_rounded),
+                            label: const Text('Iniciar conversación'),
+                            onPressed: () {
+                              _messageFocusNode.requestFocus();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.teal,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            ),
+                          ),
+                        );
+                      }
+                      final messages = snapshot.data!;
+                      return ListView.builder(
+                        reverse: true,
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          final message = messages[index];
+                          final isMe = message.senderId == _currentUserId;
+                          final bool showDate;
+                          if (index == messages.length - 1) {
+                            showDate = true;
+                          } else {
+                            final currentMessage = messages[index];
+                            final nextMessage = messages[index + 1];
+                            showDate = currentMessage.timestamp.day != nextMessage.timestamp.day;
+                          }
 
-                      return Column(
-                        children: [
-                          if (showDate) _buildDateSeparator(messages[index].timestamp),
-                          _buildMessageBubble(message, isMe),
-                        ],
+                          return Column(
+                            children: [
+                              if (showDate) _buildDateSeparator(messages[index].timestamp),
+                              _buildMessageBubble(message, isMe),
+                            ],
+                          );
+                        },
                       );
                     },
-                  );
-                },
-              ),
+                  ),
+                ),
+                _buildMessageInput(),
+              ],
             ),
-            _buildMessageInput(),
-          ],
+          ),
         ),
       ),
     );

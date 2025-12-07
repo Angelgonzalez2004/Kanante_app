@@ -193,122 +193,140 @@ class PublicationDetailPageState extends State<PublicationDetailPage> {
             ),
           ),
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_authorData != null)
-                    Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      margin: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProfessionalProfilePage(
-                                // AQUÍ ESTÁ LA CORRECCIÓN: 'professionalId' en lugar de 'professionalUid'
-                                professionalId: widget.publication['professionalUid'],
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_authorData != null)
+                        Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          margin: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ProfessionalProfilePage(
+                                    professionalId: widget.publication['professionalUid'],
+                                  ),
+                                ),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(10),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundImage: _authorData!['profileImageUrl'] != null
+                                        ? CachedNetworkImageProvider(_authorData!['profileImageUrl'])
+                                        : null,
+                                    child: _authorData!['profileImageUrl'] == null
+                                        ? const Icon(Icons.person)
+                                        : null,
+                                  ),
+                                  SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+                                  Expanded(
+                                    child: Text(
+                                      _authorData!['name'] ?? 'Autor desconocido',
+                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(10),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                backgroundImage: _authorData!['profileImageUrl'] != null
-                                    ? CachedNetworkImageProvider(_authorData!['profileImageUrl'])
-                                    : null,
-                                child: _authorData!['profileImageUrl'] == null
-                                    ? const Icon(Icons.person)
-                                    : null,
-                              ),
-                              SizedBox(width: MediaQuery.of(context).size.width * 0.02),
-                              Expanded(
-                                child: Text(
-                                  _authorData!['name'] ?? 'Autor desconocido',
-                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ],
                           ),
                         ),
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+                      Row(
+                        children: [
+                          const Icon(Icons.calendar_today, size: 16.0, color: Colors.grey),
+                          SizedBox(width: MediaQuery.of(context).size.width * 0.01),
+                          Text(
+                            _getFormattedDate(),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
+                          ),
+                        ],
                       ),
-                    ),
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.01),
-                  Row(
-                    children: [
-                      const Icon(Icons.calendar_today, size: 16.0, color: Colors.grey),
-                      SizedBox(width: MediaQuery.of(context).size.width * 0.01),
-                      Text(
-                        _getFormattedDate(),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
-                      ),
+                      const Divider(height: 32),
                     ],
                   ),
-                  const Divider(height: 32),
-                ],
+                ),
               ),
             ),
           ),
           if (content != null)
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: QuillEditor.basic(
-                  configurations: QuillEditorConfigurations(
-                    controller: QuillController(
-                      document: _safelyLoadDocument(content),
-                      selection: const TextSelection.collapsed(offset: 0),
-                    ),
-                    sharedConfigurations: const QuillSharedConfigurations(
-                      locale: Locale('es'),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 800.0),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: QuillEditor.basic(
+                      configurations: QuillEditorConfigurations(
+                        controller: QuillController(
+                          document: _safelyLoadDocument(content),
+                          selection: const TextSelection.collapsed(offset: 0),
+                        ),
+                        sharedConfigurations: const QuillSharedConfigurations(
+                          locale: Locale('es'),
+                        ),
+                      ),
+                      focusNode: _editorFocusNode,
                     ),
                   ),
-                  focusNode: _editorFocusNode, // Bloquea el teclado (Modo lectura)
                 ),
               ),
             ),
           if (attachments != null && attachments.length > 1)
-            SliverPadding(
-              padding: const EdgeInsets.all(16.0),
-              sliver: SliverGrid.builder(
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 200,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                ),
-                itemCount: attachments.length,
-                itemBuilder: (context, index) {
-                  return Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    clipBehavior: Clip.antiAlias,
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ImageViewerPage(
+            SliverToBoxAdapter(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 800.0),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 200,
+                        crossAxisSpacing: 8,
+                        mainAxisSpacing: 8,
+                      ),
+                      itemCount: attachments.length,
+                      itemBuilder: (context, index) {
+                        return Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ImageViewerPage(
+                                    imageUrl: attachments[index],
+                                  ),
+                                ),
+                              );
+                            },
+                            child: CachedNetworkImage(
                               imageUrl: attachments[index],
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(color: Colors.grey[300]),
+                              errorWidget: (context, url, error) => Container(color: Colors.grey, child: const Icon(Icons.error)),
                             ),
                           ),
                         );
                       },
-                      child: CachedNetworkImage(
-                        imageUrl: attachments[index],
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(color: Colors.grey[300]),
-                        errorWidget: (context, url, error) => Container(color: Colors.grey, child: const Icon(Icons.error)),
-                      ),
                     ),
-                  );
-                },
+                  ),
+                ),
               ),
             ),
         ],
