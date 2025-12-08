@@ -182,6 +182,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             ),
                             const SizedBox(height: 16),
                             DropdownButtonFormField<String>(
+                              // ignore: deprecated_member_use
                               value: _gender,
                               decoration: const InputDecoration(labelText: 'Género', prefixIcon: Icon(Icons.transgender), border: OutlineInputBorder()),
                               items: const [

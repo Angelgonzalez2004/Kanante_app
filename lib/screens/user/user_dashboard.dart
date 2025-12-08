@@ -9,7 +9,6 @@ import '../shared/home_page.dart';
 import '../shared/publication_feed_page.dart'; // New import for interactive feed
 import 'user_profile_page.dart'; // Added new UserProfilePage
 import 'user_settings_page.dart'; // Added new UserSettingsPage
-import 'professional_content_screen.dart';
 import 'my_appointments_screen.dart';
 import '../shared/support_screen.dart';
 import 'messages_page.dart'; // Changed import

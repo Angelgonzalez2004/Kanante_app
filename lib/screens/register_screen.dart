@@ -477,6 +477,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _buildGenderDropdown() {
     return DropdownButtonFormField<String>(
+      // ignore: deprecated_member_use
       value: _selectedGender,
       onChanged: (newValue) {
         setState(() {

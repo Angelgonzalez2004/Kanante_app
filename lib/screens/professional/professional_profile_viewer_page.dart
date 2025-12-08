@@ -100,7 +100,7 @@ class _ProfessionalProfileViewerPageState extends State<ProfessionalProfileViewe
           // Tab 1: Publicaciones
           ProfessionalPublicationsListScreen(professionalUid: widget.professionalUid),
           // Tab 2: Perfil del profesional (usando la misma página de perfil pero en modo lectura)
-          ProfilePage(professionalUid: widget.professionalUid), // Pass UID to load specific professional
+          ProfessionalProfilePage(professionalUid: widget.professionalUid), // Corrected class name
         ],
       ),
       floatingActionButton: _canMessageProfessional

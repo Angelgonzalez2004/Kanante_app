@@ -484,6 +484,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
         ),
         const SizedBox(height: 16),
         DropdownButtonFormField<String>(
+          // ignore: deprecated_member_use
           value: _selectedGender,
           decoration: InputDecoration(
             labelText: 'Género',
