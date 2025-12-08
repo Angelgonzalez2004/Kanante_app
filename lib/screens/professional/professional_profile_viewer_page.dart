@@ -122,6 +122,7 @@ class _ProfessionalProfileViewerPageState extends State<ProfessionalProfileViewe
                   otherUserName: _viewingProfessional!.name,
                   otherUserId: _viewingProfessional!.id,
                   otherUserImageUrl: _viewingProfessional!.profileImageUrl,
+                  isProfessionalChat: true, // Pass true as it's a professional's profile
                 );
               } else if (!isUserAndNotSelf) {
                 return const Center(child: Text('No puedes enviar mensajes a este perfil.'));

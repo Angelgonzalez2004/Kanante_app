@@ -16,6 +16,7 @@ import 'new_publication_page.dart'; // Added for FAB
 import '../shared/support_screen.dart';
 import 'profile_page.dart'; // Este archivo debe contener la clase ProfessionalProfilePage
 import '../shared/my_alerts_screen.dart'; // New import
+import '../shared/appointments_reminder_screen.dart'; // New import for AppointmentsReminderScreen
 
 class ProfessionalDashboard extends StatefulWidget {
   const ProfessionalDashboard({super.key});
@@ -108,6 +109,11 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
         'page': const PublicationsPage()
       },
       {
+        'title': 'Citas Agendadas', // New section for reminders
+        'icon': Icons.event_note_rounded,
+        'page': const AppointmentsReminderScreen(),
+      },
+      {
         'title': 'Ajustes',
         'icon': Icons.settings_rounded,
         'page': const SettingsPage()
@@ -144,7 +150,8 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
       _shortcutCard('Citas', Icons.calendar_month_rounded, () => _onItemTapped(3)),
       _shortcutCard('Mensajes', Icons.message_rounded, () => _onItemTapped(4)),
       _shortcutCard('Publicaciones', Icons.article_rounded, () => _onItemTapped(5)),
-      _shortcutCard('Mis Alertas', Icons.notifications_active, () => _onItemTapped(9)), // New shortcut - index is 9
+      _shortcutCard('Citas Agendadas', Icons.event_note_rounded, () => _onItemTapped(6)), // New shortcut for Appointments Reminder
+      _shortcutCard('Mis Alertas', Icons.notifications_active, () => _onItemTapped(10)), // Updated index for Alerts
     ];
   }
 

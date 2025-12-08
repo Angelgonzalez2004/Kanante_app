@@ -10,15 +10,17 @@ import '../../services/firebase_service.dart';
 class ChatScreen extends StatefulWidget {
   final String chatId;
   final String otherUserName;
-  final String otherUserId; // Added
+  final String otherUserId;
   final String? otherUserImageUrl;
+  final bool isProfessionalChat; // New parameter to indicate if it's a chat with a professional
 
   const ChatScreen({
     super.key,
     required this.chatId,
     required this.otherUserName,
-    required this.otherUserId, // Added
+    required this.otherUserId,
     this.otherUserImageUrl,
+    this.isProfessionalChat = false, // Default to false
   });
 
   @override
@@ -31,12 +33,24 @@ class _ChatScreenState extends State<ChatScreen> {
   final String _currentUserId = FirebaseAuth.instance.currentUser!.uid;
   final FocusNode _messageFocusNode = FocusNode();
 
+  String? _currentUserAccountType;
+
   @override
   void initState() {
     super.initState();
+    _loadCurrentUserAccountType();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _messageFocusNode.requestFocus();
     });
+  }
+
+  Future<void> _loadCurrentUserAccountType() async {
+    final userProfile = await _firebaseService.getUserProfile(_currentUserId);
+    if (userProfile != null && mounted) {
+      setState(() {
+        _currentUserAccountType = userProfile.accountType;
+      });
+    }
   }
 
   @override
@@ -62,7 +76,7 @@ class _ChatScreenState extends State<ChatScreen> {
       await _firebaseService.sendMessage(message);
       _messageController.clear();
     } catch (e) {
-      if (!mounted) return; // Add this line
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al enviar mensaje: $e')),
       );
@@ -75,7 +89,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     if (pickedFile != null) {
       File file = File(pickedFile.path);
-      if (!mounted) return; // Add this line
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Enviando imagen...')),
       );
@@ -92,7 +106,7 @@ class _ChatScreenState extends State<ChatScreen> {
         );
         await _firebaseService.sendMessage(message);
       } catch (e) {
-        if (!mounted) return; // Add this line
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al enviar imagen: $e')),
         );
@@ -104,15 +118,67 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       await _firebaseService.deleteMessage(message.id, widget.chatId, deleteForEveryone);
     } catch (e) {
-      if (!mounted) return; // Add this line
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al eliminar mensaje: $e')),
       );
     }
   }
 
+  Future<void> _showAppointmentRequestDialog() async {
+    if (_currentUserAccountType != 'Usuario') {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Solo los usuarios pueden solicitar citas.')),
+      );
+      return;
+    }
+
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)), // 1 year from now
+    );
+
+    if (pickedDate == null) return; // User cancelled
+
+    if (!mounted) return; // Check mounted after async gap
+
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (pickedTime == null) return; // User cancelled
+
+    final DateTime finalDateTime = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+
+    try {
+      await _firebaseService.requestAppointment(widget.otherUserId, _currentUserId, finalDateTime);
+      if (!mounted) return; // Check mounted after async gap
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Solicitud de cita enviada con éxito. El profesional te contactará pronto.')),
+      );
+    } catch (e) {
+      if (!mounted) return; // Check mounted after async gap
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al enviar la solicitud de cita: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Only show the appointment button if current user is a 'Usuario' and the chat is with a professional
+    final bool canRequestAppointment = _currentUserAccountType == 'Usuario' && widget.isProfessionalChat;
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
@@ -135,6 +201,14 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
         backgroundColor: Colors.teal,
+        actions: [
+          if (canRequestAppointment)
+            IconButton(
+              icon: const Icon(Icons.calendar_month),
+              onPressed: _showAppointmentRequestDialog,
+              tooltip: 'Agendar Cita',
+            ),
+        ],
       ),
       body: Center(
         child: ConstrainedBox(

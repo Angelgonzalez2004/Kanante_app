@@ -29,15 +29,14 @@ La aplicación está estructurada en tres roles principales:
 *   **🎨 Diseño Responsivo y Adaptativo:** Interfaz de usuario completamente responsiva que se adapta a móviles, tabletas y web, utilizando `LayoutBuilder` para cambiar entre menús laterales (`Drawer`) y barras de navegación persistentes (`NavigationRail`) para una experiencia de usuario óptima.
 *   **👤 Perfiles y Configuraciones Claramente Separados:**
     *   **Páginas de Perfil:** Dedicadas a la información de identidad del usuario (nombre, teléfono, foto de perfil, biografía, etc.). Ahora con campos editables como género, fecha de nacimiento (con selector de calendario), teléfono y RFC.
-    *   **Redes Sociales para Profesionales:** Una nueva sección en el perfil del profesional permite añadir y mostrar enlaces a sus redes sociales (Facebook, Instagram, TikTok, WhatsApp, Correo electrónico) con iconos interactivos.
-    *   **Páginas de Configuración:** Enfocadas en las preferencias y el comportamiento de la aplicación (notificaciones, tema, seguridad, cerrar sesión, etc.).
+    *   **Redes Sociales para Profesionales:** Una nueva sección en el perfil del profesional permite añadir y mostrar enlaces a sus redes sociales (Facebook, Instagram, TikTok, WhatsApp, Correo electrónico) con iconos interactivos y enlaces funcionales.
+    *   **Páginas de Configuración:** Enfocadas en las preferencias y el comportamiento de la aplicación (notificaciones, tema, seguridad, cerrar sesión, etc.). Ahora incluyen un indicador de estado de verificación y navegación a la política de privacidad.
     *   **Gestión de Fotos de Perfil:**
         *   Solo los **Profesionales con cuentas manuales** pueden subir, cambiar y eliminar su foto de perfil directamente en la aplicación.
         *   Los usuarios con **cuentas de Google** (tanto Usuarios como Profesionales) deben gestionar su foto directamente desde su cuenta de Google; la app no permite la subida en estos casos.
         *   Los **Usuarios Normales y Administradores** no pueden subir fotos de perfil, aunque sus perfiles las mostrarán si existen (e.g., de una cuenta de Google).
 *   **✅ Sistema de Verificación:** Los profesionales deben subir documentos para ser verificados por un administrador, aumentando la confianza y seguridad en la plataforma.
 *   **📝 Feed de Contenido Dinámico:** Los profesionales pueden crear, editar y publicar artículos con un editor de texto enriquecido e imágenes. Los usuarios pueden explorar este contenido en un feed interactivo.
-*   **🗓️ Gestión de Citas:** Sistema para que los usuarios soliciten citas y los profesionales las gestionen.
 *   **💬 Chat en Tiempo Real:** Comunicación directa y segura entre usuarios y profesionales, y entre usuarios y el equipo de soporte.
 *   **🧭 Navegación por Roles:** Paneles de control (`Dashboards`) personalizados para cada rol (Usuario, Profesional, Administrador), mostrando solo las opciones y vistas relevantes para cada uno.
 *   **🆘 Soporte y Ayuda Integrado:**
@@ -45,6 +44,7 @@ La aplicación está estructurada en tres roles principales:
     *   Formularios de quejas y sugerencias (anónimos o identificados).
     *   Acceso a políticas de privacidad.
     *   Secciones de Preguntas Frecuentes (FAQ) personalizadas por rol.
+    *   **Nueva Sección "Sobre Nosotros"**: Conoce la misión, origen e información de contacto de Kananté.
 
 ## 🚀 Nuevas Características y Mejoras Recientes
 
@@ -57,12 +57,12 @@ Hemos implementado una serie de mejoras significativas en la aplicación para en
     *   Para el rol de **Administrador**, el acceso a "Supervisar Publicaciones" se ha cambiado para mostrar también el **Feed Social Interactivo** (`PublicationFeedPage`), pero con la interactividad (likes, comentarios) deshabilitada; solo permite la visualización y el compartir, tal como se solicitó.
 
 *   **Consolidación de Títulos y Navegación:**
-    *   Se realizó una auditoría exhaustiva y se eliminaron títulos duplicados en múltiples pantallas (perfiles, mensajes, ajustes, FAQ) a lo largo de la aplicación para una experiencia de usuario más limpia y consistente.
+    *   Se realizó una auditoría exhaustiva y se eliminaron títulos duplicados en múltiples pantallas (perfiles, mensajes, ajustes, FAQ, Mis Alertas) a lo largo de la aplicación para una experiencia de usuario más limpia y consistente.
     *   Se verificó que la navegación en los dashboards funcione correctamente, mitigando problemas de redirección inesperada.
 
 *   **Feed de Publicaciones Social e Interactivo:**
     *   Un feed de publicaciones dinámico al estilo "TikTok/Facebook" que permite a todos los roles visualizar el contenido.
-    *   **Usuarios:** Pueden dar "Me gusta" a las publicaciones, añadir comentarios (con texto e imágenes opcionales) y compartir publicaciones.
+    *   **Usuarios:** Pueden dar "Me gusta" a las publicaciones, añadir comentarios y compartir publicaciones.
     *   **Profesionales y Administradores:** Pueden ver el feed, y ahora **todos los roles** pueden compartir publicaciones en diversas plataformas (WhatsApp, Facebook, Twitter, Correo, etc.) a través del diálogo de compartir del dispositivo.
     *   Restricciones de interacción aplicadas: solo los usuarios pueden "Me gusta" y "Comentar".
 
@@ -88,6 +88,7 @@ Hemos implementado una serie de mejoras significativas en la aplicación para en
         *   **"Chats":** Para ver las conversaciones existentes.
         *   **"Contactos":** Permite iniciar nuevas conversaciones. Para usuarios, lista a profesionales de la salud. Para profesionales, lista a usuarios normales (filtrando otros profesionales y administradores).
     *   Los botones flotantes de acción (FAB) para iniciar chats en los dashboards de Usuario y Profesional han sido eliminados, ya que la funcionalidad de iniciar chat se integra ahora en las páginas de mensajes.
+    *   **¡Nuevo! Pestaña de Mensajes en el Perfil del Profesional:** Al ver el perfil de un profesional, ahora se incluye una pestaña dedicada a la mensajería, permitiendo iniciar o continuar un chat directamente desde el perfil.
 
 *   **Sistema de Soporte Optimizado:**
     *   La sección de "Soporte" ahora incluye una opción "Mis Tickets de Soporte", donde usuarios y profesionales pueden revisar el estado de sus quejas y sugerencias, y ver las respuestas del administrador.
@@ -95,6 +96,9 @@ Hemos implementado una serie de mejoras significativas en la aplicación para en
 
 *   **Mejora de la Pantalla de Preguntas Frecuentes (FAQ):**
     *   La `FaqScreen` ha sido actualizada para utilizar un `Scaffold` y un `AppBar`, moviendo la barra de pestañas al `bottom` del `AppBar`. Esto resuelve problemas de visualización del fondo y mejora la consistencia del diseño.
+
+*   **Manejo de Imágenes en Publicaciones:**
+    *   Se corrigió el error "Exception: Invalid image data" al registrar publicaciones con URLs de imágenes. La aplicación ahora maneja correctamente tanto imágenes locales (subiéndolas a Firebase Storage) como imágenes externas (guardando directamente la URL).
 
 *   **✅ Estabilidad y Mantenimiento del Código:**
     *   Resolución de todos los errores, advertencias y lints críticos reportados por `flutter analyze`, asegurando un código base más robusto y limpio.

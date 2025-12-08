@@ -13,7 +13,7 @@ import 'my_appointments_screen.dart';
 import '../shared/support_screen.dart';
 import 'messages_page.dart'; // Changed import
 import '../shared/my_alerts_screen.dart'; // New import
-
+import '../shared/appointments_reminder_screen.dart'; // New import
 
 class UserDashboard extends StatefulWidget {
   const UserDashboard({super.key});
@@ -46,7 +46,8 @@ class _UserDashboardState extends State<UserDashboard> {
       // Initialize _pageTitles here
       'Inicio',
       'Feed de Contenido',
-      'Mis Citas',
+      'Mis Citas', // This is still MyAppointmentsScreen
+      'Citas Agendadas', // New entry for AppointmentsReminderScreen
       'Mensajes',
       'Mi Perfil', // Renamed from Ajustes
       'Configuración', // New entry
@@ -105,33 +106,38 @@ class _UserDashboardState extends State<UserDashboard> {
         'page': const MyAppointmentsScreen()
       },
       {
-        'title': _pageTitles[3], // Use pageTitles
+        'title': _pageTitles[3], // Use pageTitles - Citas Agendadas
+        'icon': Icons.event_note_rounded,
+        'page': const AppointmentsReminderScreen(),
+      },
+      {
+        'title': _pageTitles[4], // Use pageTitles
         'icon': Icons.chat,
         'page': const MessagesPage()
       },
       {
-        'title': _pageTitles[4], // Use pageTitles - Mi Perfil
+        'title': _pageTitles[5], // Use pageTitles - Mi Perfil
         'icon': Icons.person,
         'page': const UserProfilePage()
       },
       {
-        'title': _pageTitles[5], // Use pageTitles - Configuración
+        'title': _pageTitles[6], // Use pageTitles - Configuración
         'icon': Icons.settings,
         'page': const UserSettingsPage()
       },
       {
         // REMOVED THE 'n' HERE
-        'title': _pageTitles[6], // Use pageTitles - Soporte
+        'title': _pageTitles[7], // Use pageTitles - Soporte
         'icon': Icons.support_agent,
         'page': const SupportScreen()
       },
       {
-        'title': _pageTitles[7], // Use pageTitles - Mis Alertas
+        'title': _pageTitles[8], // Use pageTitles - Mis Alertas
         'icon': Icons.notifications_active,
         'page': const MyAlertsScreen()
       },
       {
-        'title': _pageTitles[8], // Use pageTitles - Cerrar Sesión
+        'title': _pageTitles[9], // Use pageTitles - Cerrar Sesión
         'icon': Icons.logout_rounded,
         'isLogout': true, // Added isLogout flag
       },
@@ -143,11 +149,11 @@ class _UserDashboardState extends State<UserDashboard> {
     return [
       _shortcutCard(
           'Feed de Contenido', Icons.explore, () => _onItemTapped(1)),
-      _shortcutCard('Mensajes', Icons.chat, () => _onItemTapped(3)),
-      _shortcutCard('Mis Citas', Icons.calendar_today, () => _onItemTapped(2)),
-      _shortcutCard('Mi Perfil', Icons.person,
-          () => _onItemTapped(4)), // Link to new profile page
-      _shortcutCard('Mis Alertas', Icons.notifications_active, () => _onItemTapped(7)), // New shortcut
+      _shortcutCard('Mis Citas', Icons.calendar_today, () => _onItemTapped(2)), // Direct to AppointmentsPage
+      _shortcutCard('Citas Agendadas', Icons.event_note_rounded, () => _onItemTapped(3)), // New shortcut for Reminders
+      _shortcutCard('Mensajes', Icons.chat, () => _onItemTapped(4)),
+      _shortcutCard('Mi Perfil', Icons.person, () => _onItemTapped(5)), // Link to new profile page
+      _shortcutCard('Mis Alertas', Icons.notifications_active, () => _onItemTapped(8)), // Updated index
     ];
   }
 
