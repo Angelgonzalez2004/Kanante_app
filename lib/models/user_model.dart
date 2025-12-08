@@ -26,6 +26,10 @@ class UserModel {
   final String? address;
   final double? appointmentPrice;
 
+  // New fields for professional availability and settings
+  final Map<String, List<String>>? workingHours; // e.g., {'Monday': ['09:00-13:00', '14:00-18:00']}
+  final int? appointmentDuration; // Duration of a standard appointment in minutes
+
   UserModel({
     required this.id,
     required this.name,
@@ -50,6 +54,8 @@ class UserModel {
     this.bio,
     this.address,
     this.appointmentPrice,
+    this.workingHours, // New field
+    this.appointmentDuration, // New field
   });
 
   factory UserModel.fromMap(String id, Map<String, dynamic> data) {
@@ -77,6 +83,8 @@ class UserModel {
       bio: data['bio'],
       address: data['address'],
       appointmentPrice: (data['appointmentPrice'] as num?)?.toDouble(),
+      workingHours: (data['workingHours'] as Map<String, dynamic>?)?.map((key, value) => MapEntry(key, List<String>.from(value))), // New field
+      appointmentDuration: (data['appointmentDuration'] as num?)?.toInt(), // New field
     );
   }
 
@@ -104,6 +112,8 @@ class UserModel {
       'bio': bio,
       'address': address,
       'appointmentPrice': appointmentPrice,
+      'workingHours': workingHours, // New field
+      'appointmentDuration': appointmentDuration, // New field
     };
   }
 }

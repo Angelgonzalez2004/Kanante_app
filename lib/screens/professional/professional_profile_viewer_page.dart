@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kanante_app/models/user_model.dart';
 import 'package:kanante_app/services/firebase_service.dart';
-import 'package:kanante_app/screens/professional/profile_page.dart'; // Reusing existing profile page for details
-import 'package:kanante_app/screens/professional/professional_publications_list_screen.dart'; // New screen for publications list
-import 'package:kanante_app/screens/shared/chat_screen.dart'; // Chat screen
+import 'package:kanante_app/screens/professional/profile_page.dart';
+import 'package:kanante_app/screens/professional/professional_publications_list_screen.dart';
+import 'package:kanante_app/screens/shared/chat_screen.dart';
+import 'package:kanante_app/models/review_model.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:intl/intl.dart';
 
 class ProfessionalProfileViewerPage extends StatefulWidget {
   final String professionalUid;
@@ -18,16 +21,18 @@ class ProfessionalProfileViewerPage extends StatefulWidget {
 class _ProfessionalProfileViewerPageState extends State<ProfessionalProfileViewerPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final FirebaseService _firebaseService = FirebaseService();
-  UserModel? _currentAppUser; // Current logged-in user of the app
-  UserModel? _viewingProfessional; // The professional whose profile is being viewed
+  UserModel? _currentAppUser;
+  UserModel? _viewingProfessional;
   bool _isLoading = true;
-  String? _chatId; // To store the chat ID for the message tab
+  String? _chatId;
+  double? _averageRating;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this); // Increased length to 3
+    _tabController = TabController(length: 4, vsync: this);
     _loadUserData();
+    _loadAverageRating();
   }
 
   @override
@@ -49,33 +54,14 @@ class _ProfessionalProfileViewerPageState extends State<ProfessionalProfileViewe
     setState(() => _isLoading = false);
   }
 
-  // No longer needed as chat is now a tab
-  // bool get _canMessageProfessional {
-  //   return _currentAppUser != null &&
-  //          _viewingProfessional != null &&
-  //          _currentAppUser!.accountType == 'Usuario' && // Only normal users can message professionals from here
-  //          _currentAppUser!.id != _viewingProfessional!.id; // Cannot message self
-  // }
-
-  // No longer needed as chat is now a tab
-  // void _startChatWithProfessional() async {
-  //   if (_currentAppUser == null || _viewingProfessional == null) return;
-
-  //   final chatId = await _firebaseService.getOrCreateChat(_currentAppUser!.id, _viewingProfessional!.id);
-  //   if (!mounted) return;
-
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(
-  //       builder: (context) => ChatScreen(
-  //         chatId: chatId,
-  //         otherUserName: _viewingProfessional!.name,
-  //         otherUserId: _viewingProfessional!.id,
-  //         otherUserImageUrl: _viewingProfessional!.profileImageUrl,
-  //       ),
-  //     ),
-  //   );
-  // }
+  Future<void> _loadAverageRating() async {
+    final double? avg = await _firebaseService.getAverageRatingForProfessional(widget.professionalUid);
+    if (mounted) {
+      setState(() {
+        _averageRating = avg;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,32 +75,45 @@ class _ProfessionalProfileViewerPageState extends State<ProfessionalProfileViewe
       );
     }
 
-    // Determine if the current user is a normal user trying to message a professional (not self)
     final bool isUserAndNotSelf = _currentAppUser != null &&
                                   _currentAppUser!.accountType == 'Usuario' &&
                                   _currentAppUser!.id != _viewingProfessional!.id;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_viewingProfessional!.name),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(_viewingProfessional!.name),
+            if (_averageRating != null)
+              Row(
+                children: [
+                  const Icon(Icons.star, color: Colors.amber, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    _averageRating!.toStringAsFixed(1),
+                    style: const TextStyle(fontSize: 12, color: Colors.white70),
+                  ),
+                ],
+              ),
+          ],
+        ),
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
             Tab(text: 'Publicaciones', icon: Icon(Icons.article)),
             Tab(text: 'Perfil', icon: Icon(Icons.person)),
-            Tab(text: 'Mensajes', icon: Icon(Icons.message)), // New Messages Tab
+            Tab(text: 'Mensajes', icon: Icon(Icons.message)),
+            Tab(text: 'Reseñas', icon: Icon(Icons.star)),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          // Tab 1: Publicaciones
           ProfessionalPublicationsListScreen(professionalUid: widget.professionalUid),
-          // Tab 2: Perfil del profesional (usando la misma página de perfil pero en modo lectura)
           ProfessionalProfilePage(professionalUid: widget.professionalUid),
-          // Tab 3: Mensajes
-          Builder( // Use Builder to get a new context for ScaffoldMessenger
+          Builder(
             builder: (BuildContext innerContext) {
               if (isUserAndNotSelf && _chatId != null) {
                 return ChatScreen(
@@ -122,7 +121,7 @@ class _ProfessionalProfileViewerPageState extends State<ProfessionalProfileViewe
                   otherUserName: _viewingProfessional!.name,
                   otherUserId: _viewingProfessional!.id,
                   otherUserImageUrl: _viewingProfessional!.profileImageUrl,
-                  isProfessionalChat: true, // Pass true as it's a professional's profile
+                  isProfessionalChat: true,
                 );
               } else if (!isUserAndNotSelf) {
                 return const Center(child: Text('No puedes enviar mensajes a este perfil.'));
@@ -131,16 +130,83 @@ class _ProfessionalProfileViewerPageState extends State<ProfessionalProfileViewe
               }
             },
           ),
+          _buildReviewsTab(),
         ],
       ),
-      // FloatingActionButton for messaging removed, as it's now part of the tabs
-      // floatingActionButton: _canMessageProfessional
-      //     ? FloatingActionButton.extended(
-      //         onPressed: _startChatWithProfessional,
-      //         icon: const Icon(Icons.message),
-      //         label: const Text('Enviar Mensaje'),
-      //       )
-      //     : null,
+    );
+  }
+
+  Widget _buildReviewsTab() {
+    return FutureBuilder<List<Review>>(
+      future: _firebaseService.getReviewsForProfessional(widget.professionalUid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error al cargar reseñas: ${snapshot.error}'));
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('Este profesional aún no tiene reseñas.'));
+        }
+
+        final reviews = snapshot.data!;
+        return ListView.builder(
+          padding: const EdgeInsets.all(16.0),
+          itemCount: reviews.length,
+          itemBuilder: (context, index) {
+            final review = reviews[index];
+            return Card(
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              elevation: 2,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        FutureBuilder<UserModel?>(
+                          future: _firebaseService.getUserProfile(review.userId),
+                          builder: (context, userSnapshot) {
+                            if (userSnapshot.connectionState == ConnectionState.waiting) {
+                              return const Text('Cargando usuario...');
+                            }
+                            if (userSnapshot.hasData && userSnapshot.data != null) {
+                              return Text(userSnapshot.data!.name, style: const TextStyle(fontWeight: FontWeight.bold));
+                            }
+                            return const Text('Usuario Anónimo', style: TextStyle(fontWeight: FontWeight.bold));
+                          },
+                        ),
+                        RatingBarIndicator(
+                          rating: review.rating,
+                          itemBuilder: (context, index) => const Icon(
+                            Icons.star,
+                            color: Colors.amber,
+                          ),
+                          itemCount: 5,
+                          itemSize: 20.0,
+                          direction: Axis.horizontal,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    if (review.comment != null && review.comment!.isNotEmpty)
+                      Text(review.comment!),
+                    const SizedBox(height: 8),
+                    Text(
+                      DateFormat('dd/MM/yyyy HH:mm').format(review.timestamp),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

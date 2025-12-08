@@ -39,6 +39,8 @@ dependencies:
   # 🛠️ Correcciones
   url_launcher: ^6.3.0
   flutter_quill: ^9.5.0   # Mantenemos la versión compatible con tu código
+  flutter_rating_bar: ^4.0.0 # New dependency
+  time_range_picker: ^2.0.0 # New dependency
   
   # 📍 Mapas
   google_maps_flutter: ^2.9.0
@@ -54,6 +56,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
 
   assets:
     - assets/images/

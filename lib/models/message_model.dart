@@ -7,7 +7,8 @@ class Message {
   final MessageType type;
   final String content; // For text messages or URLs for files/images/audio
   final DateTime timestamp;
-  final bool deletedForSender; // New field
+  final bool deletedForSender;
+  final List<String> readBy; // New field
 
   Message({
     required this.id,
@@ -16,7 +17,8 @@ class Message {
     required this.type,
     required this.content,
     required this.timestamp,
-    this.deletedForSender = false, // Initialize to false
+    this.deletedForSender = false,
+    this.readBy = const [], // Initialize as empty list
   });
 
   factory Message.fromMap(String id, Map<String, dynamic> data) {
@@ -27,7 +29,8 @@ class Message {
       type: _stringToMessageType(data['type']),
       content: data['content'] ?? '',
       timestamp: DateTime.fromMillisecondsSinceEpoch(data['timestamp'] ?? 0),
-      deletedForSender: data['deletedForSender'] ?? false, // Parse new field
+      deletedForSender: data['deletedForSender'] ?? false,
+      readBy: List<String>.from(data['readBy'] ?? []), // Parse new field
     );
   }
 
@@ -38,7 +41,8 @@ class Message {
       'type': type.name,
       'content': content,
       'timestamp': timestamp.millisecondsSinceEpoch,
-      'deletedForSender': deletedForSender, // Include new field
+      'deletedForSender': deletedForSender,
+      'readBy': readBy, // Include new field
     };
   }
 

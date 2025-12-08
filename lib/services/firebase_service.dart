@@ -11,6 +11,7 @@ import '../models/user_model.dart';
 import '../models/support_ticket_model.dart';
 import '../models/alert_model.dart'; // New import
 import '../models/comment_model.dart'; // New import
+import '../models/review_model.dart'; // New import
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
@@ -425,6 +426,13 @@ class FirebaseService {
     await _db.child('appointments/$appointmentId').update({'status': newStatus});
   }
 
+  Future<void> updateAppointmentDateTime(String appointmentId, DateTime newDateTime) async {
+    await _db.child('appointments/$appointmentId').update({
+      'dateTime': newDateTime.millisecondsSinceEpoch,
+      'status': 'rescheduled', // Or 'pending_reschedule' depending on desired flow
+    });
+  }
+
   Future<List<Appointment>> getAppointmentsForUser(String userId) async {
     try {
       final event = await _db.child('appointments').orderByChild('patientUid').equalTo(userId).once();
@@ -530,6 +538,7 @@ class FirebaseService {
         'participants': {currentUserId: true, otherUserId: true},
         'lastMessage': '',
         'timestamp': ServerValue.timestamp,
+        'typingStatus': {}, // Initialize typing status
       });
     }
     return chatId;
@@ -572,6 +581,35 @@ class FirebaseService {
     }
   }
 
+  Future<void> markMessageAsRead(String chatId, String messageId, String userId) async {
+    // Atomically add userId to the 'readBy' list if not already present
+    final messageRef = _db.child('messages/$chatId/$messageId');
+    await messageRef.runTransaction((Object? messageData) {
+      if (messageData == null) {
+        return Transaction.abort();
+      }
+      final Map<String, dynamic> data = Map<String, dynamic>.from(messageData as Map);
+      List<String> readBy = List<String>.from(data['readBy'] ?? []);
+      if (!readBy.contains(userId)) {
+        readBy.add(userId);
+        data['readBy'] = readBy;
+        return Transaction.success(data);
+      }
+      return Transaction.abort(); // No change needed if already read
+    });
+  }
+
+  // --- Typing Indicator Methods ---
+  Future<void> setTypingStatus(String chatId, String userId, bool isTyping) async {
+    await _db.child('chats/$chatId/typingStatus/$userId').set(isTyping);
+  }
+
+  Stream<bool> getTypingStatusStream(String chatId, String userId) {
+    return _db.child('chats/$chatId/typingStatus/$userId').onValue.map((event) {
+      return (event.snapshot.value as bool?) ?? false;
+    });
+  }
+
   Future<String> uploadFile(String chatId, File file) async {
     try {
       final fileName = '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
@@ -591,4 +629,39 @@ class FirebaseService {
     // Reutiliza getAllProfessionals con la misma lógica de búsqueda
     return getAllProfessionals(searchQuery: query);
   }
+
+  // --- Review Methods ---
+  Future<void> submitReview(Review review) async {
+    final reviewRef = _db.child('reviews').push();
+    await reviewRef.set(review.toMap());
+  }
+
+  Future<List<Review>> getReviewsForProfessional(String professionalId) async {
+    try {
+      final event = await _db.child('reviews').orderByChild('professionalId').equalTo(professionalId).once();
+      final snapshot = event.snapshot;
+      if (!snapshot.exists || snapshot.value == null) return [];
+
+      final reviewsData = Map<String, dynamic>.from(snapshot.value as Map);
+      return reviewsData.entries.map((entry) => Review.fromMap(entry.key, Map<String, dynamic>.from(entry.value as Map))).toList()
+        ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    } catch (e) {
+      debugPrint("Error fetching reviews: $e");
+      return [];
+    }
+  }
+
+  Future<double?> getAverageRatingForProfessional(String professionalId) async {
+    try {
+      final reviews = await getReviewsForProfessional(professionalId);
+      if (reviews.isEmpty) return null;
+
+      final double totalRating = reviews.fold(0.0, (sum, review) => sum + review.rating);
+      return totalRating / reviews.length;
+    } catch (e) {
+      debugPrint("Error calculating average rating: $e");
+      return null;
+    }
+  }
+
 }

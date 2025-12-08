@@ -17,6 +17,7 @@ import '../shared/support_screen.dart';
 import 'profile_page.dart'; // Este archivo debe contener la clase ProfessionalProfilePage
 import '../shared/my_alerts_screen.dart'; // New import
 import '../shared/appointments_reminder_screen.dart'; // New import for AppointmentsReminderScreen
+import 'professional_availability_screen.dart'; // New import
 
 class ProfessionalDashboard extends StatefulWidget {
   const ProfessionalDashboard({super.key});
@@ -114,6 +115,11 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
         'page': const AppointmentsReminderScreen(),
       },
       {
+        'title': 'Disponibilidad', // New section for professional availability
+        'icon': Icons.schedule_rounded,
+        'page': const ProfessionalAvailabilityScreen(),
+      },
+      {
         'title': 'Ajustes',
         'icon': Icons.settings_rounded,
         'page': const SettingsPage()
@@ -151,7 +157,8 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
       _shortcutCard('Mensajes', Icons.message_rounded, () => _onItemTapped(4)),
       _shortcutCard('Publicaciones', Icons.article_rounded, () => _onItemTapped(5)),
       _shortcutCard('Citas Agendadas', Icons.event_note_rounded, () => _onItemTapped(6)), // New shortcut for Appointments Reminder
-      _shortcutCard('Mis Alertas', Icons.notifications_active, () => _onItemTapped(10)), // Updated index for Alerts
+      _shortcutCard('Gestionar Disponibilidad', Icons.schedule_rounded, () => _onItemTapped(7)), // New shortcut for Availability
+      _shortcutCard('Mis Alertas', Icons.notifications_active, () => _onItemTapped(11)), // Updated index for Alerts
     ];
   }
 
