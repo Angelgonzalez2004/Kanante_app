@@ -37,6 +37,7 @@ La aplicación está estructurada en tres roles principales:
         *   Los **Usuarios Normales y Administradores** no pueden subir fotos de perfil, aunque sus perfiles las mostrarán si existen (e.g., de una cuenta de Google).
 *   **✅ Sistema de Verificación:** Los profesionales deben subir documentos para ser verificados por un administrador, aumentando la confianza y seguridad en la plataforma.
 *   **📝 Feed de Contenido Dinámico:** Los profesionales pueden crear, editar y publicar artículos con un editor de texto enriquecido e imágenes. Los usuarios pueden explorar este contenido en un feed interactivo.
+*   **🗓️ Gestión de Citas:** Sistema para que los usuarios soliciten citas y los profesionales las gestionen. Ahora con la posibilidad de solicitar cita directamente desde el chat con un profesional.
 *   **💬 Chat en Tiempo Real:** Comunicación directa y segura entre usuarios y profesionales, y entre usuarios y el equipo de soporte.
 *   **🧭 Navegación por Roles:** Paneles de control (`Dashboards`) personalizados para cada rol (Usuario, Profesional, Administrador), mostrando solo las opciones y vistas relevantes para cada uno.
 *   **🆘 Soporte y Ayuda Integrado:**
@@ -50,6 +51,14 @@ La aplicación está estructurada en tres roles principales:
 
 Hemos implementado una serie de mejoras significativas en la aplicación para enriquecer la experiencia de usuario y la funcionalidad en todos los roles:
 
+*   **¡Nuevo! Agendamiento de Citas Integrado en Chats:**
+    *   Ahora es posible solicitar una cita con un profesional directamente desde la pantalla de chat.
+    *   Se ha añadido un botón "Agendar Cita" en la barra superior del chat (visible para usuarios al chatear con profesionales), que permite seleccionar fecha y hora.
+    *   La funcionalidad de agendamiento de cita se integra con `FirebaseService.requestAppointment`.
+*   **¡Nuevo! Pantalla de Recordatorios de Citas:**
+    *   Se ha creado una pantalla dedicada (`AppointmentsReminderScreen`) para que usuarios y profesionales puedan visualizar sus citas agendadas de forma centralizada.
+    *   Esta pantalla muestra las citas ordenadas cronológicamente, con detalles del otro participante y el estado de la cita.
+    *   Se ha integrado en la navegación principal (menú lateral y barra de navegación) de los Dashboards de Usuario y Profesional.
 *   **¡Corrección Crítica de Estabilidad!** Se identificó y solucionó un error crítico de `type casting` en los métodos de `FirebaseService` relacionados con la obtención de conversaciones. Este error causaba cierres inesperados de la aplicación o redirecciones a la pantalla de inicio de sesión, lo que mejora significativamente la estabilidad de la aplicación.
 
 *   **Optimización del Acceso y Visualización del Feed Social:**
