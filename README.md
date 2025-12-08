@@ -53,6 +53,25 @@ La aplicación está estructurada en tres roles principales:
 
 Hemos implementado una serie de mejoras significativas en la aplicación para enriquecer la experiencia de usuario y la funcionalidad en todos los roles:
 
+*   **¡Nuevo! Notificaciones Push Integradas:**
+    *   Implementación de Firebase Cloud Messaging (FCM) para enviar notificaciones.
+    *   Manejo y almacenamiento de tokens de dispositivo (`fcmToken`) en el perfil del usuario.
+    *   Gestión de permisos de notificación y manejo de mensajes en primer y segundo plano.
+*   **¡Nuevo! Recordatorios de Citas (Basados en FCM):**
+    *   Se ha delineado una arquitectura para una Cloud Function de Firebase que enviaría recordatorios de citas automáticos (24h y 1h antes) a través de FCM.
+    *   La aplicación está preparada en el lado de Flutter para recibir y manejar estas notificaciones de recordatorio.
+*   **¡Nuevo! Moderación de Publicaciones para Administradores:**
+    *   Se ha añadido un campo `status` al modelo `Publication` para controlar su visibilidad ('pending', 'published', 'unpublished', 'rejected').
+    *   La `FirebaseService` incluye métodos para `updatePublicationStatus` y `deletePublication`.
+    *   La interfaz de administrador en `admin_publication_list.dart` permite a los administradores **ver el estado de las publicaciones**, y tienen **opciones para editar, publicar/despublicar y eliminar** publicaciones.
+*   **¡Nuevo! Priorización y Asignación de Tickets de Soporte:**
+    *   El `SupportTicketModel` ha sido extendido con campos para `priority` ('low', 'medium', 'high') y `assignedTo` (UID del administrador).
+    *   La `FirebaseService` incluye un método `updateSupportTicketDetails` para gestionar estos campos.
+    *   La interfaz de administrador (`SupportCenterScreen` y `SupportTicketDetailScreen`) ahora permite **visualizar, filtrar, y modificar el estado, la prioridad y la asignación** de los tickets de soporte.
+*   **¡Nuevo! Análisis y Reportes Básicos para Administradores:**
+    *   Se ha creado una pantalla dedicada (`AdminAnalyticsScreen`) para mostrar métricas clave como el total de usuarios, profesionales, publicaciones, reseñas, y un desglose de citas por estado (pendientes, completadas, canceladas).
+    *   La `FirebaseService` incluye nuevos métodos para obtener estos datos agregados.
+    *   Integrado en el `AdminDashboard` para un fácil acceso.
 *   **¡Nuevo! Agendamiento de Citas Integrado en Chats:**
     *   Ahora es posible solicitar una cita con un profesional directamente desde la pantalla de chat.
     *   Se ha añadido un botón "Agendar Cita" en la barra superior del chat (visible para usuarios al chatear con profesionales), que permite seleccionar fecha y hora.
