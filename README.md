@@ -50,6 +50,16 @@ La aplicación está estructurada en tres roles principales:
 
 Hemos implementado una serie de mejoras significativas en la aplicación para enriquecer la experiencia de usuario y la funcionalidad en todos los roles:
 
+*   **¡Corrección Crítica de Estabilidad!** Se identificó y solucionó un error crítico de `type casting` en los métodos de `FirebaseService` relacionados con la obtención de conversaciones. Este error causaba cierres inesperados de la aplicación o redirecciones a la pantalla de inicio de sesión, lo que mejora significativamente la estabilidad de la aplicación.
+
+*   **Optimización del Acceso y Visualización del Feed Social:**
+    *   Para el rol de **Usuario**, el dashboard ahora muestra el Feed Social Interactivo como pantalla por defecto al iniciar sesión, asegurando que esta funcionalidad principal sea lo primero que vean.
+    *   Para el rol de **Administrador**, el acceso a "Supervisar Publicaciones" se ha cambiado para mostrar también el **Feed Social Interactivo** (`PublicationFeedPage`), pero con la interactividad (likes, comentarios) deshabilitada; solo permite la visualización y el compartir, tal como se solicitó.
+
+*   **Consolidación de Títulos y Navegación:**
+    *   Se realizó una auditoría exhaustiva y se eliminaron títulos duplicados en múltiples pantallas (perfiles, mensajes, ajustes, FAQ) a lo largo de la aplicación para una experiencia de usuario más limpia y consistente.
+    *   Se verificó que la navegación en los dashboards funcione correctamente, mitigando problemas de redirección inesperada.
+
 *   **Feed de Publicaciones Social e Interactivo:**
     *   Un feed de publicaciones dinámico al estilo "TikTok/Facebook" que permite a todos los roles visualizar el contenido.
     *   **Usuarios:** Pueden dar "Me gusta" a las publicaciones, añadir comentarios (con texto e imágenes opcionales) y compartir publicaciones.
