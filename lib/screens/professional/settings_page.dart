@@ -8,6 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:io'; // For File
 import '../../main.dart'; // Para themeNotifier
 import '../login_screen.dart';
+import '../shared/privacy_policy_screen.dart'; // New import
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -378,7 +379,10 @@ class _SettingsPageState extends State<SettingsPage> {
                         _buildSectionTitle(context, 'Privacidad'),
                         _buildSettingsCard([
                           _buildAccountOption(context, 'Ver política de privacidad', Icons.policy, () {
-                            // TODO: Implement navigation to privacy policy page
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const PrivacyPolicyScreen()),
+                            );
                           }),
                           const Divider(),
                           _buildAccountOption(context, 'Gestionar preferencias de datos', Icons.data_usage, () {

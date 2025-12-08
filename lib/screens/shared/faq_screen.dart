@@ -28,15 +28,17 @@ class _FaqScreenState extends State<FaqScreen> with SingleTickerProviderStateMix
   Widget build(BuildContext context) {
     final categories = widget.faqData.keys.toList();
 
-    return Material(
-      type: MaterialType.transparency,
-      child: Column(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Preguntas Frecuentes'),
+      ),
+      body: Column(
         children: [
           TabBar(
             controller: _tabController,
             isScrollable: true,
             labelColor: Theme.of(context).colorScheme.primary,
-            unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: (0.7 * 255).toDouble()),
             indicatorColor: Theme.of(context).colorScheme.primary,
             tabs: categories.map((title) => Tab(text: title)).toList(),
           ),

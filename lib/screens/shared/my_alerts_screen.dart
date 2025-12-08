@@ -25,11 +25,6 @@ class _MyAlertsScreenState extends State<MyAlertsScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mis Alertas y Avisos'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800.0),

@@ -21,30 +21,31 @@ class HomePage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Bienvenido de nuevo,', style: textTheme.titleMedium?.copyWith(color: Colors.grey.shade600)),
-                Text(userName, style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.teal)),
+                Text(userName, style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
                 const SizedBox(height: 24),
+                // Enhanced Introductory Container
                 Container(
                   padding: const EdgeInsets.all(16.0),
                   decoration: BoxDecoration(
-                    color: Colors.teal.withAlpha(12),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.teal.withAlpha(51)),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: (0.08 * 255).toDouble()),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: (0.2 * 255).toDouble())),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.info_outline_rounded, color: Colors.teal.shade700, size: 30),
+                      Icon(Icons.spa_outlined, color: Theme.of(context).colorScheme.primary, size: 30),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Text(
                           'Kananté (del maya "cuidar" o "proteger") es tu espacio seguro para conectar con profesionales de la salud mental.',
-                          style: textTheme.bodyMedium?.copyWith(color: Colors.teal.shade900),
+                          style: textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface),
                         ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text('Accesos Rápidos', style: textTheme.titleLarge),
+                Text('Accesos Rápidos', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 GridView.builder(
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(

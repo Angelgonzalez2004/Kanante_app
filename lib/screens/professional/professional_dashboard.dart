@@ -150,18 +150,30 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
 
   Widget _shortcutCard(String title, IconData icon, VoidCallback onTap) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 4, // Increased elevation for a more premium look
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), // More rounded corners
+      color: Theme.of(context).cardColor, // Use theme's card color
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 40, color: Colors.teal),
-            const SizedBox(height: 12),
-            Text(title, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
-          ],
+        borderRadius: BorderRadius.circular(16),
+        splashColor: Theme.of(context).colorScheme.primary.withValues(alpha: (0.1 * 255).toDouble()), // Add splash effect
+        highlightColor: Theme.of(context).colorScheme.primary.withValues(alpha: (0.05 * 255).toDouble()), // Add highlight effect
+        child: Padding(
+          padding: const EdgeInsets.all(16.0), // Added padding
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 48, color: Theme.of(context).colorScheme.primary), // Larger icon, primary color
+              const SizedBox(height: 12),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold), // Use titleMedium
+                maxLines: 2, // Allow title to wrap
+                overflow: TextOverflow.ellipsis, // Add ellipsis for long titles
+              ),
+            ],
+          ),
         ),
       ),
     );

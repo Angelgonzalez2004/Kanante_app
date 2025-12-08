@@ -23,10 +23,9 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
   final _storage = FirebaseStorage.instance;
   bool _isLoading = false;
   final _picker = ImagePicker();
-  final List<XFile> _attachments = [];
-  final TextEditingController _imageUrlController = TextEditingController(); // New
-  bool _useImageUrl = false; // New
-
+  final List<dynamic> _attachments = []; // Changed to dynamic to hold XFile or String (for URLs)
+  final TextEditingController _imageUrlController = TextEditingController();
+  
   @override
   void initState() {
     super.initState();
@@ -39,7 +38,7 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
   void dispose() {
     _titleController.dispose();
     _contentController.dispose();
-    _imageUrlController.dispose(); // Dispose the new controller
+    _imageUrlController.dispose();
     super.dispose();
   }
 
@@ -51,6 +50,11 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
         final data = Map<String, dynamic>.from(snapshot.value as Map);
         _titleController.text = data['title'];
         _contentController.document = Document.fromJson(data['content']);
+        if (data['attachments'] != null) {
+          setState(() {
+            _attachments.addAll(List<String>.from(data['attachments']));
+          });
+        }
       }
     } catch (e) {
       if (!mounted) return;
@@ -79,8 +83,6 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
                   if (pickedFile != null) {
                     setState(() {
                       _attachments.add(pickedFile);
-                      _useImageUrl = false; // Ensure we're not using URL if local picked
-                      _imageUrlController.clear();
                     });
                   }
                 },
@@ -94,8 +96,6 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
                   if (pickedFile != null) {
                     setState(() {
                       _attachments.add(pickedFile);
-                      _useImageUrl = false;
-                      _imageUrlController.clear();
                     });
                   }
                 },
@@ -144,10 +144,7 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
                 if (Uri.tryParse(url)?.hasAbsolutePath ?? false) {
                   // Basic URL validation
                   setState(() {
-                    _attachments.clear(); // Clear local attachments if URL is used
-                    _useImageUrl = true;
-                    // Add the URL as a string to attachments for consistent handling later
-                    _attachments.add(XFile(url)); // Store URL as XFile.path
+                    _attachments.add(url); // Add the URL string directly
                   });
                   Navigator.of(context).pop();
                 } else {
@@ -167,52 +164,56 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: _attachments.map((file) {
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            Widget imageWidget;
-            if (_useImageUrl && file.path == _imageUrlController.text.trim()) {
-              imageWidget = Image.network(
-                file.path,
-                width: constraints.maxWidth * 0.2,
-                height: constraints.maxWidth * 0.2,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  width: constraints.maxWidth * 0.2,
-                  height: constraints.maxWidth * 0.2,
-                  color: Colors.grey,
-                  child: const Icon(Icons.broken_image, color: Colors.white),
-                ),
-              );
-            } else {
-              imageWidget = Image.file(
-                File(file.path),
-                width: constraints.maxWidth * 0.2,
-                height: constraints.maxWidth * 0.2,
-                fit: BoxFit.cover,
-              );
-            }
+      children: _attachments.map((attachment) {
+        Widget imageWidget;
+        bool isNetworkImage = attachment is String; // Check if it's a URL string
 
-            return Stack(
-              children: [
-                imageWidget,
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: IconButton(
-                    icon: const Icon(Icons.remove_circle, color: Colors.red),
-                    onPressed: () {
-                      setState(() {
-                        _attachments.remove(file);
-                        _useImageUrl = false; // Reset if the URL image is removed
-                        _imageUrlController.clear();
-                      });
-                    },
-                  ),
-                ),
-              ],
-            );
-          },
+        if (isNetworkImage) {
+          imageWidget = Image.network(
+            attachment,
+            width: 100, // Fixed size for consistency
+            height: 100, // Fixed size for consistency
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Container(
+              width: 100,
+              height: 100,
+              color: Colors.grey,
+              child: const Icon(Icons.broken_image, color: Colors.white),
+            ),
+          );
+        } else {
+          // Assume it's an XFile for local image
+          imageWidget = Image.file(
+            File((attachment as XFile).path),
+            width: 100, // Fixed size for consistency
+            height: 100, // Fixed size for consistency
+            fit: BoxFit.cover,
+          );
+        }
+
+        return Stack(
+          children: [
+            SizedBox(
+              width: 100,
+              height: 100,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: imageWidget,
+              ),
+            ),
+            Positioned(
+              top: -10,
+              right: -10,
+              child: IconButton(
+                icon: const Icon(Icons.remove_circle, color: Colors.red, size: 24),
+                onPressed: () {
+                  setState(() {
+                    _attachments.remove(attachment);
+                  });
+                },
+              ),
+            ),
+          ],
         );
       }).toList(),
     );
@@ -220,17 +221,13 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
 
   Future<List<String>> _uploadAttachments() async {
     final List<String> attachmentUrls = [];
-
-    if (_useImageUrl && _imageUrlController.text.trim().isNotEmpty) {
-      attachmentUrls.add(_imageUrlController.text.trim());
-    } else {
-      for (final file in _attachments) {
-        // Skip if it's the URL placeholder from XFile
-        if (file.path == _imageUrlController.text.trim() && _useImageUrl) continue;
-
-        final fileName = file.name;
+    for (final attachment in _attachments) {
+      if (attachment is String) { // It's a URL string
+        attachmentUrls.add(attachment);
+      } else if (attachment is XFile) { // It's a local file
+        final fileName = attachment.name;
         final ref = _storage.ref().child('publication_attachments/$fileName');
-        final uploadTask = await ref.putFile(File(file.path));
+        final uploadTask = await ref.putFile(File(attachment.path));
         final url = await uploadTask.ref.getDownloadURL();
         attachmentUrls.add(url);
       }

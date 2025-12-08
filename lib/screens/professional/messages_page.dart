@@ -59,14 +59,6 @@ class _MessagesPageState extends State<MessagesPage> with SingleTickerProviderSt
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Mensajes',
-                style: TextStyle(
-                  fontSize: size.width * 0.06,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.teal,
-                ),
-              ),
               SizedBox(height: size.height * 0.02),
               TabBar(
                 controller: _tabController,

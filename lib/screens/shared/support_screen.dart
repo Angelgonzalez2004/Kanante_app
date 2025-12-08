@@ -8,6 +8,7 @@ import 'privacy_policy_screen.dart';
 import 'feedback_form_screen.dart';
 import 'faq_screen.dart';
 import 'my_support_tickets_screen.dart'; // New import
+import 'about_us_screen.dart'; // New import
 
 class SupportScreen extends StatefulWidget {
   const SupportScreen({super.key});
@@ -152,6 +153,19 @@ class _SupportScreenState extends State<SupportScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const PrivacyPolicyScreen()),
+                  );
+                },
+              ),
+              const SizedBox(height: 16), // New SizedBox for spacing
+              _buildSupportCard( // New About Us Card
+                context,
+                icon: Icons.info_outline,
+                title: 'Sobre Nosotros',
+                subtitle: 'Conoce la historia y misión de Kananté.',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AboutUsScreen()),
                   );
                 },
               ),

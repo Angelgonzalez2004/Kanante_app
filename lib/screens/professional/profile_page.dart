@@ -715,19 +715,19 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
             ActionChip(
               avatar: const Icon(Icons.facebook),
               label: const Text('Facebook'),
-              onPressed: () => launchLink(links['facebook']!, ''),
+              onPressed: () => launchLink(links['facebook']!, 'https://www.facebook.com/'),
             ),
           if (links['instagram']?.isNotEmpty ?? false)
             ActionChip(
               avatar: const Icon(Icons.camera_alt),
               label: const Text('Instagram'),
-              onPressed: () => launchLink(links['instagram']!, ''),
+              onPressed: () => launchLink(links['instagram']!, 'https://www.instagram.com/'),
             ),
           if (links['tiktok']?.isNotEmpty ?? false)
             ActionChip(
               avatar: const Icon(Icons.music_note),
               label: const Text('TikTok'),
-              onPressed: () => launchLink(links['tiktok']!, ''),
+              onPressed: () => launchLink(links['tiktok']!, 'https://www.tiktok.com/@'),
             ),
           if (links['whatsapp']?.isNotEmpty ?? false)
             ActionChip(

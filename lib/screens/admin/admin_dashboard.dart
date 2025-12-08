@@ -6,7 +6,7 @@ import 'verifications_page.dart';
 import 'support_center_screen.dart';
 import '../shared/faq_screen.dart'; // Ensure FaqScreen is imported from shared
 import 'package:kanante_app/data/faq_data.dart';
-import 'admin_publication_list.dart'; // Correct import for publication list
+
 import 'admin_profile_page.dart'; // New import
 import 'admin_settings_page.dart'; // New import
 import 'admin_messages_page.dart'; // New import
@@ -28,30 +28,29 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   // List of pages to display in the body
   late final List<Widget> _pages;
-  late final List<String> _pageTitles;
+  final List<String> _pageTitles = const [
+    'Verificar Profesionales',
+    'Supervisar Publicaciones',
+    'Centro de Soporte',
+    'Preguntas Frecuentes',
+    'Mensajes',
+    'Mi Perfil (Admin)',
+    'Configuración (Admin)',
+    'Gestionar Cuentas',
+  ];
 
   @override
   void initState() {
     super.initState();
-    _pages = [
-      const VerificationsPage(),
-      const PublicationFeedPage(), // Changed to PublicationFeedPage
-      const SupportCenterScreen(),
-      const FaqScreen(faqData: FaqData.forAdmin),
-      const AdminMessagesPage(), // New Admin Messages Page
-      const AdminProfilePage(), // Placeholder - Admin Profile Page
-      const AdminSettingsPage(), // Placeholder - Admin Settings Page
-      const AdminAccountManagementPage(), // Replace placeholder with actual page
-    ];
-    _pageTitles = [
-      'Verificar Profesionales',
-      'Supervisar Publicaciones',
-      'Centro de Soporte',
-      'Preguntas Frecuentes',
-      'Mensajes', // New title
-      'Mi Perfil (Admin)', // New title
-      'Configuración (Admin)', // New title
-      'Gestionar Cuentas', // Shifted index
+    _pages = const [
+      VerificationsPage(),
+      PublicationFeedPage(), // Changed to PublicationFeedPage
+      SupportCenterScreen(),
+      FaqScreen(faqData: FaqData.forAdmin),
+      AdminMessagesPage(), // New Admin Messages Page
+      AdminProfilePage(), // Placeholder - Admin Profile Page
+      AdminSettingsPage(), // Placeholder - Admin Settings Page
+      AdminAccountManagementPage(), // Replace placeholder with actual page
     ];
   }
 
@@ -102,38 +101,38 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     });
                   },
                   labelType: NavigationRailLabelType.all,
-                  destinations: [
+                  destinations: const <NavigationRailDestination>[
                     NavigationRailDestination(
-                      icon: const Icon(Icons.verified_user_outlined),
-                      label: Text(_pageTitles[0]),
+                      icon: Icon(Icons.verified_user_outlined),
+                      label: Text('Verificar Profesionales'),
                     ),
                     NavigationRailDestination(
-                      icon: const Icon(Icons.article_outlined),
-                      label: Text(_pageTitles[1]),
+                      icon: Icon(Icons.article_outlined),
+                      label: Text('Supervisar Publicaciones'),
                     ),
                     NavigationRailDestination(
-                      icon: const Icon(Icons.support_agent),
-                      label: Text(_pageTitles[2]),
+                      icon: Icon(Icons.support_agent),
+                      label: Text('Centro de Soporte'),
                     ),
                     NavigationRailDestination(
-                      icon: const Icon(Icons.question_answer_outlined),
-                      label: Text(_pageTitles[3]),
+                      icon: Icon(Icons.question_answer_outlined),
+                      label: Text('Preguntas Frecuentes'),
                     ),
                     NavigationRailDestination(
-                      icon: const Icon(Icons.message_outlined), // New Icon
-                      label: Text(_pageTitles[4]), // Corresponds to 'Mensajes'
+                      icon: Icon(Icons.message_outlined),
+                      label: Text('Mensajes'),
                     ),
                     NavigationRailDestination(
-                      icon: const Icon(Icons.person_outline),
-                      label: Text(_pageTitles[5]), // Corresponds to 'Mi Perfil (Admin)'
+                      icon: Icon(Icons.person_outline),
+                      label: Text('Mi Perfil (Admin)'),
                     ),
                     NavigationRailDestination(
-                      icon: const Icon(Icons.settings_outlined),
-                      label: Text(_pageTitles[6]), // Corresponds to 'Configuración (Admin)'
+                      icon: Icon(Icons.settings_outlined),
+                      label: Text('Configuración (Admin)'),
                     ),
                     NavigationRailDestination(
-                      icon: const Icon(Icons.people), // Shifted index
-                      label: Text(_pageTitles[7]), // Corresponds to 'Gestionar Cuentas'
+                      icon: Icon(Icons.people),
+                      label: Text('Gestionar Cuentas'),
                     ),
                   ],
                 ),
@@ -157,16 +156,28 @@ class _AdminDashboardState extends State<AdminDashboard> {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
-                  const DrawerHeader(
+                  DrawerHeader(
                     decoration: BoxDecoration(
                       color: Colors.indigo,
                     ),
-                    child: Text(
-                      'Menú de Admin',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Image.asset(
+                          'assets/images/logoapp.jpg', // Path to your app logo
+                          height: 60, // Adjust height as needed
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Menú de Admin',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18, // Slightly reduced font size for better fit
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   ListTile(
