@@ -28,7 +28,8 @@ La aplicación está estructurada en tres roles principales:
 *   **🔐 Autenticación Multi-plataforma:** Registro e inicio de sesión con correo/contraseña y Google Sign-In, con flujos seguros y persistencia de sesión.
 *   **🎨 Diseño Responsivo y Adaptativo:** Interfaz de usuario completamente responsiva que se adapta a móviles, tabletas y web, utilizando `LayoutBuilder` para cambiar entre menús laterales (`Drawer`) y barras de navegación persistentes (`NavigationRail`) para una experiencia de usuario óptima.
 *   **👤 Perfiles y Configuraciones Claramente Separados:**
-    *   **Páginas de Perfil:** Dedicadas a la información de identidad del usuario (nombre, teléfono, foto de perfil, biografía, etc.).
+    *   **Páginas de Perfil:** Dedicadas a la información de identidad del usuario (nombre, teléfono, foto de perfil, biografía, etc.). Ahora con campos editables como género, fecha de nacimiento (con selector de calendario), teléfono y RFC.
+    *   **Redes Sociales para Profesionales:** Una nueva sección en el perfil del profesional permite añadir y mostrar enlaces a sus redes sociales (Facebook, Instagram, TikTok, WhatsApp, Correo electrónico) con iconos interactivos.
     *   **Páginas de Configuración:** Enfocadas en las preferencias y el comportamiento de la aplicación (notificaciones, tema, seguridad, cerrar sesión, etc.).
     *   **Gestión de Fotos de Perfil:**
         *   Solo los **Profesionales con cuentas manuales** pueden subir, cambiar y eliminar su foto de perfil directamente en la aplicación.
@@ -44,17 +45,28 @@ La aplicación está estructurada en tres roles principales:
     *   Formularios de quejas y sugerencias (anónimos o identificados).
     *   Acceso a políticas de privacidad.
     *   Secciones de Preguntas Frecuentes (FAQ) personalizadas por rol.
-*   **✅ Estabilidad y Mantenimiento del Código:**
-    *   Resolución de todos los errores, advertencias y sugerencias reportados por `flutter analyze`.
-    *   Corrección del error de tiempo de ejecución "No Material widget found" en pantallas de contenido principal, envolviendo sus cuerpos en widgets `Material`.
-    *   Refinamiento de `UserProfilePage` para cargar datos internamente, eliminando la necesidad del parámetro `userData`.
-    *   Eliminación de errores de argumentos duplicados y aplicación de las mejores prácticas de sintaxis (`curly_braces_in_flow_control_structures`).
 
 ## 🚀 Nuevas Características y Mejoras Recientes
 
 Hemos implementado una serie de mejoras significativas en la aplicación para enriquecer la experiencia de usuario y la funcionalidad en todos los roles:
 
-*   **Perfiles y Configuraciones Mejorados:**
+*   **Feed de Publicaciones Social e Interactivo:**
+    *   Un feed de publicaciones dinámico al estilo "TikTok/Facebook" que permite a todos los roles visualizar el contenido.
+    *   **Usuarios:** Pueden dar "Me gusta" a las publicaciones, añadir comentarios (con texto e imágenes opcionales) y compartir publicaciones.
+    *   **Profesionales y Administradores:** Pueden ver el feed, y ahora **todos los roles** pueden compartir publicaciones en diversas plataformas (WhatsApp, Facebook, Twitter, Correo, etc.) a través del diálogo de compartir del dispositivo.
+    *   Restricciones de interacción aplicadas: solo los usuarios pueden "Me gusta" y "Comentar".
+
+*   **Gestión de Cuentas para Administradores Mejorada:**
+    *   Nueva pantalla "Gestionar Cuentas" que permite a los administradores listar, buscar y ver detalles completos de los perfiles de usuarios y profesionales.
+    *   Capacidad de **eliminar cuentas de usuarios** de la Realtime Database de Firebase (se aclara que la eliminación de la cuenta de autenticación debe hacerse manualmente en la consola de Firebase o a través de un servicio de backend).
+    *   Funcionalidad directa para **enviar alertas** a usuarios o profesionales específicos desde esta pantalla de gestión.
+
+*   **Sistema de Alertas Bidireccional Completo:**
+    *   Los administradores pueden enviar alertas personalizadas (título y mensaje) a cualquier usuario o profesional.
+    *   Los usuarios/profesionales reciben notificaciones visuales (badges en el menú de navegación) sobre alertas no leídas.
+    *   Pantallas dedicadas para visualizar los detalles de las alertas y la opción de **responder directamente** al administrador.
+
+*   **Perfiles y Configuraciones Mejorados (Detalle):**
     *   Ampliación de `UserModel` con campos adicionales como género, idioma preferido, zona horaria, sitio web, enlaces a redes sociales, educación y certificaciones para perfiles más completos.
     *   Actualización de las páginas de perfil de Usuarios y Profesionales para permitir la visualización y edición de estos nuevos campos.
     *   La página de perfil del Administrador ahora muestra los nuevos campos relevantes en modo de solo lectura.
@@ -73,6 +85,12 @@ Hemos implementado una serie de mejoras significativas en la aplicación para en
 
 *   **Mejora de la Pantalla de Preguntas Frecuentes (FAQ):**
     *   La `FaqScreen` ha sido actualizada para utilizar un `Scaffold` y un `AppBar`, moviendo la barra de pestañas al `bottom` del `AppBar`. Esto resuelve problemas de visualización del fondo y mejora la consistencia del diseño.
+
+*   **✅ Estabilidad y Mantenimiento del Código:**
+    *   Resolución de todos los errores, advertencias y lints críticos reportados por `flutter analyze`, asegurando un código base más robusto y limpio.
+    *   Corrección del error de tiempo de ejecución "No Material widget found" en pantallas de contenido principal, envolviendo sus cuerpos en widgets `Material`.
+    *   Refinamiento de `UserProfilePage` para cargar datos internamente, eliminando la necesidad del parámetro `userData`.
+    *   Eliminación de errores de argumentos duplicados y aplicación de las mejores prácticas de sintaxis (`curly_braces_in_flow_control_structures`).
 
 ## 🛠️ Tecnologías Utilizadas
 
