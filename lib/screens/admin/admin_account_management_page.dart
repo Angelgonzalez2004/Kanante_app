@@ -113,13 +113,9 @@ class _AdminAccountManagementPageState extends State<AdminAccountManagementPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gestión de Cuentas'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-      ),
-      body: Column(
+    return Material(
+      type: MaterialType.transparency,
+      child: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),

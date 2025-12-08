@@ -11,6 +11,7 @@ import 'admin_profile_page.dart'; // New import
 import 'admin_settings_page.dart'; // New import
 import 'admin_messages_page.dart'; // New import
 import 'admin_account_management_page.dart'; // New import
+import '../shared/publication_feed_page.dart'; // New import for interactive feed
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -34,7 +35,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     super.initState();
     _pages = [
       const VerificationsPage(),
-      const AdminPublicationList(), // Use AdminPublicationListPage
+      const PublicationFeedPage(), // Changed to PublicationFeedPage
       const SupportCenterScreen(),
       const FaqScreen(faqData: FaqData.forAdmin),
       const AdminMessagesPage(), // New Admin Messages Page
