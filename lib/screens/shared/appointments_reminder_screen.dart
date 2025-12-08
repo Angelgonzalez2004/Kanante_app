@@ -97,7 +97,13 @@ class _AppointmentsReminderScreenState extends State<AppointmentsReminderScreen>
                           Text('Estado: ${appointment.status}', style: const TextStyle(fontStyle: FontStyle.italic)),
                         ],
                       ),
-                      trailing: const Icon(Icons.arrow_forward_ios),
+                      trailing: (appointment.status != 'cancelled' && appointment.status != 'completed')
+                          ? IconButton(
+                              icon: const Icon(Icons.cancel, color: Colors.red),
+                              onPressed: () => _showCancelConfirmation(appointment),
+                              tooltip: 'Cancelar Cita',
+                            )
+                          : null,
                       onTap: () {
                         // TODO: Implement navigation to appointment detail screen if needed
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -113,5 +119,54 @@ class _AppointmentsReminderScreenState extends State<AppointmentsReminderScreen>
         ),
       ),
     );
+  }
+
+  Future<void> _showCancelConfirmation(Appointment appointment) async {
+    final bool confirm = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmar Cancelación'),
+          content: Text('¿Estás seguro de que quieres cancelar la cita con ${appointment.professionalName ?? appointment.patientName} el ${DateFormat('dd/MM/yyyy HH:mm').format(appointment.dateTime)}?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Sí, cancelar', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    ) ?? false;
+
+    if (confirm) {
+      _cancelAppointment(appointment.id);
+    }
+  }
+
+  Future<void> _cancelAppointment(String appointmentId) async {
+    try {
+      await _firebaseService.updateAppointmentStatus(appointmentId, 'cancelled');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cita cancelada con éxito.')),
+        );
+        // Refresh the list
+        setState(() {
+          _appointmentsFuture = (_currentUserAccountType == 'Usuario')
+              ? _firebaseService.getAppointmentsForUser(_auth.currentUser!.uid)
+              : _firebaseService.getAppointmentsForProfessional(_auth.currentUser!.uid);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al cancelar la cita: $e')),
+        );
+      }
+    }
   }
 }

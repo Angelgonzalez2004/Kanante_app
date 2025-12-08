@@ -149,7 +149,13 @@ class _AdminAccountManagementPageState extends State<AdminAccountManagementPage>
                                     : null,
                               ),
                               title: Text('${user.name} (${user.accountType})'),
-                              subtitle: Text(user.email),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(user.email),
+                                  Text('ID: ${user.id}', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                                ],
+                              ),
                               children: [
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
