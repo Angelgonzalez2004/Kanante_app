@@ -20,11 +20,12 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // --- CORRECCIÓN AQUÍ ---
-  // Se usa playIntegrity porque ya registraste la huella SHA-256 en Firebase.
+  // --- CÓDIGO MODIFICADO ---
+  // Activamos el modo DEBUG para poder ver el token en la consola
+  // y registrarlo en Firebase.
   await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.playIntegrity,
-    appleProvider: AppleProvider.appAttest, 
+    androidProvider: AndroidProvider.debug, // <--- IMPORTANTE: Modo Debug
+    appleProvider: AppleProvider.debug,     // <--- IMPORTANTE: Modo Debug para iOS también
   );
   // -----------------------
 
@@ -81,7 +82,6 @@ class MyApp extends StatelessWidget {
           themeMode: currentTheme,
           home: const SplashScreen(), // SplashScreen es la pantalla inicial
           routes: {
-            // '/welcome' no es necesario si SplashScreen redirige, pero lo dejo por si acaso
             '/welcome': (context) => const WelcomeScreen(), 
             '/login': (context) => const LoginScreen(),
             '/register': (context) => const RegisterScreen(),

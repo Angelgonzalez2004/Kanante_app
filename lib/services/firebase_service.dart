@@ -164,12 +164,12 @@ class FirebaseService {
       if (!event.snapshot.exists || event.snapshot.value == null) {
         return [];
       }
-      final data = Map<String, dynamic>.from(event.snapshot.value as Map<dynamic, dynamic>);
+      final data = (event.snapshot.value as Map<Object?, Object?>).cast<String, dynamic>();
       final conversations = data.entries.map((e) {
-        final chatData = Map<String, dynamic>.from(e.value as Map<dynamic, dynamic>);
+        final chatData = (e.value as Map<Object?, Object?>).cast<String, dynamic>();
         
         // CORRECCIÓN APLICADA AQUÍ: Se utiliza .cast<String>().toList() para asegurar List<String>
-        final List<String> participantKeys = (chatData['participants'] as Map<dynamic, dynamic>).keys.cast<String>().toList();
+        final List<String> participantKeys = (chatData['participants'] as Map<Object?, Object?>).keys.cast<String>().toList();
 
         // We manually construct a ChatConversation-like object for the admin view
         return ChatConversation(
@@ -461,7 +461,10 @@ class FirebaseService {
       final List<ChatConversation> conversations = [];
       for (final child in snapshot.children) {
         if (child.key != null && child.value != null) {
-          conversations.add(ChatConversation.fromMap(child.key!, Map<String, dynamic>.from(child.value as Map<dynamic, dynamic>)));
+          final rawChatData = child.value as Map<Object?, Object?>?;
+          if (rawChatData != null) {
+            conversations.add(ChatConversation.fromMap(child.key!, rawChatData.cast<String, dynamic>()));
+          }
         }
       }
 
@@ -491,7 +494,10 @@ class FirebaseService {
       final List<ChatConversation> conversations = [];
       for (final child in snapshot.children) {
         if (child.key != null && child.value != null) {
-          conversations.add(ChatConversation.fromMap(child.key!, Map<String, dynamic>.from(child.value as Map<dynamic, dynamic>)));
+          final rawChatData = child.value as Map<Object?, Object?>?;
+          if (rawChatData != null) {
+            conversations.add(ChatConversation.fromMap(child.key!, rawChatData.cast<String, dynamic>()));
+          }
         }
       }
 
