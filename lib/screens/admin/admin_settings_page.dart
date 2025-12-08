@@ -21,10 +21,10 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
   bool _notifications = true;
   bool _isLoading = true; // Use this for loading preferences initially
 
-  void _showSnackBar(String message, {Color color = Colors.teal}) {
+  void _showSnackBar(String message, {Color color = Colors.teal, Duration duration = const Duration(seconds: 2)}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: color),
+      SnackBar(content: Text(message), backgroundColor: color, duration: duration),
     );
   }
 
@@ -66,7 +66,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
       await _auth.signOut();
       await _googleSignIn.signOut();
       
-      _showSnackBar('¡Hasta luego! 👋', color: Colors.green);
+      _showSnackBar('¡Hasta luego! 👋', color: Colors.green, duration: const Duration(seconds: 3));
       
       if (!mounted) return;
       Navigator.pushReplacement(
@@ -127,7 +127,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
     themeNotifier.value = value ? ThemeMode.dark : ThemeMode.light;
     await prefs.setBool('darkMode', value);
     _showSnackBar(value ? 'Modo oscuro activado' : 'Modo claro activado',
-        color: Colors.green);
+        color: Colors.green, duration: const Duration(seconds: 3));
   }
 
   Future<void> _toggleNotifications(bool value) async {
@@ -138,7 +138,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
     await prefs.setBool('notifications', value);
     _showSnackBar(
         value ? 'Notificaciones activadas' : 'Notificaciones desactivadas',
-        color: Colors.green);
+        color: Colors.green, duration: const Duration(seconds: 3));
   }
 
   @override
@@ -199,7 +199,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                             title: const Text('Ver política de privacidad'),
                             leading: const Icon(Icons.policy),
                             onTap: () {
-                              _showSnackBar('Navegar a la política de privacidad.');
+                              _showSnackBar('Navegar a la política de privacidad.', duration: const Duration(seconds: 3));
                               // TODO: Implement navigation to privacy policy page
                             },
                           ),
@@ -208,7 +208,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                             title: const Text('Gestionar preferencias de datos'),
                             leading: const Icon(Icons.data_usage),
                             onTap: () {
-                              _showSnackBar('Navegar a la gestión de preferencias de datos.');
+                              _showSnackBar('Navegar a la gestión de preferencias de datos.', duration: const Duration(seconds: 3));
                               // TODO: Implement navigation to data preferences management
                             },
                           ),
@@ -226,7 +226,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                               final email = _auth.currentUser?.email;
                               if (email != null) {
                                 await _auth.sendPasswordResetEmail(email: email);
-                                _showSnackBar('Se ha enviado un enlace de restablecimiento de contraseña a tu correo.', color: Colors.green);
+                                _showSnackBar('Se ha enviado un enlace de restablecimiento de contraseña a tu correo.', color: Colors.green, duration: const Duration(seconds: 3));
                               } else {
                                 _showSnackBar('No se pudo enviar el enlace de restablecimiento. Por favor, inicia sesión con un correo válido.', color: Colors.red);
                               }
@@ -237,7 +237,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                             title: const Text('Configuración de autenticación de dos factores'),
                             leading: const Icon(Icons.security),
                             onTap: () {
-                              _showSnackBar('Navegar a la configuración de 2FA.');
+                              _showSnackBar('Navegar a la configuración de 2FA.', duration: const Duration(seconds: 3));
                               // TODO: Implement navigation to 2FA settings
                             },
                           ),

@@ -42,6 +42,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   String _accountType = 'Usuario';
   DateTime? _selectedBirthDate;
+  String? _selectedGender; // Added to store selected gender
   bool _acceptTerms = false;
   bool _isLoading = false;
   bool _showPassword = false;
@@ -70,7 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _showSnackBar(String message, {bool isError = false}) {
+  void _showSnackBar(String message, {bool isError = false, Duration duration = const Duration(seconds: 2)}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -79,6 +80,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(12),
+        duration: duration,
       ),
     );
   }
@@ -145,9 +147,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         birthDate: _selectedBirthDate,
         phone: _phoneController.text.trim(),
         rfc: _rfcController.text.trim(),
+        gender: _selectedGender, // Pass the selected gender
       );
 
-      _showSnackBar('¡Cuenta creada exitosamente! Bienvenido a Kananté.');
+      _showSnackBar('¡Cuenta creada exitosamente! Bienvenido a Kananté.', duration: const Duration(seconds: 3));
       if (!mounted) return;
 
       Widget dashboard;
@@ -230,7 +233,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 if (keyController.text.trim() == _kAdminSecretKey) {
                   setState(() => _isAdminKeyVerified = true);
                   Navigator.of(context).pop();
-                  _showSnackBar('Clave de administrador correcta.');
+                  _showSnackBar('Clave de administrador correcta.', duration: const Duration(seconds: 3));
                 } else {
                   // Show error inside the dialog or as a snackbar after popping
                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Clave incorrecta."), backgroundColor: Colors.red));
@@ -303,13 +306,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           FadeInSlide(delay: const Duration(milliseconds: 500), child: _buildConfirmPasswordField()),
                         ],
                         const SizedBox(height: 20),
-                        FadeInSlide(delay: const Duration(milliseconds: 600), child: _buildDropdown()),
+                        FadeInSlide(delay: const Duration(milliseconds: 600), child: _buildAccountTypeDropdown()),
+                        const SizedBox(height: 20),
+                        FadeInSlide(delay: const Duration(milliseconds: 650), child: _buildGenderDropdown()),
                         const SizedBox(height: 20),
                         FadeInSlide(delay: const Duration(milliseconds: 700), child: _buildDatePicker()),
                         const SizedBox(height: 20),
+                        FadeInSlide(delay: const Duration(milliseconds: 750), child: _buildTextField(controller: _phoneController, label: 'Teléfono (opcional)', icon: Icons.phone_outlined, keyboardType: TextInputType.phone)),
+                        const SizedBox(height: 20),
+                        // Only show RFC for Professionals and Admins
+                        if (_accountType == 'Profesional' || _accountType == 'Admin') ...[
+                          FadeInSlide(delay: const Duration(milliseconds: 800), child: _buildTextField(controller: _rfcController, label: 'RFC (opcional)', icon: Icons.badge_outlined)),
+                          const SizedBox(height: 20),
+                        ],
 
                         FadeInSlide(
-                          delay: const Duration(milliseconds: 800),
+                          delay: const Duration(milliseconds: 850),
                           child: CheckboxListTile(
                             value: _acceptTerms,
                             onChanged: (value) => setState(() => _acceptTerms = value!),
@@ -321,7 +333,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 24),
                         FadeInSlide(
-                          delay: const Duration(milliseconds: 900),
+                          delay: const Duration(milliseconds: 950),
                           child: PrimaryAuthButton(
                             text: 'Crear Cuenta',
                             isLoading: _isLoading,
@@ -330,7 +342,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 20),
                          FadeInSlide(
-                          delay: const Duration(milliseconds: 1000),
+                          delay: const Duration(milliseconds: 1050),
                             child: TextButton(
                               onPressed: () => Navigator.of(context).pop(),
                               child: const Text('¿Ya tienes una cuenta? Inicia Sesión', style: TextStyle(color: AppColors.primary)),
@@ -433,7 +445,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildDropdown() {
+  Widget _buildAccountTypeDropdown() {
     return DropdownButtonFormField<String>(
       initialValue: _accountType,
       onChanged: _onAccountTypeChanged,
@@ -450,6 +462,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
         prefixIconColor: AppColors.primary,
         filled: true,
         // Usamos const aquí
+        fillColor: const Color.fromRGBO(255, 255, 255, 0.8),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: BorderSide(color: Colors.grey.shade300, width: 1.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGenderDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _selectedGender,
+      onChanged: (newValue) {
+        setState(() {
+          _selectedGender = newValue;
+        });
+      },
+      validator: (value) => value == null ? 'Por favor selecciona una opción' : null,
+      items: const [
+        DropdownMenuItem(value: 'Hombre', child: Text('Hombre')),
+        DropdownMenuItem(value: 'Mujer', child: Text('Mujer')),
+        DropdownMenuItem(value: 'Prefiero no decirlo', child: Text('Prefiero no decirlo')),
+      ],
+      decoration: InputDecoration(
+        labelText: 'Género (obligatorio)',
+        prefixIcon: const Icon(Icons.transgender),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+        labelStyle: const TextStyle(color: AppColors.textLight),
+        prefixIconColor: AppColors.primary,
+        filled: true,
         fillColor: const Color.fromRGBO(255, 255, 255, 0.8),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),

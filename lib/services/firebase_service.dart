@@ -9,12 +9,16 @@ import '../models/message_model.dart';
 import '../models/publication_model.dart';
 import '../models/user_model.dart';
 import '../models/support_ticket_model.dart';
+import '../models/alert_model.dart'; // New import
+import '../models/comment_model.dart'; // New import
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
 class FirebaseService {
   final DatabaseReference _db = FirebaseDatabase.instance.ref();
   final FirebaseStorage _storage = FirebaseStorage.instance;
+
+  FirebaseStorage get storage => _storage;
 
   // --- User Profile Methods ---
 
@@ -40,6 +44,7 @@ class FirebaseService {
     DateTime? birthDate,
     String? phone,
     String? rfc,
+    String? gender, // New parameter
     List<dynamic> specialties = const [],
   }) async {
     String? formattedBirthDate;
@@ -54,6 +59,7 @@ class FirebaseService {
       accountType: accountType,
       profileImageUrl: profileImageUrl,
       birthDate: formattedBirthDate,
+      gender: gender, // Pass new field
       specialties: specialties.cast<String>(),
       verificationStatus: 'pending',
       bio: '',
@@ -63,6 +69,17 @@ class FirebaseService {
       patientIds: [],
     );
     await _db.child('users/$uid').set(newUser.toMap());
+  }
+
+  Future<void> updateUserProfile(String uid, Map<String, dynamic> data) {
+    return _db.child('users/$uid').update(data);
+  }
+
+  Future<void> deleteUser(String userId) {
+    // This removes the user's data from the Realtime Database.
+    // Note: This does NOT delete the user from Firebase Authentication.
+    // That requires the Admin SDK and should be handled by a backend function.
+    return _db.child('users/$userId').remove();
   }
 
   // --- Support Ticket Methods ---
@@ -88,6 +105,38 @@ class FirebaseService {
       'adminResponse': response,
       'respondedAt': DateTime.now().millisecondsSinceEpoch,
       'status': 'closed',
+    });
+  }
+
+  // --- Alert Methods ---
+
+  Future<void> sendAlert(AlertModel alert) async {
+    final alertRef = _db.child('alerts').push();
+    await alertRef.set(alert.toMap());
+  }
+
+  Stream<List<AlertModel>> getAlertsForRecipient(String recipientId) {
+    return _db.child('alerts').orderByChild('recipientId').equalTo(recipientId).onValue.map((event) {
+      if (!event.snapshot.exists || event.snapshot.value == null) {
+        return [];
+      }
+      final data = Map<String, dynamic>.from(event.snapshot.value as Map);
+      return data.entries.map((e) => AlertModel.fromMap(e.key, Map<String, dynamic>.from(e.value as Map))).toList()
+        ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    });
+  }
+
+  Future<void> replyToAlert(String alertId, String replyMessage, String newStatus) async {
+    await _db.child('alerts/$alertId').update({
+      'recipientReply': replyMessage,
+      'replyTimestamp': DateTime.now().millisecondsSinceEpoch,
+      'status': newStatus,
+    });
+  }
+
+  Future<void> markAlertAsRead(String alertId) async {
+    await _db.child('alerts/$alertId').update({
+      'status': 'read',
     });
   }
 
@@ -264,6 +313,59 @@ class FirebaseService {
       debugPrint("Error fetching all publications: $e");
       return [];
     }
+  }
+
+  Stream<List<Publication>> getPublicationsStream() {
+    return _db.child('publications').onValue.asyncMap((event) async {
+      if (!event.snapshot.exists || event.snapshot.value == null) {
+        return [];
+      }
+
+      final publicationsData = Map<String, dynamic>.from(event.snapshot.value as Map);
+      final List<Publication> publications = [];
+
+      for (var entry in publicationsData.entries) {
+        publications.add(Publication.fromMap(entry.key, Map<String, dynamic>.from(entry.value as Map)));
+      }
+
+      for (var pub in publications) {
+        final author = await getUserProfile(pub.professionalUid);
+        pub.authorName = author?.name;
+        pub.authorImageUrl = author?.profileImageUrl;
+        pub.authorVerificationStatus = author?.verificationStatus;
+      }
+
+      publications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return publications;
+    });
+  }
+
+  Future<void> toggleLikePublication(String publicationId, String userId) async {
+    final pubRef = _db.child('publications/$publicationId');
+    await pubRef.runTransaction((Object? post) {
+      if (post == null) {
+        return Transaction.abort();
+      }
+
+      final Map<String, dynamic> postData = Map<String, dynamic>.from(post as Map);
+      final List<String> likedBy = List<String>.from(postData['likedBy'] ?? []);
+      
+      if (likedBy.contains(userId)) {
+        likedBy.remove(userId);
+      } else {
+        likedBy.add(userId);
+      }
+      
+      postData['likedBy'] = likedBy;
+      postData['likes'] = likedBy.length;
+
+      return Transaction.success(postData);
+    });
+  }
+
+  Future<void> addCommentToPublication(String publicationId, CommentModel comment) async {
+    final commentRef = _db.child('publications/$publicationId/comments').push();
+    await commentRef.set(comment.toMap());
   }
 
   // --- Patient/Appointment Methods ---

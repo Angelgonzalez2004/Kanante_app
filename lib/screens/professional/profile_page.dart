@@ -9,6 +9,8 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
 import '../../../models/user_model.dart';
 
 class ProfessionalProfilePage extends StatefulWidget {
@@ -32,20 +34,25 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
   
   List<PlatformFile> _pickedDocuments = [];
   XFile? _pickedProfileImage; // Variable para la nueva imagen de perfil
+  DateTime? _selectedBirthDate; // New: To store the DateTime object for birth date
 
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _rfcController = TextEditingController();
   final _birthController = TextEditingController();
-  final _genderController = TextEditingController(); // New
-  final _preferredLanguageController = TextEditingController(); // New
-  final _timezoneController = TextEditingController(); // New
-  final _websiteController = TextEditingController(); // New
-  final _socialMediaLinkController = TextEditingController(); // For one link as placeholder
-  final _educationController = TextEditingController(); // For one entry as placeholder
-  final _certificationsController = TextEditingController(); // For one entry as placeholder
+  String? _selectedGender; // Replaced _genderController
+  final _websiteController = TextEditingController();
+  final _educationController = TextEditingController();
+  final _certificationsController = TextEditingController();
   late QuillController _biographyQuillController;
   final _institutionNameController = TextEditingController();
+
+  // New controllers for social media
+  final _facebookController = TextEditingController();
+  final _instagramController = TextEditingController();
+  final _tiktokController = TextEditingController();
+  final _whatsappController = TextEditingController();
+  final _emailController = TextEditingController();
 
   // ignore: unused_field
   static const List<String> _predefinedSpecialties = [
@@ -54,10 +61,10 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
   // ignore: unused_field
   static const List<String> _currencies = ['MXN', 'USD', 'EUR', 'Otro'];
 
-  void _showAppSnackBar(String message, {bool isError = false}) {
+  void _showAppSnackBar(String message, {bool isError = false, Duration duration = const Duration(seconds: 2)}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: isError ? Colors.red : Colors.green),
+      SnackBar(content: Text(message), backgroundColor: isError ? Colors.red : Colors.green, duration: duration),
     );
   }
 
@@ -74,15 +81,16 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
     _phoneController.dispose();
     _rfcController.dispose();
     _birthController.dispose();
-    _genderController.dispose(); // New
-    _preferredLanguageController.dispose(); // New
-    _timezoneController.dispose(); // New
-    _websiteController.dispose(); // New
-    _socialMediaLinkController.dispose(); // New
-    _educationController.dispose(); // New
-    _certificationsController.dispose(); // New
+    _websiteController.dispose();
+    _educationController.dispose();
+    _certificationsController.dispose();
     _biographyQuillController.dispose();
     _institutionNameController.dispose();
+    _facebookController.dispose();
+    _instagramController.dispose();
+    _tiktokController.dispose();
+    _whatsappController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -111,15 +119,29 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
           _nameController.text = _user!.name;
           _phoneController.text = _user!.phone ?? '';
           _rfcController.text = _user!.rfc ?? '';
-          _birthController.text = _user!.birthDate ?? '';
-          _genderController.text = _user!.gender ?? ''; // New
-          _preferredLanguageController.text = _user!.preferredLanguage ?? ''; // New
-          _timezoneController.text = _user!.timezone ?? ''; // New
+          if (_user!.birthDate != null && _user!.birthDate!.isNotEmpty) {
+            try {
+              _selectedBirthDate = DateFormat('yyyy-MM-dd').parse(_user!.birthDate!);
+              _birthController.text = DateFormat('dd/MM/yyyy').format(_selectedBirthDate!);
+            } catch (e) {
+              debugPrint("Error parsing birth date: $e");
+              _birthController.text = _user!.birthDate!; // Fallback to original string
+            }
+          } else {
+            _birthController.text = '';
+          }
+          _selectedGender = _user!.gender; // New: Assign directly
           _websiteController.text = _user!.website ?? ''; // New
-          _socialMediaLinkController.text = _user!.socialMediaLinks?['default'] ?? ''; // Placeholder
           _educationController.text = _user!.education?.join(', ') ?? ''; // Placeholder
           _certificationsController.text = _user!.certifications?.join(', ') ?? ''; // Placeholder
           _institutionNameController.text = ''; // Placeholder
+
+          // Load social media links
+          _facebookController.text = _user!.socialMediaLinks?['facebook'] ?? '';
+          _instagramController.text = _user!.socialMediaLinks?['instagram'] ?? '';
+          _tiktokController.text = _user!.socialMediaLinks?['tiktok'] ?? '';
+          _whatsappController.text = _user!.socialMediaLinks?['whatsapp'] ?? '';
+          _emailController.text = _user!.socialMediaLinks?['email'] ?? '';
 
           final biographyContent = _user!.bio;
           if (biographyContent != null && biographyContent.isNotEmpty) {
@@ -151,7 +173,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
       setState(() {
         _pickedDocuments = result.files;
       });
-      _showAppSnackBar('${result.files.length} documento(s) seleccionado(s). Guárdalos para subirlos.');
+      _showAppSnackBar('${result.files.length} documento(s) seleccionado(s). Guárdalos para subirlos.', duration: const Duration(seconds: 3));
     }
   }
 
@@ -199,7 +221,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
         if (mounted) {
           setState(() {
             // _user!.profileImageUrl = null; // No longer needed, _loadProfile() will refresh
-            _showAppSnackBar('Foto de perfil eliminada.');
+            _showAppSnackBar('Foto de perfil eliminada.', duration: const Duration(seconds: 3));
           });
         }
       } on FirebaseException catch (e) {
@@ -249,18 +271,24 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
       }
 
       // 3. Update Database
+      final socialLinks = {
+        'facebook': _facebookController.text.trim(),
+        'instagram': _instagramController.text.trim(),
+        'tiktok': _tiktokController.text.trim(),
+        'whatsapp': _whatsappController.text.trim(),
+        'email': _emailController.text.trim(),
+      };
+      // Remove empty links before saving
+      socialLinks.removeWhere((key, value) => value.isEmpty);
+
       await _db.child('users/$uid').update({
         'name': _nameController.text.trim(),
         'phone': _phoneController.text.trim(),
         'rfc': _rfcController.text.trim(),
-        'birthDate': _birthController.text.trim(),
-        'gender': _genderController.text.trim(), // New
-        'preferredLanguage': _preferredLanguageController.text.trim(), // New
-        'timezone': _timezoneController.text.trim(), // New
+        'birthDate': _selectedBirthDate != null ? DateFormat('yyyy-MM-dd').format(_selectedBirthDate!) : null, // Use selected date
+        'gender': _selectedGender, // Save new field
         'website': _websiteController.text.trim(), // New
-        'socialMediaLinks': _socialMediaLinkController.text.trim().isNotEmpty // New
-            ? {'default': _socialMediaLinkController.text.trim()} // Simple map for now
-            : null,
+        'socialMediaLinks': socialLinks,
         'education': _educationController.text.trim().isNotEmpty // New
             ? _educationController.text.trim().split(',').map((e) => e.trim()).toList() // Convert to list
             : null,
@@ -279,7 +307,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
         _pickedProfileImage = null;
       });
       _loadProfile(); 
-      _showAppSnackBar('Perfil actualizado con éxito.');
+      _showAppSnackBar('Perfil actualizado con éxito.', duration: const Duration(seconds: 3));
 
     } catch (e) {
       _showAppSnackBar('Error al guardar el perfil: ${e.toString()}', isError: true);
@@ -405,7 +433,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
                 icon: const Icon(Icons.open_in_new),
                 label: const Text('Gestionar foto en cuenta de Google', style: TextStyle(color: Colors.blue)),
                 onPressed: () {
-                  _showAppSnackBar('Por favor, gestiona tu foto de perfil directamente en tu cuenta de Google.');
+                  _showAppSnackBar('Por favor, gestiona tu foto de perfil directamente en tu cuenta de Google.', duration: const Duration(seconds: 3));
                 },
               ),
             ),
@@ -427,19 +455,65 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
         const SizedBox(height: 16),
         _buildTextField(_rfcController, 'RFC / Cédula', Icons.badge_outlined, enabled: _isEditing),
         const SizedBox(height: 16),
-        _buildTextField(_birthController, 'Fecha de Nacimiento (DD/MM/AAAA)', Icons.calendar_today_outlined, enabled: _isEditing),
+        TextFormField(
+          controller: _birthController,
+          readOnly: true,
+          onTap: _isEditing ? () async { // Only allow tapping if editing
+            DateTime? picked = await showDatePicker(
+              context: context,
+              initialDate: _selectedBirthDate ?? DateTime(2000),
+              firstDate: DateTime(1920),
+              lastDate: DateTime.now(),
+              builder: (context, child) => Theme(data: Theme.of(context).copyWith(colorScheme: const ColorScheme.light(primary: Colors.teal)), child: child!),
+            );
+            if (picked != null) {
+              setState(() {
+                _selectedBirthDate = picked;
+                _birthController.text = DateFormat('dd/MM/yyyy').format(picked);
+              });
+            }
+          } : null,
+          decoration: InputDecoration(
+            labelText: 'Fecha de Nacimiento',
+            prefixIcon: const Icon(Icons.calendar_today_outlined),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+            fillColor: _isEditing ? Theme.of(context).colorScheme.surface : Colors.grey.withAlpha(50),
+          ),
+          enabled: _isEditing, // Control enabled state
+        ),
         const SizedBox(height: 16),
-        _buildTextField(_genderController, 'Género', Icons.transgender, enabled: _isEditing), // New
+        DropdownButtonFormField<String>(
+          value: _selectedGender,
+          decoration: InputDecoration(
+            labelText: 'Género',
+            prefixIcon: const Icon(Icons.transgender),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+            fillColor: _isEditing ? Theme.of(context).colorScheme.surface : Colors.grey.withAlpha(50),
+          ),
+          items: const [
+            DropdownMenuItem(value: 'Hombre', child: Text('Hombre')),
+            DropdownMenuItem(value: 'Mujer', child: Text('Mujer')),
+            DropdownMenuItem(value: 'Prefiero no decirlo', child: Text('Prefiero no decirlo')),
+          ],
+          onChanged: _isEditing ? (newValue) => setState(() => _selectedGender = newValue) : null,
+          validator: (value) => value == null && _isEditing ? 'Seleccione su género' : null,
+        ),
         const SizedBox(height: 16),
-        _buildTextField(_preferredLanguageController, 'Idioma Preferido', Icons.language, enabled: _isEditing), // New
-        const SizedBox(height: 16),
-        _buildTextField(_timezoneController, 'Zona Horaria', Icons.access_time, enabled: _isEditing), // New
-        const SizedBox(height: 16),
-        _buildTextField(_websiteController, 'Sitio Web', Icons.language, enabled: _isEditing), // New
-        const SizedBox(height: 16),
-        _buildTextField(_socialMediaLinkController, 'Enlace Red Social (principal)', Icons.link, enabled: _isEditing), // New
-        const SizedBox(height: 16),
-        _buildTextField(_educationController, 'Educación (separado por comas)', Icons.school, enabled: _isEditing, maxLines: 3), // New
+        _buildTextField(_websiteController, 'Sitio Web', Icons.language, enabled: _isEditing),
+        const SizedBox(height: 24),
+        
+        // --- Social Media Section ---
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text("Redes Sociales", style: Theme.of(context).textTheme.titleMedium),
+        ),
+        const SizedBox(height: 8),
+        _isEditing ? _buildSocialMediaForm() : _buildSocialMediaLinks(),
+        const SizedBox(height: 24),
+
+        _buildTextField(_educationController, 'Educación (separado por comas)', Icons.school, enabled: _isEditing, maxLines: 3),
         const SizedBox(height: 16),
         _buildTextField(_certificationsController, 'Certificaciones (separado por comas)', Icons.verified_user, enabled: _isEditing, maxLines: 3), // New
         const SizedBox(height: 24),
@@ -587,21 +661,86 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
     );
   }
   
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {TextInputType? keyboardType, int maxLines = 1, bool enabled = true}) {
-    return TextFormField(
-      controller: controller,
-      enabled: enabled,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        filled: true,
-        // CORRECCIÓN: withAlpha espera entero, withValues es mejor en versiones nuevas, pero withAlpha funciona bien aquí.
-        // Si tienes Flutter 3.27+ estricto, usa: Colors.grey.withValues(alpha: 0.1)
-        fillColor: enabled ? Theme.of(context).colorScheme.surface : Colors.grey.withAlpha(50), 
-      ),
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-    );
+    Widget _buildTextField(TextEditingController controller, String label, IconData icon, {TextInputType? keyboardType, int maxLines = 1, bool enabled = true}) {
+      return TextFormField(
+        controller: controller,
+        enabled: enabled,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          filled: true,
+          fillColor: enabled ? Theme.of(context).colorScheme.surface : Colors.grey.withAlpha(50), 
+        ),
+        keyboardType: keyboardType,
+        maxLines: maxLines,
+      );
+    }
+  
+    Widget _buildSocialMediaForm() {
+      return Column(
+        children: [
+          _buildTextField(_facebookController, 'Enlace de Facebook', Icons.facebook, enabled: true),
+          const SizedBox(height: 16),
+          _buildTextField(_instagramController, 'Enlace de Instagram', Icons.camera_alt, enabled: true),
+          const SizedBox(height: 16),
+          _buildTextField(_tiktokController, 'Enlace de TikTok', Icons.music_note, enabled: true),
+          const SizedBox(height: 16),
+          _buildTextField(_whatsappController, 'Número de WhatsApp', Icons.message, enabled: true, keyboardType: TextInputType.phone),
+          const SizedBox(height: 16),
+          _buildTextField(_emailController, 'Correo de Contacto', Icons.email, enabled: true, keyboardType: TextInputType.emailAddress),
+        ],
+      );
+    }
+  
+    Widget _buildSocialMediaLinks() {
+      final links = _user?.socialMediaLinks ?? {};
+      if (links.entries.where((e) => e.value.isNotEmpty).isEmpty) {
+        return const Text('No hay redes sociales para mostrar.');
+      }
+  
+      Future<void> launchLink(String url, String scheme) async {
+          final Uri uri = Uri.parse(scheme.isNotEmpty ? '$scheme$url' : url);
+          if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+              _showAppSnackBar('No se pudo abrir el enlace: $url', isError: true);
+          }
+      }
+  
+      return Wrap(
+        spacing: 8.0,
+        runSpacing: 4.0,
+        children: [
+          if (links['facebook']?.isNotEmpty ?? false)
+            ActionChip(
+              avatar: const Icon(Icons.facebook),
+              label: const Text('Facebook'),
+              onPressed: () => launchLink(links['facebook']!, ''),
+            ),
+          if (links['instagram']?.isNotEmpty ?? false)
+            ActionChip(
+              avatar: const Icon(Icons.camera_alt),
+              label: const Text('Instagram'),
+              onPressed: () => launchLink(links['instagram']!, ''),
+            ),
+          if (links['tiktok']?.isNotEmpty ?? false)
+            ActionChip(
+              avatar: const Icon(Icons.music_note),
+              label: const Text('TikTok'),
+              onPressed: () => launchLink(links['tiktok']!, ''),
+            ),
+          if (links['whatsapp']?.isNotEmpty ?? false)
+            ActionChip(
+              avatar: const Icon(Icons.message),
+              label: const Text('WhatsApp'),
+              onPressed: () => launchLink(links['whatsapp']!, 'https://wa.me/'),
+            ),
+          if (links['email']?.isNotEmpty ?? false)
+            ActionChip(
+              avatar: const Icon(Icons.email),
+              label: const Text('Email'),
+              onPressed: () => launchLink(links['email']!, 'mailto:'),
+            ),
+        ],
+      );
+    }
   }
-}

@@ -1,3 +1,5 @@
+import '../models/comment_model.dart'; // New import
+
 class Publication {
   final String id;
   final String title;
@@ -6,6 +8,9 @@ class Publication {
   final String professionalUid;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  final int likes; // New field
+  final List<String> likedBy; // New field
+  final List<CommentModel> comments; // New field
 
   // Fields to be populated after fetching
   String? authorName;
@@ -20,6 +25,9 @@ class Publication {
     required this.professionalUid,
     required this.createdAt,
     this.updatedAt,
+    this.likes = 0, // Default value
+    this.likedBy = const [], // Default empty list
+    this.comments = const [], // Default empty list
     this.authorName,
     this.authorImageUrl,
     this.authorVerificationStatus,
@@ -37,14 +45,35 @@ class Publication {
       updatedAt: data['updatedAt'] != null
           ? DateTime.fromMillisecondsSinceEpoch(data['updatedAt'])
           : null,
+      likes: data['likes'] ?? 0,
+      likedBy: List<String>.from(data['likedBy'] ?? []),
+      comments: data['comments'] is Map
+          ? (data['comments'] as Map<String, dynamic>).entries.map((e) => CommentModel.fromMap(e.key, Map<String, dynamic>.from(e.value))).toList()
+          : [],
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'title': title,
+      'content': content,
+      'attachments': attachments,
+      'professionalUid': professionalUid,
+      'createdAt': createdAt.millisecondsSinceEpoch,
+      'updatedAt': updatedAt?.millisecondsSinceEpoch,
+      'likes': likes,
+      'likedBy': likedBy,
+      // 'comments' are now a sub-collection, so we don't map them here.
+    };
   }
 
   // Helper to get plain text from rich text content for previews
   String get contentAsPlainText {
     if (content.isEmpty) return '';
     try {
-      return content.map((e) => e['insert'].toString()).join();
+      // Assuming content is a list of maps, where each map has an 'insert' key
+      // This might need adjustment based on actual Quill delta format
+      return content.map((e) => e is Map && e.containsKey('insert') ? e['insert'].toString() : '').join();
     } catch (e) {
       return 'Contenido no disponible';
     }

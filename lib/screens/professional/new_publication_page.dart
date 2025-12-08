@@ -24,6 +24,8 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
   bool _isLoading = false;
   final _picker = ImagePicker();
   final List<XFile> _attachments = [];
+  final TextEditingController _imageUrlController = TextEditingController(); // New
+  bool _useImageUrl = false; // New
 
   @override
   void initState() {
@@ -31,6 +33,14 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
     if (widget.publicationId != null) {
       _loadPublicationData();
     }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _contentController.dispose();
+    _imageUrlController.dispose(); // Dispose the new controller
+    super.dispose();
   }
 
   Future<void> _loadPublicationData() async {
@@ -53,12 +63,104 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
   }
 
   Future<void> _pickAttachment() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _attachments.add(pickedFile);
-      });
-    }
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Seleccionar de Galería'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+                  if (pickedFile != null) {
+                    setState(() {
+                      _attachments.add(pickedFile);
+                      _useImageUrl = false; // Ensure we're not using URL if local picked
+                      _imageUrlController.clear();
+                    });
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Tomar Foto'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+                  if (pickedFile != null) {
+                    setState(() {
+                      _attachments.add(pickedFile);
+                      _useImageUrl = false;
+                      _imageUrlController.clear();
+                    });
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.link),
+                title: const Text('Pegar URL de Imagen'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showImageUrlInputDialog();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showImageUrlInputDialog() async {
+    _imageUrlController.clear(); // Clear previous input
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Pegar URL de Imagen'),
+          content: TextField(
+            controller: _imageUrlController,
+            decoration: const InputDecoration(
+              labelText: 'URL de la imagen',
+              hintText: 'https://ejemplo.com/imagen.jpg',
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              child: const Text('Añadir'),
+              onPressed: () {
+                final url = _imageUrlController.text.trim();
+                if (Uri.tryParse(url)?.hasAbsolutePath ?? false) {
+                  // Basic URL validation
+                  setState(() {
+                    _attachments.clear(); // Clear local attachments if URL is used
+                    _useImageUrl = true;
+                    // Add the URL as a string to attachments for consistent handling later
+                    _attachments.add(XFile(url)); // Store URL as XFile.path
+                  });
+                  Navigator.of(context).pop();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('URL inválida.'), backgroundColor: Colors.red),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildAttachmentsList() {
@@ -68,14 +170,32 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
       children: _attachments.map((file) {
         return LayoutBuilder(
           builder: (context, constraints) {
-            return Stack(
-              children: [
-                Image.file(
-                  File(file.path),
+            Widget imageWidget;
+            if (_useImageUrl && file.path == _imageUrlController.text.trim()) {
+              imageWidget = Image.network(
+                file.path,
+                width: constraints.maxWidth * 0.2,
+                height: constraints.maxWidth * 0.2,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
                   width: constraints.maxWidth * 0.2,
                   height: constraints.maxWidth * 0.2,
-                  fit: BoxFit.cover,
+                  color: Colors.grey,
+                  child: const Icon(Icons.broken_image, color: Colors.white),
                 ),
+              );
+            } else {
+              imageWidget = Image.file(
+                File(file.path),
+                width: constraints.maxWidth * 0.2,
+                height: constraints.maxWidth * 0.2,
+                fit: BoxFit.cover,
+              );
+            }
+
+            return Stack(
+              children: [
+                imageWidget,
                 Positioned(
                   top: 0,
                   right: 0,
@@ -84,6 +204,8 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
                     onPressed: () {
                       setState(() {
                         _attachments.remove(file);
+                        _useImageUrl = false; // Reset if the URL image is removed
+                        _imageUrlController.clear();
                       });
                     },
                   ),
@@ -98,12 +220,20 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
 
   Future<List<String>> _uploadAttachments() async {
     final List<String> attachmentUrls = [];
-    for (final file in _attachments) {
-      final fileName = file.name;
-      final ref = _storage.ref().child('publication_attachments/$fileName');
-      final uploadTask = await ref.putFile(File(file.path));
-      final url = await uploadTask.ref.getDownloadURL();
-      attachmentUrls.add(url);
+
+    if (_useImageUrl && _imageUrlController.text.trim().isNotEmpty) {
+      attachmentUrls.add(_imageUrlController.text.trim());
+    } else {
+      for (final file in _attachments) {
+        // Skip if it's the URL placeholder from XFile
+        if (file.path == _imageUrlController.text.trim() && _useImageUrl) continue;
+
+        final fileName = file.name;
+        final ref = _storage.ref().child('publication_attachments/$fileName');
+        final uploadTask = await ref.putFile(File(file.path));
+        final url = await uploadTask.ref.getDownloadURL();
+        attachmentUrls.add(url);
+      }
     }
     return attachmentUrls;
   }

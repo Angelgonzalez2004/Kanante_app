@@ -70,7 +70,7 @@ class _SettingsPageState extends State<SettingsPage> {
     if (image == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se seleccionó ninguna imagen.')),
+          const SnackBar(content: Text('No se seleccionó ninguna imagen.'), duration: Duration(seconds: 3)),
         );
       }
       return;
@@ -109,7 +109,7 @@ class _SettingsPageState extends State<SettingsPage> {
           _isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Documento subido. Verificación pendiente.')),
+          const SnackBar(content: Text('Documento subido. Verificación pendiente.'), duration: Duration(seconds: 3)),
         );
       }
     } on FirebaseException catch (e) {
@@ -174,7 +174,7 @@ class _SettingsPageState extends State<SettingsPage> {
         await _auth.currentUser?.updatePassword(result);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Contraseña actualizada correctamente')),
+            const SnackBar(content: Text('Contraseña actualizada correctamente'), duration: Duration(seconds: 3)),
           );
         }
       } on FirebaseAuthException catch (e) {
@@ -236,7 +236,7 @@ class _SettingsPageState extends State<SettingsPage> {
         await _auth.currentUser?.delete();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Cuenta eliminada con éxito.')),
+            const SnackBar(content: Text('Cuenta eliminada con éxito.'), duration: Duration(seconds: 3)),
           );
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
         }

@@ -10,6 +10,7 @@ import 'admin_publication_list.dart'; // Correct import for publication list
 import 'admin_profile_page.dart'; // New import
 import 'admin_settings_page.dart'; // New import
 import 'admin_messages_page.dart'; // New import
+import 'admin_account_management_page.dart'; // New import
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -39,7 +40,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       const AdminMessagesPage(), // New Admin Messages Page
       const AdminProfilePage(), // Placeholder - Admin Profile Page
       const AdminSettingsPage(), // Placeholder - Admin Settings Page
-      const Center(child: Text('Gestionar Cuentas (TODO)')), // Placeholder, was index 4
+      const AdminAccountManagementPage(), // Replace placeholder with actual page
     ];
     _pageTitles = [
       'Verificar Profesionales',

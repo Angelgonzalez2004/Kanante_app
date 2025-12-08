@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:kanante_app/models/alert_model.dart';
+import 'package:kanante_app/services/firebase_service.dart';
 import '../login_screen.dart';
 import '../shared/home_page.dart';
 import '../shared/publication_feed_page.dart';
@@ -13,6 +15,7 @@ import 'settings_page.dart';
 import 'new_publication_page.dart'; // Added for FAB
 import '../shared/support_screen.dart';
 import 'profile_page.dart'; // Este archivo debe contener la clase ProfessionalProfilePage
+import '../shared/my_alerts_screen.dart'; // New import
 
 class ProfessionalDashboard extends StatefulWidget {
   const ProfessionalDashboard({super.key});
@@ -26,6 +29,7 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final DatabaseReference _db = FirebaseDatabase.instance.ref();
+  final FirebaseService _firebaseService = FirebaseService();
 
   Map<String, dynamic>? _userData;
   List<Map<String, dynamic>> _sections = [];
@@ -121,6 +125,11 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
         'page': const SupportScreen()
       },
       {
+        'title': 'Mis Alertas',
+        'icon': Icons.notifications_active,
+        'page': const MyAlertsScreen()
+      },
+      {
         'title': 'Cerrar Sesión',
         'icon': Icons.logout_rounded,
         'isLogout': true, // Bandera especial para logout
@@ -135,6 +144,7 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
       _shortcutCard('Citas', Icons.calendar_month_rounded, () => _onItemTapped(3)),
       _shortcutCard('Mensajes', Icons.message_rounded, () => _onItemTapped(4)),
       _shortcutCard('Publicaciones', Icons.article_rounded, () => _onItemTapped(5)),
+      _shortcutCard('Mis Alertas', Icons.notifications_active, () => _onItemTapped(9)), // New shortcut - index is 9
     ];
   }
 
@@ -167,6 +177,9 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
     setState(() {
       _selectedIndex = index;
     });
+     if (MediaQuery.of(context).size.width < 600 && Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
   }
 
   Future<void> _logout() async {
@@ -272,38 +285,51 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
   }
 
   Widget _buildSideBar() {
-    return NavigationRail(
-      selectedIndex: _selectedIndex,
-      onDestinationSelected: _onItemTapped,
-      labelType: NavigationRailLabelType.all,
-      leading: Column(
-        children: [
-          const SizedBox(height: 20),
-          CircleAvatar(
-            radius: 40,
-            backgroundImage: (_userData?['profileImageUrl'] != null && _userData!['profileImageUrl'].isNotEmpty)
-                ? NetworkImage(_userData!['profileImageUrl'])
-                : null,
-            child: (_userData?['profileImageUrl'] == null || _userData!['profileImageUrl'].isEmpty)
-                ? const Icon(Icons.psychology_alt_rounded, size: 40)
-                : null,
+    return StreamBuilder<List<AlertModel>>(
+      stream: _firebaseService.getAlertsForRecipient(_auth.currentUser!.uid),
+      builder: (context, snapshot) {
+        final unreadCount = snapshot.hasData
+            ? snapshot.data!.where((a) => a.status == 'unread').length
+            : 0;
+        return NavigationRail(
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: _onItemTapped,
+          labelType: NavigationRailLabelType.all,
+          leading: Column(
+            children: [
+              const SizedBox(height: 20),
+              CircleAvatar(
+                radius: 40,
+                backgroundImage: (_userData?['profileImageUrl'] != null && _userData!['profileImageUrl'].isNotEmpty)
+                    ? NetworkImage(_userData!['profileImageUrl'])
+                    : null,
+                child: (_userData?['profileImageUrl'] == null || _userData!['profileImageUrl'].isEmpty)
+                    ? const Icon(Icons.psychology_alt_rounded, size: 40)
+                    : null,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _userData?['name'] ?? 'Profesional',
+                style: Theme.of(context).textTheme.titleMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              const Divider(),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            _userData?['name'] ?? 'Profesional',
-            style: Theme.of(context).textTheme.titleMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 20),
-          const Divider(),
-        ],
-      ),
-      destinations: _sections.map<NavigationRailDestination>((section) {
-        return NavigationRailDestination(
-          icon: Icon(section['icon']),
-          label: Text(section['title']),
+          destinations: _sections.where((s) => s['isLogout'] != true).map<NavigationRailDestination>((section) {
+             final isAlerts = section['title'] == 'Mis Alertas';
+            return NavigationRailDestination(
+              icon: Badge(
+                isLabelVisible: isAlerts && unreadCount > 0,
+                label: Text('$unreadCount'),
+                child: Icon(section['icon']),
+              ),
+              label: Text(section['title']),
+            );
+          }).toList(),
         );
-      }).toList(),
+      }
     );
   }
 
@@ -351,7 +377,34 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
                       ),
                     ],
                   );
-                } else {
+                } else if (section['title'] == 'Mis Alertas') {
+                  return StreamBuilder<List<AlertModel>>(
+                    stream: _firebaseService.getAlertsForRecipient(_auth.currentUser!.uid),
+                    builder: (context, snapshot) {
+                      final unreadCount = snapshot.hasData
+                          ? snapshot.data!.where((a) => a.status == 'unread').length
+                          : 0;
+                      return ListTile(
+                        leading: Badge(
+                          isLabelVisible: unreadCount > 0,
+                          label: Text('$unreadCount'),
+                          child: Icon(section['icon'], color: selected ? colorScheme.primary : null),
+                        ),
+                        title: Text(
+                          section['title'],
+                          style: TextStyle(color: selected ? colorScheme.primary : null, fontWeight: selected ? FontWeight.bold : null),
+                        ),
+                        onTap: () {
+                          _onItemTapped(index);
+                           if (Navigator.canPop(context)) {
+                              Navigator.pop(context);
+                           }
+                        },
+                      );
+                    }
+                  );
+                }
+                else {
                   return ListTile(
                     leading: Icon(section['icon'], color: selected ? colorScheme.primary : null),
                     title: Text(
@@ -360,7 +413,9 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
                     ),
                     onTap: () {
                       _onItemTapped(index);
-                      Navigator.pop(context); // Cierra el drawer
+                      if (Navigator.canPop(context)) {
+                        Navigator.pop(context); // Cierra el drawer
+                      }
                     },
                   );
                 }
