@@ -6,6 +6,7 @@ import 'package:kanante_app/models/alert_model.dart';
 import 'package:kanante_app/services/firebase_service.dart';
 import '../login_screen.dart';
 import '../shared/home_page.dart';
+import '../shared/publication_feed_page.dart'; // New import for interactive feed
 import 'user_profile_page.dart'; // Added new UserProfilePage
 import 'user_settings_page.dart'; // Added new UserSettingsPage
 import 'professional_content_screen.dart';
@@ -32,7 +33,7 @@ class _UserDashboardState extends State<UserDashboard> {
   String _userEmail = '';
   String _phone = ''; // Added phone number
   String? _profileImageUrl; // Add for profile image
-  int _selectedIndex = 0;
+  int _selectedIndex = 1; // Changed from 0 to 1 to default to 'Feed de Contenido'
 
   late final List<Map<String, dynamic>> _sections; // Made late final
   late final List<String> _pageTitles; // Added _pageTitles list
@@ -97,7 +98,7 @@ class _UserDashboardState extends State<UserDashboard> {
       {
         'title': _pageTitles[1], // Use pageTitles
         'icon': Icons.explore,
-        'page': const ProfessionalContentScreen()
+        'page': const PublicationFeedPage() // Changed to PublicationFeedPage
       },
       {
         'title': _pageTitles[2], // Use pageTitles

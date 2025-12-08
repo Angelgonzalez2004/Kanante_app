@@ -198,25 +198,17 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
       child: Center( // Removed Scaffold and AppBar
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 800), // Smaller max width
-                child: ListView(
-                  padding: const EdgeInsets.all(24),
-                  children: [
-                    Text(
-                      'Ajustes de la Aplicación',
-                      style: TextStyle(
-                          fontSize: MediaQuery.of(context).size.width * 0.055,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal),
-                    ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.015),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.lock_rounded, color: Colors.teal),
-                      title: const Text('Cambiar contraseña'),
-                      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
-                      onTap: _changePassword,
-                    ),
-                    const Divider(),
+                          child: ListView(
+                            padding: const EdgeInsets.all(24),
+                            children: [
+                              SizedBox(height: MediaQuery.of(context).size.height * 0.015),
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: const Icon(Icons.lock_rounded, color: Colors.teal),
+                                title: const Text('Cambiar contraseña'),
+                                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
+                                onTap: _changePassword,
+                              ),                    const Divider(),
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
                       value: _darkMode,

@@ -164,13 +164,6 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Ajustes de la Aplicación',
-                            style: TextStyle(
-                                fontSize: MediaQuery.of(context).size.width * 0.055,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary),
-                          ),
                           SizedBox(height: MediaQuery.of(context).size.height * 0.015),
                           SwitchListTile(
                             contentPadding: EdgeInsets.zero,
