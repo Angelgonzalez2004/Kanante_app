@@ -167,27 +167,33 @@ class _AdminAccountManagementPageState extends State<AdminAccountManagementPage>
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.end,
                                         children: [
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) => ProfessionalProfilePage(professionalUid: user.id),
-                                                ),
-                                              );
-                                            },
-                                            child: const Text('Ver Perfil Completo'),
+                                          Flexible(
+                                            child: TextButton(
+                                              onPressed: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) => ProfessionalProfilePage(professionalUid: user.id),
+                                                  ),
+                                                );
+                                              },
+                                              child: const Text('Ver Perfil Completo'),
+                                            ),
                                           ),
                                           const SizedBox(width: 8),
-                                          ElevatedButton(
-                                            onPressed: () => _sendAlertToUser(user),
-                                            child: const Text('Enviar Alerta'),
+                                          Flexible(
+                                            child: ElevatedButton(
+                                              onPressed: () => _sendAlertToUser(user),
+                                              child: const Text('Enviar Alerta'),
+                                            ),
                                           ),
                                           const SizedBox(width: 8),
-                                          ElevatedButton(
-                                            onPressed: () => _confirmDeleteUser(user),
-                                            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                                            child: const Text('Eliminar'),
+                                          Flexible(
+                                            child: ElevatedButton(
+                                              onPressed: () => _confirmDeleteUser(user),
+                                              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                              child: const Text('Eliminar'),
+                                            ),
                                           ),
                                         ],
                                       ),
