@@ -37,9 +37,11 @@ La aplicación está estructurada en tres roles principales:
         *   Los **Usuarios Normales y Administradores** no pueden subir fotos de perfil, aunque sus perfiles las mostrarán si existen (e.g., de una cuenta de Google).
 *   **✅ Sistema de Verificación:** Los profesionales deben subir documentos para ser verificados por un administrador, aumentando la confianza y seguridad en la plataforma.
 *   **📝 Feed de Contenido Dinámico:** Los profesionales pueden crear, editar y publicar artículos con un editor de texto enriquecido e imágenes. Los usuarios pueden explorar este contenido en un feed interactivo.
-*   **🗓️ Gestión de Citas:** Sistema para que los usuarios soliciten citas y los profesionales las gestionen. Ahora con la posibilidad de solicitar cita directamente desde el chat con un profesional.
-*   **💬 Chat en Tiempo Real:** Comunicación directa y segura entre usuarios y profesionales, y entre usuarios y el equipo de soporte.
+*   **🗓️ Gestión de Citas:** Sistema para que los usuarios soliciten citas y los profesionales las gestionen. Ahora con la posibilidad de solicitar cita directamente desde el chat con un profesional, y **opciones para cancelar o reprogramar citas** para ambos roles.
+*   **💬 Chat en Tiempo Real:** Comunicación directa y segura entre usuarios y profesionales, y entre usuarios y el equipo de soporte. Ahora incluye **recibos de lectura e indicadores de escritura** para una experiencia más fluida.
 *   **🧭 Navegación por Roles:** Paneles de control (`Dashboards`) personalizados para cada rol (Usuario, Profesional, Administrador), mostrando solo las opciones y vistas relevantes para cada uno.
+*   **🔍 Búsqueda y Filtro de Profesionales:** Los usuarios pueden **buscar y filtrar profesionales por nombre, especialidad y email**, facilitando la conexión con el especialista adecuado.
+*   **⭐️ Sistema de Calificación y Reseñas:** Los usuarios pueden **calificar y dejar reseñas** sobre los profesionales después de las citas. Los perfiles de los profesionales muestran su **calificación promedio** y una lista de todas las reseñas.
 *   **🆘 Soporte y Ayuda Integrado:**
     *   Chat directo con administradores de soporte.
     *   Formularios de quejas y sugerencias (anónimos o identificados).
@@ -59,6 +61,19 @@ Hemos implementado una serie de mejoras significativas en la aplicación para en
     *   Se ha creado una pantalla dedicada (`AppointmentsReminderScreen`) para que usuarios y profesionales puedan visualizar sus citas agendadas de forma centralizada.
     *   Esta pantalla muestra las citas ordenadas cronológicamente, con detalles del otro participante y el estado de la cita.
     *   Se ha integrado en la navegación principal (menú lateral y barra de navegación) de los Dashboards de Usuario y Profesional.
+    *   **¡Nuevo! Gestión de Cancelaciones y Reprogramaciones:** Dentro de la `AppointmentsReminderScreen`, usuarios y profesionales pueden **cancelar citas** (con confirmación) o **reprogramarlas** seleccionando una nueva fecha y hora.
+*   **¡Nuevo! Gestión de Disponibilidad para Profesionales:**
+    *   Los profesionales ahora tienen una pantalla dedicada (`ProfessionalAvailabilityScreen`) para configurar sus **horarios de trabajo semanales** y la **duración estándar de sus citas**.
+    *   El sistema de agendamiento de citas en el chat ahora utiliza esta disponibilidad para mostrar solo los **días y horarios disponibles** del profesional.
+*   **¡Nuevo! Mejoras en el Chat en Tiempo Real:**
+    *   **Recibos de Lectura:** Los usuarios pueden ver cuándo sus mensajes han sido leídos por el receptor (doble checkmark azul).
+    *   **Indicadores de Escritura:** Se muestra un mensaje "Escribiendo..." en la barra superior del chat cuando el otro usuario está redactando un mensaje.
+*   **¡Nuevo! Búsqueda y Filtrado Avanzado de Profesionales:**
+    *   La pantalla de búsqueda permite a los usuarios **encontrar profesionales por nombre, email o especialidad**, con la opción de **filtrar los resultados por especialidad**.
+    *   La navegación a los perfiles de los profesionales desde los resultados de búsqueda ha sido mejorada.
+*   **¡Nuevo! Sistema de Calificación y Reseñas:**
+    *   Los usuarios pueden **enviar calificaciones (estrellas) y comentarios** a los profesionales después de una cita completada, a través de una pantalla de envío de reseñas.
+    *   Los perfiles de los profesionales ahora muestran su **calificación promedio** y una lista de las **reseñas** detalladas recibidas.
 *   **¡Corrección Crítica de Estabilidad!** Se identificó y solucionó un error crítico de `type casting` en los métodos de `FirebaseService` relacionados con la obtención de conversaciones. Este error causaba cierres inesperados de la aplicación o redirecciones a la pantalla de inicio de sesión, lo que mejora significativamente la estabilidad de la aplicación.
 
 *   **Optimización del Acceso y Visualización del Feed Social:**
@@ -79,6 +94,7 @@ Hemos implementado una serie de mejoras significativas en la aplicación para en
     *   Nueva pantalla "Gestionar Cuentas" que permite a los administradores listar, buscar y ver detalles completos de los perfiles de usuarios y profesionales.
     *   Capacidad de **eliminar cuentas de usuarios** de la Realtime Database de Firebase (se aclara que la eliminación de la cuenta de autenticación debe hacerse manualmente en la consola de Firebase o a través de un servicio de backend).
     *   Funcionalidad directa para **enviar alertas** a usuarios o profesionales específicos desde esta pantalla de gestión.
+    *   Se ha mejorado la visibilidad de los IDs de usuario/profesional en esta pantalla para facilitar la intervención del soporte técnico.
 
 *   **Sistema de Alertas Bidireccional Completo:**
     *   Los administradores pueden enviar alertas personalizadas (título y mensaje) a cualquier usuario o profesional.
