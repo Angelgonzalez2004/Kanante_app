@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kanante_app/models/support_ticket_model.dart';
 import 'package:kanante_app/services/firebase_service.dart';
 import 'package:intl/intl.dart';
+import 'package:kanante_app/models/user_model.dart'; // New import for UserModel
 
 class SupportTicketDetailScreen extends StatefulWidget {
   final SupportTicket ticket;
@@ -17,12 +18,22 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
   final _firebaseService = FirebaseService();
   bool _isLoading = false;
 
+  String _currentStatus = '';
+  String _currentPriority = '';
+  String? _currentAssignedTo;
+  List<UserModel> _adminUsers = []; // To store list of admin users
+  String? _assignedAdminName;
+
   @override
   void initState() {
     super.initState();
+    _currentStatus = widget.ticket.status;
+    _currentPriority = widget.ticket.priority;
+    _currentAssignedTo = widget.ticket.assignedTo;
     if (widget.ticket.adminResponse != null) {
       _responseController.text = widget.ticket.adminResponse!;
     }
+    _loadAdminUsers();
   }
 
   @override
@@ -31,36 +42,58 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
     super.dispose();
   }
 
-  Future<void> _submitResponse() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
+  Future<void> _loadAdminUsers() async {
+    final admins = await _firebaseService.getAllUsers(searchQuery: 'Admin'); // Assuming accountType 'Admin'
+    // Filter to only get actual admins, as searchQuery might match name too
+    _adminUsers = admins.where((user) => user.accountType == 'Admin').toList();
+
+    if (_currentAssignedTo != null) {
+      final assignedAdmin = _adminUsers.firstWhere((admin) => admin.id == _currentAssignedTo, orElse: () => UserModel(id: 'unknown', name: 'Desconocido', email: 'unknown', accountType: 'Admin'));
+      if (assignedAdmin.id != 'unknown') {
+        _assignedAdminName = assignedAdmin.name;
+      }
     }
+    setState(() {}); // Refresh UI
+  }
 
+  Future<void> _updateTicketDetails() async {
     setState(() => _isLoading = true);
-
     try {
-      await _firebaseService.replyToSupportTicket(
-        widget.ticket.ticketId,
-        _responseController.text.trim(),
-      );
+      final Map<String, dynamic> updates = {
+        'status': _currentStatus,
+        'priority': _currentPriority,
+        'assignedTo': _currentAssignedTo,
+      };
+      if (_responseController.text.trim().isNotEmpty) {
+        updates['adminResponse'] = _responseController.text.trim();
+        updates['respondedAt'] = DateTime.now().millisecondsSinceEpoch;
+      }
 
+      await _firebaseService.updateSupportTicketDetails(widget.ticket.ticketId, updates);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Respuesta enviada.'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Detalles del ticket actualizados.'), backgroundColor: Colors.green),
         );
-        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al enviar respuesta: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Error al actualizar ticket: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _submitResponse() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    _currentStatus = 'closed'; // Mark as closed when submitting response
+    await _updateTicketDetails();
+
+    if (mounted) Navigator.pop(context);
   }
 
   @override
@@ -71,6 +104,13 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
       appBar: AppBar(
         title: Text(widget.ticket.subject),
         backgroundColor: Colors.indigo,
+        actions: [
+          IconButton(
+            icon: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Icon(Icons.save),
+            onPressed: _isLoading ? null : _updateTicketDetails,
+            tooltip: 'Guardar Cambios',
+          ),
+        ],
       ),
       body: Center( // Added Center
         child: ConstrainedBox( // Added ConstrainedBox
@@ -82,8 +122,21 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
               children: [
                 _buildDetailItem('De', widget.ticket.userName ?? 'Anónimo'),
                 _buildDetailItem('Rol', widget.ticket.userRole ?? 'N/A'),
-                _buildDetailItem('Fecha', DateFormat('dd/MM/yyyy, HH:mm').format(widget.ticket.createdAt)),
-                _buildDetailItem('Estado', widget.ticket.status, isStatus: true),
+                _buildDetailItem('Fecha Creación', DateFormat('dd/MM/yyyy, HH:mm').format(widget.ticket.createdAt)),
+                _buildDetailItem('ID Ticket', widget.ticket.ticketId),
+                _buildDetailItem('ID Usuario', widget.ticket.userId ?? 'N/A'),
+                const Divider(height: 30),
+                _buildSectionTitle('Gestionar Ticket'),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(child: _buildStatusDropdown()),
+                    const SizedBox(width: 8),
+                    Expanded(child: _buildPriorityDropdown()),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildAssignedToDropdown(),
                 const Divider(height: 30),
                 _buildSectionTitle('Mensaje del Usuario'),
                 const SizedBox(height: 8),
@@ -112,10 +165,10 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
                           ),
                           maxLines: 5,
                           validator: (value) => value == null || value.isEmpty ? 'La respuesta no puede estar vacía.' : null,
-                          readOnly: widget.ticket.status == 'closed',
+                          readOnly: _currentStatus == 'closed', // Use current status
                         ),
                         const SizedBox(height: 16),
-                        if (widget.ticket.status != 'closed')
+                        if (_currentStatus != 'closed') // Use current status
                           ElevatedButton.icon(
                             onPressed: _isLoading ? null : _submitResponse,
                             icon: const Icon(Icons.send),
@@ -175,4 +228,69 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
       ),
     );
   }
+
+  Widget _buildStatusDropdown() {
+    return DropdownButtonFormField<String>(
+      initialValue: _currentStatus,
+      decoration: const InputDecoration(
+        labelText: 'Estado del Ticket',
+        border: OutlineInputBorder(),
+      ),
+      items: const [
+        DropdownMenuItem(value: 'open', child: Text('Abierto')),
+        DropdownMenuItem(value: 'in_progress', child: Text('En Progreso')),
+        DropdownMenuItem(value: 'closed', child: Text('Cerrado')),
+      ],
+      onChanged: (value) {
+        setState(() {
+          _currentStatus = value ?? 'open';
+        });
+      },
+    );
+  }
+
+  Widget _buildPriorityDropdown() {
+    return DropdownButtonFormField<String>(
+      initialValue: _currentPriority,
+      decoration: const InputDecoration(
+        labelText: 'Prioridad',
+        border: OutlineInputBorder(),
+      ),
+      items: const [
+        DropdownMenuItem(value: 'low', child: Text('Baja')),
+        DropdownMenuItem(value: 'medium', child: Text('Media')),
+        DropdownMenuItem(value: 'high', child: Text('Alta')),
+      ],
+      onChanged: (value) {
+        setState(() {
+          _currentPriority = value ?? 'medium';
+        });
+      },
+    );
+  }
+
+  Widget _buildAssignedToDropdown() {
+    return DropdownButtonFormField<String>(
+      initialValue: _currentAssignedTo,
+      decoration: InputDecoration(
+        labelText: 'Asignar a',
+        border: const OutlineInputBorder(),
+        hintText: _assignedAdminName ?? 'Seleccionar Admin',
+      ),
+      items: [
+        const DropdownMenuItem(value: null, child: Text('Nadie')),
+        ..._adminUsers.map((admin) => DropdownMenuItem(
+          value: admin.id,
+          child: Text(admin.name),
+        )),
+      ],
+      onChanged: (value) {
+        setState(() {
+          _currentAssignedTo = value;
+          _assignedAdminName = _adminUsers.firstWhere((admin) => admin.id == value, orElse: () => UserModel(id: 'unknown', name: 'Nadie', email: 'unknown', accountType: 'Admin')).name;
+        });
+      },
+    );
+  }
 }
+

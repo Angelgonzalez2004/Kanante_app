@@ -325,64 +325,70 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
   // --- BUILD METHODS ---
   @override
   Widget build(BuildContext context) {
-    return _isLoading || _user == null
-        ? const Center(child: CircularProgressIndicator())
-        : LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 800),
-                    child: Column(
-                      children: [
-                        _buildEditableForm(),
-                        const SizedBox(height: 20),
-                        if (!_isEditing) _buildVerificationCard(),
-                        const SizedBox(height: 30), // Spacing before action buttons
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (_isEditing)
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Perfil del Profesional'),
+        backgroundColor: Colors.teal,
+      ),
+      body: _isLoading || _user == null
+          ? const Center(child: CircularProgressIndicator())
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 800),
+                      child: Column(
+                        children: [
+                          _buildEditableForm(),
+                          const SizedBox(height: 20),
+                          if (!_isEditing) _buildVerificationCard(),
+                          const SizedBox(height: 30), // Spacing before action buttons
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (_isEditing)
+                                Flexible( // Added Flexible
+                                  child: ElevatedButton.icon(
+                                    icon: const Icon(Icons.check),
+                                    label: const Text('Guardar Cambios'),
+                                    onPressed: _saveProfile,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.teal,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                    ),
+                                  ),
+                                ),
+                              if (_isEditing) const SizedBox(width: 16),
                               Flexible( // Added Flexible
                                 child: ElevatedButton.icon(
-                                  icon: const Icon(Icons.check),
-                                  label: const Text('Guardar Cambios'),
-                                  onPressed: _saveProfile,
+                                  icon: Icon(_isEditing ? Icons.cancel : Icons.edit_outlined),
+                                  label: Text(_isEditing ? 'Cancelar Edición' : 'Editar Perfil'),
+                                  onPressed: () => setState(() {
+                                    _isEditing = !_isEditing;
+                                    if (!_isEditing) { // If canceling edit, reload original profile
+                                      _loadProfile();
+                                    }
+                                  }),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.teal,
+                                    backgroundColor: _isEditing ? Colors.red : Colors.blue,
                                     foregroundColor: Colors.white,
                                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                                   ),
                                 ),
                               ),
-                            if (_isEditing) const SizedBox(width: 16),
-                            Flexible( // Added Flexible
-                              child: ElevatedButton.icon(
-                                icon: Icon(_isEditing ? Icons.cancel : Icons.edit_outlined),
-                                label: Text(_isEditing ? 'Cancelar Edición' : 'Editar Perfil'),
-                                onPressed: () => setState(() {
-                                  _isEditing = !_isEditing;
-                                  if (!_isEditing) { // If canceling edit, reload original profile
-                                    _loadProfile();
-                                  }
-                                }),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: _isEditing ? Colors.red : Colors.blue,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
-          );
+                );
+              },
+            ),
+    );
   }
 
   Widget _buildEditableForm() {

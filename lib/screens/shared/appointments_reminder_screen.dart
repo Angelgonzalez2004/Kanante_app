@@ -1,9 +1,11 @@
+// lib/screens/shared/appointments_reminder_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import '../../models/appointment_model.dart';
 import '../../services/firebase_service.dart';
-import 'review_submission_screen.dart'; // New import
+import 'review_submission_screen.dart';
 
 class AppointmentsReminderScreen extends StatefulWidget {
   const AppointmentsReminderScreen({super.key});
@@ -16,7 +18,7 @@ class _AppointmentsReminderScreenState extends State<AppointmentsReminderScreen>
   final FirebaseService _firebaseService = FirebaseService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String? _currentUserAccountType;
-  late Future<List<Appointment>> _appointmentsFuture;
+  Future<List<Appointment>> _appointmentsFuture = Future.value([]);
 
   @override
   void initState() {
@@ -37,14 +39,13 @@ class _AppointmentsReminderScreenState extends State<AppointmentsReminderScreen>
         } else if (_currentUserAccountType == 'Profesional') {
           _appointmentsFuture = _firebaseService.getAppointmentsForProfessional(currentUser.uid);
         } else {
-          _appointmentsFuture = Future.value([]); // Admins or other roles don't have appointments here
+          _appointmentsFuture = Future.value([]);
         }
       });
     }
   }
   
   void _navigateToReviewSubmission(Appointment appointment) async {
-    // Only users can leave reviews for professionals
     if (_currentUserAccountType != 'Usuario') return;
 
     final result = await Navigator.push(
@@ -58,19 +59,14 @@ class _AppointmentsReminderScreenState extends State<AppointmentsReminderScreen>
       ),
     );
 
-    if (result == true) { // If review was submitted successfully
-      _loadUserDataAndAppointments(); // Refresh appointments
+    if (result == true) { 
+      _loadUserDataAndAppointments(); 
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mis Citas Agendadas'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800.0),
@@ -88,7 +84,6 @@ class _AppointmentsReminderScreenState extends State<AppointmentsReminderScreen>
               }
 
               final appointments = snapshot.data!;
-              // Sort appointments by date, soonest first
               appointments.sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
               return ListView.builder(
@@ -122,11 +117,11 @@ class _AppointmentsReminderScreenState extends State<AppointmentsReminderScreen>
                         ],
                       ),
                       trailing: Row(
-                        mainAxisSize: MainAxisSize.min, // Use min size for the row
+                        mainAxisSize: MainAxisSize.min, 
                         children: [
                           if (showActionButtons)
                             IconButton(
-                              icon: const Icon(Icons.edit_calendar, color: Colors.blue), // Reschedule icon
+                              icon: const Icon(Icons.edit_calendar, color: Colors.blue), 
                               onPressed: () => _showRescheduleDialog(appointment),
                               tooltip: 'Reprogramar Cita',
                             ),
@@ -145,7 +140,6 @@ class _AppointmentsReminderScreenState extends State<AppointmentsReminderScreen>
                         ],
                       ),
                       onTap: () {
-                        // TODO: Implement navigation to appointment detail screen if needed
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Detalles de la cita con $otherParticipantName')),
                         );
@@ -162,26 +156,26 @@ class _AppointmentsReminderScreenState extends State<AppointmentsReminderScreen>
   }
 
   Future<void> _showRescheduleDialog(Appointment appointment) async {
-    final navigator = Navigator.of(context); // Capture navigator
-    final messenger = ScaffoldMessenger.of(context); // Capture messenger
-
+    // Usamos el context local actual antes de cualquier await para configurar el picker
+    // pero debemos verificar mounted después.
+    
     final DateTime? pickedDate = await showDatePicker(
-      context: navigator.context,
+      context: context,
       initialDate: appointment.dateTime,
       firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)), // 1 year from now
+      lastDate: DateTime.now().add(const Duration(days: 365)), 
     );
 
-    if (pickedDate == null) return; // User cancelled date selection
-
+    if (pickedDate == null) return; 
     if (!mounted) return;
 
     final TimeOfDay? pickedTime = await showTimePicker(
-      context: navigator.context,
+      context: context,
       initialTime: TimeOfDay.fromDateTime(appointment.dateTime),
     );
 
-    if (pickedTime == null) return; // User cancelled time selection
+    if (pickedTime == null) return; 
+    if (!mounted) return;
 
     final DateTime newDateTime = DateTime(
       pickedDate.year,
@@ -193,25 +187,25 @@ class _AppointmentsReminderScreenState extends State<AppointmentsReminderScreen>
 
     if (newDateTime.isAtSameMomentAs(appointment.dateTime)) {
       if (!mounted) return;
-      messenger.showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('La nueva fecha y hora son idénticas a la actual.')),
       );
       return;
     }
 
     final bool confirm = await showDialog(
-      context: navigator.context,
+      context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirmar Reprogramación'),
           content: Text('¿Estás seguro de que quieres reprogramar la cita con ${appointment.professionalName ?? appointment.patientName} al ${DateFormat('dd/MM/yyyy HH:mm').format(newDateTime)}?'),
           actions: <Widget>[
             TextButton(
-              onPressed: () => navigator.pop(false),
+              onPressed: () => Navigator.pop(context, false),
               child: const Text('No'),
             ),
             TextButton(
-              onPressed: () => navigator.pop(true),
+              onPressed: () => Navigator.pop(context, true),
               child: const Text('Sí, reprogramar', style: TextStyle(color: Colors.blue)),
             ),
           ],
@@ -220,6 +214,7 @@ class _AppointmentsReminderScreenState extends State<AppointmentsReminderScreen>
     ) ?? false;
 
     if (confirm) {
+      if (!mounted) return;
       _rescheduleAppointment(appointment.id, newDateTime);
     }
   }
@@ -231,7 +226,6 @@ class _AppointmentsReminderScreenState extends State<AppointmentsReminderScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Cita reprogramada con éxito.')),
         );
-        // Refresh the list
         setState(() {
           _appointmentsFuture = (_currentUserAccountType == 'Usuario')
               ? _firebaseService.getAppointmentsForUser(_auth.currentUser!.uid)
@@ -248,7 +242,8 @@ class _AppointmentsReminderScreenState extends State<AppointmentsReminderScreen>
   }
 
   Future<void> _showCancelConfirmation(Appointment appointment) async {
-    final navigator = Navigator.of(context); // Capture Navigator before async gap
+    // ELIMINADO: final navigator = Navigator.of(context); (No se usaba y causaba warning)
+    
     final bool confirm = await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -257,11 +252,11 @@ class _AppointmentsReminderScreenState extends State<AppointmentsReminderScreen>
           content: Text('¿Estás seguro de que quieres cancelar la cita con ${appointment.professionalName ?? appointment.patientName} el ${DateFormat('dd/MM/yyyy HH:mm').format(appointment.dateTime)}?'),
           actions: <Widget>[
             TextButton(
-              onPressed: () => navigator.pop(false),
+              onPressed: () => Navigator.pop(context, false),
               child: const Text('No'),
             ),
             TextButton(
-              onPressed: () => navigator.pop(true),
+              onPressed: () => Navigator.pop(context, true),
               child: const Text('Sí, cancelar', style: TextStyle(color: Colors.red)),
             ),
           ],
@@ -270,6 +265,7 @@ class _AppointmentsReminderScreenState extends State<AppointmentsReminderScreen>
     ) ?? false;
 
     if (confirm) {
+      if (!mounted) return;
       _cancelAppointment(appointment.id);
     }
   }
@@ -281,7 +277,6 @@ class _AppointmentsReminderScreenState extends State<AppointmentsReminderScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Cita cancelada con éxito.')),
         );
-        // Refresh the list
         setState(() {
           _appointmentsFuture = (_currentUserAccountType == 'Usuario')
               ? _firebaseService.getAppointmentsForUser(_auth.currentUser!.uid)

@@ -1,17 +1,19 @@
+// lib/screens/admin/admin_dashboard.dart
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import '../login_screen.dart';
 import 'verifications_page.dart';
 import 'support_center_screen.dart';
-import '../shared/faq_screen.dart'; // Ensure FaqScreen is imported from shared
+import '../shared/faq_screen.dart'; 
 import 'package:kanante_app/data/faq_data.dart';
 
-import 'admin_profile_page.dart'; // New import
-import 'admin_settings_page.dart'; // New import
-import 'admin_messages_page.dart'; // New import
-import 'admin_account_management_page.dart'; // New import
-import '../shared/publication_feed_page.dart'; // New import for interactive feed
+import 'admin_profile_page.dart'; 
+import 'admin_settings_page.dart'; 
+import 'admin_messages_page.dart'; 
+import 'admin_account_management_page.dart'; 
+import 'admin_analytics_screen.dart'; 
+import '../shared/publication_feed_page.dart'; 
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -24,9 +26,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  int _selectedIndex = 0; // To track the selected navigation item
+  int _selectedIndex = 0; 
 
-  // List of pages to display in the body
   late final List<Widget> _pages;
   final List<String> _pageTitles = const [
     'Verificar Profesionales',
@@ -37,6 +38,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     'Mi Perfil (Admin)',
     'Configuración (Admin)',
     'Gestionar Cuentas',
+    'Análisis y Reportes', 
   ];
 
   @override
@@ -44,32 +46,61 @@ class _AdminDashboardState extends State<AdminDashboard> {
     super.initState();
     _pages = const [
       VerificationsPage(),
-      PublicationFeedPage(), // Changed to PublicationFeedPage
+      PublicationFeedPage(), 
       SupportCenterScreen(),
       FaqScreen(faqData: FaqData.forAdmin),
-      AdminMessagesPage(), // New Admin Messages Page
-      AdminProfilePage(), // Placeholder - Admin Profile Page
-      AdminSettingsPage(), // Placeholder - Admin Settings Page
-      AdminAccountManagementPage(), // Replace placeholder with actual page
+      AdminMessagesPage(), 
+      AdminProfilePage(), 
+      AdminSettingsPage(), 
+      AdminAccountManagementPage(), 
+      AdminAnalyticsScreen(), 
     ];
   }
 
   Future<void> _signOut() async {
-    try {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Confirmar Cierre de Sesión'),
+        content: const Text('¿Estás seguro de que deseas cerrar la sesión?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Sí, Salir'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      if (!mounted) return;
+      // Show a confirmation message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cerrando sesión en 3 segundos...'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+
+      // Wait for 3 seconds
+      await Future.delayed(const Duration(seconds: 3));
+
+      // Sign out
       await _auth.signOut();
       await _googleSignIn.signOut();
+
+      // Navigate to Login screen and remove all previous routes
+      // Note: This conflicts with the AuthWrapper pattern, but is implemented as requested.
       if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-          (Route<dynamic> route) => false,
-        );
-      }
-    } catch (e) {
-      // Handle potential errors, e.g., show a snackbar
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al cerrar sesión: $e')),
-        );
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (Route<dynamic> route) => false);
       }
     }
   }
@@ -78,7 +109,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth > 700) { // Wide screen layout (desktop/tablet)
+        if (constraints.maxWidth > 700) { 
           return Scaffold(
             appBar: AppBar(
               title: Text(_pageTitles[_selectedIndex]),
@@ -134,6 +165,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       icon: Icon(Icons.people),
                       label: Text('Gestionar Cuentas'),
                     ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.analytics), 
+                      label: Text('Análisis y Reportes'),
+                    ),
                   ],
                 ),
                 const VerticalDivider(thickness: 1, width: 1),
@@ -146,7 +181,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ],
             ),
           );
-        } else { // Narrow screen layout (mobile)
+        } else { 
           return Scaffold(
             appBar: AppBar(
               title: Text(_pageTitles[_selectedIndex]),
@@ -157,7 +192,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 padding: EdgeInsets.zero,
                 children: [
                   DrawerHeader(
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration( // --- CORRECCIÓN: const
                       color: Colors.indigo,
                     ),
                     child: Column(
@@ -165,15 +200,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Image.asset(
-                          'assets/images/logoapp.jpg', // Path to your app logo
-                          height: 60, // Adjust height as needed
+                          'assets/images/logoapp.jpg', 
+                          height: 60, 
                         ),
                         const SizedBox(height: 8),
-                        const Text(
+                        const Text( // --- CORRECCIÓN: const
                           'Menú de Admin',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 18, // Slightly reduced font size for better fit
+                            fontSize: 18, 
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -188,7 +223,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       setState(() {
                         _selectedIndex = 0;
                       });
-                      Navigator.pop(context); // Close the drawer
+                      Navigator.pop(context); 
                     },
                   ),
                   ListTile(
@@ -199,7 +234,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       setState(() {
                         _selectedIndex = 1;
                       });
-                      Navigator.pop(context); // Close the drawer
+                      Navigator.pop(context); 
                     },
                   ),
                   ListTile(
@@ -210,7 +245,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       setState(() {
                         _selectedIndex = 2;
                       });
-                      Navigator.pop(context); // Close the drawer
+                      Navigator.pop(context); 
                     },
                   ),
                   ListTile(
@@ -221,53 +256,64 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       setState(() {
                         _selectedIndex = 3;
                       });
-                      Navigator.pop(context); // Close the drawer
+                      Navigator.pop(context); 
                     },
                   ),
-                  const Divider(), // New Divider
+                  const Divider(), 
                   ListTile(
-                    leading: const Icon(Icons.message_outlined), // New Icon
-                    title: Text(_pageTitles[4]), // Corresponds to 'Mensajes'
+                    leading: const Icon(Icons.message_outlined), 
+                    title: Text(_pageTitles[4]), 
                     selected: _selectedIndex == 4,
                     onTap: () {
                       setState(() {
                         _selectedIndex = 4;
                       });
-                      Navigator.pop(context); // Close the drawer
+                      Navigator.pop(context); 
                     },
                   ),
                   ListTile(
                     leading: const Icon(Icons.person_outline),
-                    title: Text(_pageTitles[5]), // Corresponds to 'Mi Perfil (Admin)'
+                    title: Text(_pageTitles[5]), 
                     selected: _selectedIndex == 5,
                     onTap: () {
                       setState(() {
                         _selectedIndex = 5;
                       });
-                      Navigator.pop(context); // Close the drawer
+                      Navigator.pop(context); 
                     },
                   ),
                   ListTile(
                     leading: const Icon(Icons.settings_outlined),
-                    title: Text(_pageTitles[6]), // Corresponds to 'Configuración (Admin)'
+                    title: Text(_pageTitles[6]), 
                     selected: _selectedIndex == 6,
                     onTap: () {
                       setState(() {
                         _selectedIndex = 6;
                       });
-                      Navigator.pop(context); // Close the drawer
+                      Navigator.pop(context); 
                     },
                   ),
-                  const Divider(), // Shifted
+                  const Divider(), 
                   ListTile(
                     leading: const Icon(Icons.people),
-                    title: Text(_pageTitles[7]), // Corresponds to 'Gestionar Cuentas'
+                    title: Text(_pageTitles[7]), 
                     selected: _selectedIndex == 7,
                     onTap: () {
                       setState(() {
                         _selectedIndex = 7;
                       });
-                      Navigator.pop(context); // Close the drawer
+                      Navigator.pop(context); 
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.analytics), 
+                    title: Text(_pageTitles[8]), 
+                    selected: _selectedIndex == 8,
+                    onTap: () {
+                      setState(() {
+                        _selectedIndex = 8;
+                      });
+                      Navigator.pop(context); 
                     },
                   ),
                   const Divider(),

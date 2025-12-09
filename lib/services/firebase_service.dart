@@ -1,5 +1,3 @@
-// lib\services\firebase_service.dart
-
 import 'dart:io';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -9,9 +7,9 @@ import '../models/message_model.dart';
 import '../models/publication_model.dart';
 import '../models/user_model.dart';
 import '../models/support_ticket_model.dart';
-import '../models/alert_model.dart'; // New import
-import '../models/comment_model.dart'; // New import
-import '../models/review_model.dart'; // New import
+import '../models/alert_model.dart';
+import '../models/comment_model.dart';
+import '../models/review_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
@@ -45,7 +43,7 @@ class FirebaseService {
     DateTime? birthDate,
     String? phone,
     String? rfc,
-    String? gender, // New parameter
+    String? gender,
     List<dynamic> specialties = const [],
   }) async {
     String? formattedBirthDate;
@@ -60,7 +58,7 @@ class FirebaseService {
       accountType: accountType,
       profileImageUrl: profileImageUrl,
       birthDate: formattedBirthDate,
-      gender: gender, // Pass new field
+      gender: gender,
       specialties: specialties.cast<String>(),
       verificationStatus: 'pending',
       bio: '',
@@ -77,9 +75,6 @@ class FirebaseService {
   }
 
   Future<void> deleteUser(String userId) {
-    // This removes the user's data from the Realtime Database.
-    // Note: This does NOT delete the user from Firebase Authentication.
-    // That requires the Admin SDK and should be handled by a backend function.
     return _db.child('users/$userId').remove();
   }
 
@@ -90,22 +85,60 @@ class FirebaseService {
     await ticketRef.set(ticket.toMap());
   }
 
-  Stream<List<SupportTicket>> getSupportTickets() {
-    return _db.child('support_tickets').onValue.map((event) {
-      if (!event.snapshot.exists || event.snapshot.value == null) {
-        return [];
-      }
-      final data = Map<String, dynamic>.from(event.snapshot.value as Map);
-      return data.entries.map((e) => SupportTicket.fromMap(e.key, Map<String, dynamic>.from(e.value as Map))).toList()
-        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    });
-  }
-
   Future<void> replyToSupportTicket(String ticketId, String response) async {
     await _db.child('support_tickets/$ticketId').update({
       'adminResponse': response,
       'respondedAt': DateTime.now().millisecondsSinceEpoch,
       'status': 'closed',
+    });
+  }
+
+  Future<void> updateSupportTicketDetails(String ticketId, Map<String, dynamic> updates) async {
+    await _db.child('support_tickets/$ticketId').update(updates);
+  }
+
+  Stream<List<SupportTicket>> getSupportTickets({String? statusFilter, String? priorityFilter}) {
+    Query query = _db.child('support_tickets');
+
+    if (statusFilter != null && statusFilter != 'all') {
+      query = query.orderByChild('status').equalTo(statusFilter);
+    }
+
+    return query.onValue.map((event) {
+      if (!event.snapshot.exists || event.snapshot.value == null) {
+        return [];
+      }
+      final data = Map<String, dynamic>.from(event.snapshot.value as Map);
+      List<SupportTicket> tickets = data.entries.map((e) => SupportTicket.fromMap(e.key, Map<String, dynamic>.from(e.value as Map))).toList();
+
+      if (priorityFilter != null && priorityFilter != 'all') {
+        tickets = tickets.where((ticket) => ticket.priority == priorityFilter).toList();
+      }
+
+      tickets.sort((a, b) {
+        int statusComparison = 0;
+        if (a.status == 'open' && b.status != 'open') {
+          statusComparison = -1;
+        } else if (a.status != 'open' && b.status == 'open') {
+          statusComparison = 1;
+        } else if (a.status == 'in_progress' && b.status != 'in_progress') {
+          statusComparison = -1;
+        } else if (a.status != 'in_progress' && b.status == 'in_progress') {
+          statusComparison = 1;
+        }
+
+        if (statusComparison != 0) return statusComparison;
+
+        Map<String, int> priorityOrder = {'high': 3, 'medium': 2, 'low': 1};
+        int priorityA = priorityOrder[a.priority] ?? 0;
+        int priorityB = priorityOrder[b.priority] ?? 0;
+        int priorityComparison = priorityB.compareTo(priorityA);
+
+        if (priorityComparison != 0) return priorityComparison;
+
+        return b.createdAt.compareTo(a.createdAt);
+      });
+      return tickets;
     });
   }
 
@@ -165,22 +198,19 @@ class FirebaseService {
       if (!event.snapshot.exists || event.snapshot.value == null) {
         return [];
       }
-      final data = (event.snapshot.value as Map<Object?, Object?>).cast<String, dynamic>();
+      final data = Map<String, dynamic>.from(event.snapshot.value as Map);
       final conversations = data.entries.map((e) {
-        final chatData = (e.value as Map<Object?, Object?>).cast<String, dynamic>();
+        final chatData = Map<String, dynamic>.from(e.value as Map);
         
-        // CORRECCIÓN APLICADA AQUÍ: Se utiliza .cast<String>().toList() para asegurar List<String>
-        final List<String> participantKeys = (chatData['participants'] as Map<Object?, Object?>).keys.cast<String>().toList();
+        final List<String> participantKeys = Map<String, dynamic>.from(chatData['participants'] as Map).keys.toList();
 
-        // We manually construct a ChatConversation-like object for the admin view
         return ChatConversation(
           id: e.key,
           participants: participantKeys, 
           lastMessage: chatData['lastMessage'] ?? '',
           timestamp: DateTime.fromMillisecondsSinceEpoch(chatData['timestamp']),
-          // Custom fields for admin view
           otherParticipantName: chatData['userName'] ?? 'Usuario Desconocido',
-          otherParticipantImageUrl: null, // No image for admin view for now
+          otherParticipantImageUrl: null,
         );
       }).toList();
       conversations.sort((a, b) => b.timestamp.compareTo(a.timestamp));
@@ -189,11 +219,10 @@ class FirebaseService {
   }
 
   Stream<List<Message>> getSupportMessagesStream(String chatId) {
-    return getMessagesStream(chatId); // Can reuse the same logic
+    return getMessagesStream(chatId);
   }
 
   Future<void> sendMessageToSupport(Message message) async {
-    // Reusing the base sendMessage and targeting the 'support_chats' node for the update
     final messageRef = _db.child('messages/${message.chatId}').push();
     await messageRef.set(message.toMap());
     final chatRef = _db.child('support_chats/${message.chatId}');
@@ -249,8 +278,8 @@ class FirebaseService {
       if (searchQuery != null && searchQuery.isNotEmpty) {
         allUsers = allUsers.where((user) {
           return user.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
-                     user.accountType.toLowerCase().contains(searchQuery.toLowerCase()) ||
-                     user.specialties.any((s) => s.toLowerCase().contains(searchQuery.toLowerCase()));
+                      user.accountType.toLowerCase().contains(searchQuery.toLowerCase()) ||
+                      user.specialties.any((s) => s.toLowerCase().contains(searchQuery.toLowerCase()));
         }).toList();
       }
 
@@ -341,6 +370,15 @@ class FirebaseService {
     });
   }
 
+  Future<void> updatePublicationStatus(String publicationId, String newStatus) async {
+    await _db.child('publications/$publicationId').update({'status': newStatus});
+  }
+
+  Future<void> deletePublication(String publicationId) async {
+    await _db.child('publications/$publicationId').remove();
+  }
+
+
   Future<void> toggleLikePublication(String publicationId, String userId) async {
     final pubRef = _db.child('publications/$publicationId');
     await pubRef.runTransaction((Object? post) {
@@ -349,7 +387,7 @@ class FirebaseService {
       }
 
       final Map<String, dynamic> postData = Map<String, dynamic>.from(post as Map);
-      final List<String> likedBy = List<String>.from(postData['likedBy'] ?? []);
+      final List<String> likedBy = List<String>.from((postData['likedBy'] as List<dynamic>?) ?? []);
       
       if (likedBy.contains(userId)) {
         likedBy.remove(userId);
@@ -377,7 +415,6 @@ class FirebaseService {
       if (professional == null || professional.patientIds.isEmpty) {
         return [];
       }
-      // patientIds es List<String> por definición en UserModel
       final patientFutures = professional.patientIds.map((patientId) => getUserProfile(patientId)).toList();
       final results = await Future.wait(patientFutures);
       return results.where((patient) => patient != null).cast<UserModel>().toList();
@@ -429,7 +466,7 @@ class FirebaseService {
   Future<void> updateAppointmentDateTime(String appointmentId, DateTime newDateTime) async {
     await _db.child('appointments/$appointmentId').update({
       'dateTime': newDateTime.millisecondsSinceEpoch,
-      'status': 'rescheduled', // Or 'pending_reschedule' depending on desired flow
+      'status': 'rescheduled', 
     });
   }
 
@@ -464,20 +501,17 @@ class FirebaseService {
     try {
       final event = await _db.child('chats').orderByChild('participants/$professionalId').equalTo(true).once();
       final snapshot = event.snapshot;
-      if (!snapshot.exists) return [];
+      if (!snapshot.exists || snapshot.value == null) return [];
 
-      final List<ChatConversation> conversations = [];
-      for (final child in snapshot.children) {
-        if (child.key != null && child.value != null) {
-          final rawChatData = child.value as Map<Object?, Object?>?;
-          if (rawChatData != null) {
-            conversations.add(ChatConversation.fromMap(child.key!, rawChatData.cast<String, dynamic>()));
-          }
-        }
+      final conversations = <ChatConversation>[];
+      final data = Map<String, dynamic>.from(snapshot.value as Map);
+
+      for (final entry in data.entries) {
+        final chatData = Map<String, dynamic>.from(entry.value as Map);
+        conversations.add(ChatConversation.fromMap(entry.key, chatData));
       }
 
       await Future.wait(conversations.map((convo) async {
-        // En ChatConversation, `participants` es List<String>. El método .firstWhere es seguro.
         final otherId = convo.participants.firstWhere((p) => p != professionalId, orElse: () => '');
         if (otherId.isNotEmpty) {
           final user = await getUserProfile(otherId);
@@ -498,15 +532,14 @@ class FirebaseService {
     try {
       final event = await _db.child('chats').orderByChild('participants/$userId').equalTo(true).once();
       final snapshot = event.snapshot;
-      if (!snapshot.exists) return [];
-      final List<ChatConversation> conversations = [];
-      for (final child in snapshot.children) {
-        if (child.key != null && child.value != null) {
-          final rawChatData = child.value as Map<Object?, Object?>?;
-          if (rawChatData != null) {
-            conversations.add(ChatConversation.fromMap(child.key!, rawChatData.cast<String, dynamic>()));
-          }
-        }
+      if (!snapshot.exists || snapshot.value == null) return [];
+
+      final conversations = <ChatConversation>[];
+      final data = Map<String, dynamic>.from(snapshot.value as Map);
+
+      for (final entry in data.entries) {
+        final chatData = Map<String, dynamic>.from(entry.value as Map);
+        conversations.add(ChatConversation.fromMap(entry.key, chatData));
       }
 
       await Future.wait(conversations.map((convo) async {
@@ -538,7 +571,7 @@ class FirebaseService {
         'participants': {currentUserId: true, otherUserId: true},
         'lastMessage': '',
         'timestamp': ServerValue.timestamp,
-        'typingStatus': {}, // Initialize typing status
+        'typingStatus': {}, 
       });
     }
     return chatId;
@@ -552,10 +585,7 @@ class FirebaseService {
       return data.entries
           .map((e) => Message.fromMap(e.key, Map<String, dynamic>.from(e.value as Map)))
           .toList()
-          // La ordenación es opcional aquí, dependiendo de si el Stream de la UI necesita el orden inverso.
-          // Si orderByChild('timestamp') ya trae ordenado, esta línea podría omitirse.
-          // Se mantiene la lógica original: ..sort((a, b) => b.timestamp.compareTo(a.timestamp)); 
-          ..sort((a, b) => a.timestamp.compareTo(b.timestamp)); // Revertido a orden ascendente para un chat
+          ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
     });
   }
 
@@ -582,7 +612,6 @@ class FirebaseService {
   }
 
   Future<void> markMessageAsRead(String chatId, String messageId, String userId) async {
-    // Atomically add userId to the 'readBy' list if not already present
     final messageRef = _db.child('messages/$chatId/$messageId');
     await messageRef.runTransaction((Object? messageData) {
       if (messageData == null) {
@@ -595,7 +624,7 @@ class FirebaseService {
         data['readBy'] = readBy;
         return Transaction.success(data);
       }
-      return Transaction.abort(); // No change needed if already read
+      return Transaction.abort(); 
     });
   }
 
@@ -623,10 +652,9 @@ class FirebaseService {
     }
   }
 
-  // --- Search Methods (Duplicated logic merged/cleaned) ---
+  // --- Search Methods ---
 
   Future<List<UserModel>> searchProfessionals({String? query}) async {
-    // Reutiliza getAllProfessionals con la misma lógica de búsqueda
     return getAllProfessionals(searchQuery: query);
   }
 
@@ -654,9 +682,13 @@ class FirebaseService {
   Future<double?> getAverageRatingForProfessional(String professionalId) async {
     try {
       final reviews = await getReviewsForProfessional(professionalId);
-      if (reviews.isEmpty) return null;
+      if (reviews.isEmpty) {
+        return null;
+      }
 
+      // CORREGIDO: Se eliminó "?? 0.0" ya que 'rating' no es nulo
       final double totalRating = reviews.fold(0.0, (sum, review) => sum + review.rating);
+      
       return totalRating / reviews.length;
     } catch (e) {
       debugPrint("Error calculating average rating: $e");
@@ -664,4 +696,72 @@ class FirebaseService {
     }
   }
 
+  // --- Analytics Methods ---
+
+  Future<int> getTotalUsersCount() async {
+    try {
+      final snapshot = await _db.child('users').once();
+      return snapshot.snapshot.children.length;
+    } catch (e) {
+      debugPrint("Error fetching total user count: $e");
+      return 0;
+    }
+  }
+
+  Future<int> getTotalProfessionalsCount() async {
+    try {
+      final event = await _db.child('users').orderByChild('accountType').equalTo('Profesional').once();
+      return event.snapshot.children.length;
+    } catch (e) {
+      debugPrint("Error fetching total professional count: $e");
+      return 0;
+    }
+  }
+
+  Future<int> getTotalPublicationsCount() async {
+    try {
+      final snapshot = await _db.child('publications').once();
+      return snapshot.snapshot.children.length;
+    } catch (e) {
+      debugPrint("Error fetching total publication count: $e");
+      return 0;
+    }
+  }
+
+  Future<int> getTotalReviewsCount() async {
+    try {
+      final snapshot = await _db.child('reviews').once();
+      return snapshot.snapshot.children.length;
+    } catch (e) {
+      debugPrint("Error fetching total review count: $e");
+      return 0;
+    }
+  }
+
+  Future<Map<String, int>> getAppointmentCountsByStatus() async {
+    try {
+      final snapshot = await _db.child('appointments').once();
+      int pending = 0;
+      int completed = 0;
+      int cancelled = 0;
+
+      if (snapshot.snapshot.exists && snapshot.snapshot.value != null) {
+        final appointmentsData = Map<String, dynamic>.from(snapshot.snapshot.value as Map);
+        appointmentsData.forEach((key, value) {
+          final status = value['status'];
+          if (status == 'pending') {
+            pending++;
+          } else if (status == 'completed') {
+            completed++;
+          } else if (status == 'cancelled') {
+            cancelled++;
+          }
+        });
+      }
+      return {'pending': pending, 'completed': completed, 'cancelled': cancelled};
+    } catch (e) {
+      debugPrint("Error fetching appointment counts: $e");
+      return {'pending': 0, 'completed': 0, 'cancelled': 0};
+    }
+  }
 }

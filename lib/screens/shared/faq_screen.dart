@@ -29,9 +29,6 @@ class _FaqScreenState extends State<FaqScreen> with SingleTickerProviderStateMix
     final categories = widget.faqData.keys.toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Preguntas Frecuentes'),
-      ),
       body: Column(
         children: [
           TabBar(

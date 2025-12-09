@@ -15,7 +15,9 @@
 
 ## 📜 Descripción
 
-**Kanante App** es una plataforma móvil, construida con Flutter y Firebase, diseñada para ser un ecosistema de bienestar integral. Facilita la conexión entre usuarios que buscan servicios de salud y bienestar y los profesionales que los ofrecen. La aplicación permite a los profesionales verificados crear contenido, gestionar su perfil y agenda, mientras que los usuarios pueden buscar profesionales, consumir su contenido, agendar citas y comunicarse de forma segura.
+**Kanante App** es una plataforma móvil, construida con Flutter y Firebase, diseñada para ser un ecosistema de bienestar integral. Facilita la conexión entre usuarios que buscan servicios de salud mental y bienestar y los profesionales que los ofrecen. La aplicación permite a los profesionales verificados crear contenido, gestionar su perfil y agenda, mientras que los usuarios pueden buscar profesionales, consumir su contenido, agendar citas y comunicarse de forma segura.
+
+Con las mejoras recientes, la aplicación ofrece una **experiencia de usuario estabilizada y refinada**, con un flujo de autenticación robusto, un diseño adaptable y una gestión de contenido y comunicación eficiente para todos los roles.
 
 La aplicación está estructurada en tres roles principales:
 *   **👤 Usuario:** Busca y contacta profesionales, agenda citas, consume el feed de contenido, gestiona su perfil y accede a soporte y FAQs.
@@ -53,97 +55,20 @@ La aplicación está estructurada en tres roles principales:
 
 Hemos implementado una serie de mejoras significativas en la aplicación para enriquecer la experiencia de usuario y la funcionalidad en todos los roles:
 
-*   **¡Nuevo! Notificaciones Push Integradas:**
-    *   Implementación de Firebase Cloud Messaging (FCM) para enviar notificaciones.
-    *   Manejo y almacenamiento de tokens de dispositivo (`fcmToken`) en el perfil del usuario.
-    *   Gestión de permisos de notificación y manejo de mensajes en primer y segundo plano.
-*   **¡Nuevo! Recordatorios de Citas (Basados en FCM):**
-    *   Se ha delineado una arquitectura para una Cloud Function de Firebase que enviaría recordatorios de citas automáticos (24h y 1h antes) a través de FCM.
-    *   La aplicación está preparada en el lado de Flutter para recibir y manejar estas notificaciones de recordatorio.
-*   **¡Nuevo! Moderación de Publicaciones para Administradores:**
-    *   Se ha añadido un campo `status` al modelo `Publication` para controlar su visibilidad ('pending', 'published', 'unpublished', 'rejected').
-    *   La `FirebaseService` incluye métodos para `updatePublicationStatus` y `deletePublication`.
-    *   La interfaz de administrador en `admin_publication_list.dart` permite a los administradores **ver el estado de las publicaciones**, y tienen **opciones para editar, publicar/despublicar y eliminar** publicaciones.
-*   **¡Nuevo! Priorización y Asignación de Tickets de Soporte:**
-    *   El `SupportTicketModel` ha sido extendido con campos para `priority` ('low', 'medium', 'high') y `assignedTo` (UID del administrador).
-    *   La `FirebaseService` incluye un método `updateSupportTicketDetails` para gestionar estos campos.
-    *   La interfaz de administrador (`SupportCenterScreen` y `SupportTicketDetailScreen`) ahora permite **visualizar, filtrar, y modificar el estado, la prioridad y la asignación** de los tickets de soporte.
-*   **¡Nuevo! Análisis y Reportes Básicos para Administradores:**
-    *   Se ha creado una pantalla dedicada (`AdminAnalyticsScreen`) para mostrar métricas clave como el total de usuarios, profesionales, publicaciones, reseñas, y un desglose de citas por estado (pendientes, completadas, canceladas).
-    *   La `FirebaseService` incluye nuevos métodos para obtener estos datos agregados.
-    *   Integrado en el `AdminDashboard` para un fácil acceso.
-*   **¡Nuevo! Agendamiento de Citas Integrado en Chats:**
-    *   Ahora es posible solicitar una cita con un profesional directamente desde la pantalla de chat.
-    *   Se ha añadido un botón "Agendar Cita" en la barra superior del chat (visible para usuarios al chatear con profesionales), que permite seleccionar fecha y hora.
-    *   La funcionalidad de agendamiento de cita se integra con `FirebaseService.requestAppointment`.
-*   **¡Nuevo! Pantalla de Recordatorios de Citas:**
-    *   Se ha creado una pantalla dedicada (`AppointmentsReminderScreen`) para que usuarios y profesionales puedan visualizar sus citas agendadas de forma centralizada.
-    *   Esta pantalla muestra las citas ordenadas cronológicamente, con detalles del otro participante y el estado de la cita.
-    *   Se ha integrado en la navegación principal (menú lateral y barra de navegación) de los Dashboards de Usuario y Profesional.
-    *   **¡Nuevo! Gestión de Cancelaciones y Reprogramaciones:** Dentro de la `AppointmentsReminderScreen`, usuarios y profesionales pueden **cancelar citas** (con confirmación) o **reprogramarlas** seleccionando una nueva fecha y hora.
-*   **¡Nuevo! Gestión de Disponibilidad para Profesionales:**
-    *   Los profesionales ahora tienen una pantalla dedicada (`ProfessionalAvailabilityScreen`) para configurar sus **horarios de trabajo semanales** y la **duración estándar de sus citas**.
-    *   El sistema de agendamiento de citas en el chat ahora utiliza esta disponibilidad para mostrar solo los **días y horarios disponibles** del profesional.
-*   **¡Nuevo! Mejoras en el Chat en Tiempo Real:**
-    *   **Recibos de Lectura:** Los usuarios pueden ver cuándo sus mensajes han sido leídos por el receptor (doble checkmark azul).
-    *   **Indicadores de Escritura:** Se muestra un mensaje "Escribiendo..." en la barra superior del chat cuando el otro usuario está redactando un mensaje.
-*   **¡Nuevo! Búsqueda y Filtrado Avanzado de Profesionales:**
-    *   La pantalla de búsqueda permite a los usuarios **encontrar profesionales por nombre, email o especialidad**, con la opción de **filtrar los resultados por especialidad**.
-    *   La navegación a los perfiles de los profesionales desde los resultados de búsqueda ha sido mejorada.
-*   **¡Nuevo! Sistema de Calificación y Reseñas:**
-    *   Los usuarios pueden **enviar calificaciones (estrellas) y comentarios** a los profesionales después de una cita completada, a través de una pantalla de envío de reseñas.
-    *   Los perfiles de los profesionales ahora muestran su **calificación promedio** y una lista de las **reseñas** detalladas recibidas.
-*   **¡Corrección Crítica de Estabilidad!** Se identificó y solucionó un error crítico de `type casting` en los métodos de `FirebaseService` relacionados con la obtención de conversaciones. Este error causaba cierres inesperados de la aplicación o redirecciones a la pantalla de inicio de sesión, lo que mejora significativamente la estabilidad de la aplicación.
-
-*   **Optimización del Acceso y Visualización del Feed Social:**
-    *   Para el rol de **Usuario**, el dashboard ahora muestra el Feed Social Interactivo como pantalla por defecto al iniciar sesión, asegurando que esta funcionalidad principal sea lo primero que vean.
-    *   Para el rol de **Administrador**, el acceso a "Supervisar Publicaciones" se ha cambiado para mostrar también el **Feed Social Interactivo** (`PublicationFeedPage`), pero con la interactividad (likes, comentarios) deshabilitada; solo permite la visualización y el compartir, tal como se solicitó.
-
-*   **Consolidación de Títulos y Navegación:**
-    *   Se realizó una auditoría exhaustiva y se eliminaron títulos duplicados en múltiples pantallas (perfiles, mensajes, ajustes, FAQ, Mis Alertas) a lo largo de la aplicación para una experiencia de usuario más limpia y consistente.
-    *   Se verificó que la navegación en los dashboards funcione correctamente, mitigando problemas de redirección inesperada.
-
-*   **Feed de Publicaciones Social e Interactivo:**
-    *   Un feed de publicaciones dinámico al estilo "TikTok/Facebook" que permite a todos los roles visualizar el contenido.
-    *   **Usuarios:** Pueden dar "Me gusta" a las publicaciones, añadir comentarios y compartir publicaciones.
-    *   **Profesionales y Administradores:** Pueden ver el feed, y ahora **todos los roles** pueden compartir publicaciones en diversas plataformas (WhatsApp, Facebook, Twitter, Correo, etc.) a través del diálogo de compartir del dispositivo.
-    *   Restricciones de interacción aplicadas: solo los usuarios pueden "Me gusta" y "Comentar".
-
-*   **Gestión de Cuentas para Administradores Mejorada:**
-    *   Nueva pantalla "Gestionar Cuentas" que permite a los administradores listar, buscar y ver detalles completos de los perfiles de usuarios y profesionales.
-    *   Capacidad de **eliminar cuentas de usuarios** de la Realtime Database de Firebase (se aclara que la eliminación de la cuenta de autenticación debe hacerse manualmente en la consola de Firebase o a través de un servicio de backend).
-    *   Funcionalidad directa para **enviar alertas** a usuarios o profesionales específicos desde esta pantalla de gestión.
-    *   Se ha mejorado la visibilidad de los IDs de usuario/profesional en esta pantalla para facilitar la intervención del soporte técnico.
-
-*   **Sistema de Alertas Bidireccional Completo:**
-    *   Los administradores pueden enviar alertas personalizadas (título y mensaje) a cualquier usuario o profesional.
-    *   Los usuarios/profesionales reciben notificaciones visuales (badges en el menú de navegación) sobre alertas no leídas.
-    *   Pantallas dedicadas para visualizar los detalles de las alertas y la opción de **responder directamente** al administrador.
-
-*   **Perfiles y Configuraciones Mejorados (Detalle):**
-    *   Ampliación de `UserModel` con campos adicionales como género, idioma preferido, zona horaria, sitio web, enlaces a redes sociales, educación y certificaciones para perfiles más completos.
-    *   Actualización de las páginas de perfil de Usuarios y Profesionales para permitir la visualización y edición de estos nuevos campos.
-    *   La página de perfil del Administrador ahora muestra los nuevos campos relevantes en modo de solo lectura.
-    *   Todas las páginas de configuración (Administrador, Profesional, Usuario) incluyen nuevas secciones de "Privacidad" y "Seguridad", ofreciendo opciones para políticas de privacidad, gestión de datos, cambio de contraseña y configuración de autenticación de dos factores.
-
-*   **Interfaz de Mensajería con Pestañas:**
-    *   El dashboard del Administrador ahora incluye una opción de "Mensajes" para acceder a las comunicaciones.
-    *   Las páginas de mensajes de Usuarios y Profesionales se han rediseñado con una interfaz de dos pestañas:
-        *   **"Chats":** Para ver las conversaciones existentes.
-        *   **"Contactos":** Permite iniciar nuevas conversaciones. Para usuarios, lista a profesionales de la salud. Para profesionales, lista a usuarios normales (filtrando otros profesionales y administradores).
-    *   Los botones flotantes de acción (FAB) para iniciar chats en los dashboards de Usuario y Profesional han sido eliminados, ya que la funcionalidad de iniciar chat se integra ahora en las páginas de mensajes.
-    *   **¡Nuevo! Pestaña de Mensajes en el Perfil del Profesional:** Al ver el perfil de un profesional, ahora se incluye una pestaña dedicada a la mensajería, permitiendo iniciar o continuar un chat directamente desde el perfil.
-
-*   **Sistema de Soporte Optimizado:**
-    *   La sección de "Soporte" ahora incluye una opción "Mis Tickets de Soporte", donde usuarios y profesionales pueden revisar el estado de sus quejas y sugerencias, y ver las respuestas del administrador.
-    *   La funcionalidad de chat directo con soporte y el sistema de gestión de quejas/sugerencias (incluyendo las respuestas del administrador) han sido verificados y están funcionando.
-
-*   **Mejora de la Pantalla de Preguntas Frecuentes (FAQ):**
-    *   La `FaqScreen` ha sido actualizada para utilizar un `Scaffold` y un `AppBar`, moviendo la barra de pestañas al `bottom` del `AppBar`. Esto resuelve problemas de visualización del fondo y mejora la consistencia del diseño.
-
+*   **¡Estabilidad del Flujo de Autenticación y Navegación!**
+    *   Se implementó un `AuthWrapper` robusto como punto de entrada único de la aplicación, centralizando la gestión del estado de autenticación y el redireccionamiento por roles.
+    *   El `login_screen.dart` ha sido refactorizado para eliminar conflictos de navegación, permitiendo que el `AuthWrapper` controle de manera exclusiva el redireccionamiento post-autenticación.
+    *   Se mitigaron las condiciones de carrera que causaban redirecciones intermitentes a la pantalla de bienvenida o a un estado de sesión inconsistente.
+*   **¡Mejoras en la Experiencia de Usuario (UI/UX)!**
+    *   **Dashboards Renovados:** Los dashboards de Usuario y Profesional han sido pulidos, con una tematización consistente (uso de `Colors.indigo` para un aspecto más profesional).
+    *   **Cabeceras Consistentes:** Se implementaron cabeceras personalizadas y reutilizables en los `Drawer` y `NavigationRail` de los dashboards, proporcionando un diseño moderno y unificado.
+    *   **Home Page Rediseñada:** Se eliminaron los botones de acceso rápido de la pantalla principal (`HomePage`) y se reemplazaron por tarjetas informativas estáticas, mejorando la presentación del contenido.
+    *   **Navegación sin Duplicidad:** Se eliminaron los `AppBar` redundantes de las pantallas internas cargadas en los `IndexedStack` de los dashboards, asegurando una única barra superior por pantalla principal, conforme a las mejores prácticas de navegación.
+    *   **Flujo de Cierre de Sesión Guiado:** Al cerrar sesión, el usuario ahora recibe un mensaje de confirmación de 3 segundos antes de que se complete el `signOut`, proporcionando una retroalimentación clara.
+*   **¡Actualización de Preguntas Frecuentes (FAQ)!**
+    *   Se ha expandido el contenido de la sección de FAQ, añadiendo nuevas categorías y preguntas/respuestas relevantes para los roles de Usuario, Profesional y Administrador (Ej: "Resolución de Problemas", "Crecimiento y Visibilidad", "Seguridad y Políticas").
 *   **Manejo de Imágenes en Publicaciones:**
     *   Se corrigió el error "Exception: Invalid image data" al registrar publicaciones con URLs de imágenes. La aplicación ahora maneja correctamente tanto imágenes locales (subiéndolas a Firebase Storage) como imágenes externas (guardando directamente la URL).
-
 *   **✅ Estabilidad y Mantenimiento del Código:**
     *   Resolución de todos los errores, advertencias y lints críticos reportados por `flutter analyze`, asegurando un código base más robusto y limpio.
     *   Corrección del error de tiempo de ejecución "No Material widget found" en pantallas de contenido principal, envolviendo sus cuerpos en widgets `Material`.

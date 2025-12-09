@@ -19,6 +19,8 @@ dependencies:
   google_sign_in: ^6.2.1
   firebase_database: ^11.1.0
   firebase_storage: ^12.2.0
+  firebase_messaging: ^15.2.10 # Upgraded to resolve dependency conflicts
+
 
   # 📷 Multimedia
   image_picker: ^1.1.2

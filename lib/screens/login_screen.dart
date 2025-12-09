@@ -18,9 +18,6 @@ import '../../widgets/fade_in_slide.dart';
 import 'register_screen.dart';
 import 'recover_password_screen.dart';
 import 'welcome_screen.dart';
-import 'user/user_dashboard.dart';
-import 'professional/professional_dashboard.dart';
-import 'admin/admin_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -43,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool showPassword = false;
   bool _rememberMe = false;
 
-  StreamSubscription<GoogleSignInAccount?>? _googleSignInSubscription; // Added
+  StreamSubscription<GoogleSignInAccount?>? _googleSignInSubscription;
 
   @override
   void initState() {
@@ -54,11 +51,9 @@ class _LoginScreenState extends State<LoginScreen> {
         if (googleUser != null) {
           _handleSuccessfulGoogleSignIn(googleUser);
         } else {
-          // User signed out or sign-in failed. Reset loading state if set.
           if (mounted) setState(() => isLoading = false);
         }
       });
-      // Try to sign in silently if user is already authenticated
       _googleSignIn.signInSilently();
     }
   }
@@ -67,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _googleSignInSubscription?.cancel(); // Cancel subscription
+    _googleSignInSubscription?.cancel();
     super.dispose();
   }
 
@@ -106,6 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => isLoading = true);
+    final navigator = Navigator.of(context);
 
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
@@ -114,16 +110,17 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       await _saveCredentials();
-      final snapshot = await _db.child('users/${userCredential.user!.uid}/accountType').get();
+      final snapshot = await _db.child('users/${userCredential.user!.uid}').get();
 
       if (!snapshot.exists || snapshot.value == null) {
         _showSnackBar('No se encontró información del usuario.', isError: true);
         await _auth.signOut();
+        if (mounted) setState(() => isLoading = false);
         return;
       }
-
-      String accountType = snapshot.value.toString();
-      _navigateToDashboard(accountType);
+      
+      // On success, pop the login screen. AuthWrapper will handle the rest.
+      navigator.pop();
 
     } on FirebaseAuthException catch (e) {
       String message = 'Ocurrió un error. Intenta de nuevo.';
@@ -137,10 +134,10 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) setState(() => isLoading = false);
     }
   }
-
-  // New helper method to handle successful Google Sign-In and Firebase authentication
+  
   Future<void> _handleSuccessfulGoogleSignIn(GoogleSignInAccount googleUser) async {
-    setState(() => isLoading = true); // Ensure loading is true while handling
+    setState(() => isLoading = true);
+    final navigator = Navigator.of(context);
     try {
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
@@ -153,12 +150,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (user != null) {
         UserModel? userModel = await _firebaseService.getUserProfile(user.uid);
-
-        if (!mounted) return;
+        
         if (userModel != null) {
-          _navigateToDashboard(userModel.accountType);
+          // User exists, just pop the login screen
+          navigator.pop();
         } else {
-          _showFloatingRegisterSheet(user);
+          // New user, show registration form
+          if (!mounted) return;
+          final result = await _showFloatingRegisterSheet(user);
+          if (result == true) {
+            // Registration was successful, pop the login screen
+            navigator.pop();
+          }
         }
       }
     } catch (e) {
@@ -168,31 +171,25 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // Refactored _signInWithGoogle method
   Future<void> _signInWithGoogle() async {
-    setState(() => isLoading = true); // Start loading immediately
+    setState(() => isLoading = true);
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn(); // Initiate interactive sign-in
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        // User cancelled the sign-in process
         if (mounted) setState(() => isLoading = false);
         return;
       }
-      // For non-web, we call _handleSuccessfulGoogleSignIn directly.
-      // For web, the _googleSignIn.onCurrentUserChanged listener will pick up the googleUser
-      // and call _handleSuccessfulGoogleSignIn.
       if (!kIsWeb) { 
-        _handleSuccessfulGoogleSignIn(googleUser);
+        await _handleSuccessfulGoogleSignIn(googleUser);
       }
-    } on Exception catch (e) { // Catch Exception here to avoid Firebase specific catch for Google Sign In on web
+    } on Exception catch (e) {
       _showSnackBar('Error al iniciar sesión con Google: ${e.toString()}', isError: true);
-      if (mounted) setState(() => isLoading = false); // Reset loading on error
-    } 
-    // No finally block to reset isLoading for web here, as _handleSuccessfulGoogleSignIn or cancellation handles it.
+      if (mounted) setState(() => isLoading = false);
+    }
   }
   
-  void _showFloatingRegisterSheet(User googleUser) async {
-    final result = await showModalBottomSheet<String>(
+  Future<bool?> _showFloatingRegisterSheet(User googleUser) async {
+    return await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -207,33 +204,6 @@ class _LoginScreenState extends State<LoginScreen> {
         child: FloatingRegistrationForm(googleUser: googleUser),
       ),
     );
-
-    if (result != null) {
-      _navigateToDashboard(result);
-    }
-  }
-
-
-  void _navigateToDashboard(String accountType) {
-    if (!mounted) return;
-    
-    Widget? dashboard;
-    switch (accountType) {
-      case 'Usuario':
-        dashboard = const UserDashboard();
-        break;
-      case 'Profesional':
-        dashboard = const ProfessionalDashboard();
-        break;
-      case 'Admin':
-        dashboard = const AdminDashboard();
-        break;
-      default:
-        _showSnackBar('Tipo de cuenta no reconocido.', isError: true);
-        return; 
-    }
-    
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => dashboard!));
   }
 
   @override

@@ -1,5 +1,7 @@
+// lib/screens/shared/chat_screen.dart
+
 import 'dart:io';
-import 'dart:async'; // Import for Timer
+import 'dart:async'; 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +15,7 @@ class ChatScreen extends StatefulWidget {
   final String otherUserName;
   final String otherUserId;
   final String? otherUserImageUrl;
-  final bool isProfessionalChat; // New parameter to indicate if it's a chat with a professional
+  final bool isProfessionalChat; 
 
   const ChatScreen({
     super.key,
@@ -21,7 +23,7 @@ class ChatScreen extends StatefulWidget {
     required this.otherUserName,
     required this.otherUserId,
     this.otherUserImageUrl,
-    this.isProfessionalChat = false, // Default to false
+    this.isProfessionalChat = false, 
   });
 
   @override
@@ -35,7 +37,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final FocusNode _messageFocusNode = FocusNode();
 
   String? _currentUserAccountType;
-  Timer? _debounce; // For typing indicator debounce
+  Timer? _debounce; 
 
   @override
   void initState() {
@@ -72,7 +74,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     _debounce?.cancel();
-    _firebaseService.setTypingStatus(widget.chatId, _currentUserId, false); // Clear typing status on dispose
+    _firebaseService.setTypingStatus(widget.chatId, _currentUserId, false); 
     _messageController.removeListener(_onMessageChanged);
     _messageFocusNode.dispose();
     _messageController.dispose();
@@ -94,15 +96,14 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       await _firebaseService.sendMessage(message);
       _messageController.clear();
-      _firebaseService.setTypingStatus(widget.chatId, _currentUserId, false); // Ensure typing status is reset
+      _firebaseService.setTypingStatus(widget.chatId, _currentUserId, false); 
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) return; 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al enviar mensaje: $e')),
       );
     }
   }
-  // ... rest of the code remains the same
 
   void _sendImage() async {
     final picker = ImagePicker();
@@ -147,64 +148,54 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _showAppointmentRequestDialog() async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     if (_currentUserAccountType != 'Usuario') {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('Solo los usuarios pueden solicitar citas.')),
       );
       return;
     }
 
-    // Fetch professional's availability
     final professionalProfile = await _firebaseService.getUserProfile(widget.otherUserId);
+    if (!mounted) return;
     if (professionalProfile == null || professionalProfile.accountType != 'Profesional') {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('No se pudo cargar la disponibilidad del profesional.')),
       );
       return;
     }
 
     final Map<String, List<String>>? workingHours = professionalProfile.workingHours;
-    final int appointmentDuration = professionalProfile.appointmentDuration ?? 30; // Default to 30 min
+    final int appointmentDuration = professionalProfile.appointmentDuration ?? 30; 
 
     if (workingHours == null || workingHours.isEmpty) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('El profesional no ha configurado su disponibilidad.')),
       );
       return;
     }
 
-    final navigator = Navigator.of(context); // Capture navigator before async gap
-    final messenger = ScaffoldMessenger.of(context); // Capture messenger
-
-    // Map day names from int (DateTime.weekday) to String
     final Map<int, String> weekdayToString = {
       1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado', 7: 'Domingo',
     };
 
     final DateTime? pickedDate = await showDatePicker(
-      context: navigator.context,
+      context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)), // 1 year from now
+      lastDate: DateTime.now().add(const Duration(days: 365)), 
       selectableDayPredicate: (DateTime date) {
-        // Only allow selection of days where the professional has working hours
         final String? dayName = weekdayToString[date.weekday];
         return dayName != null && (workingHours[dayName]?.isNotEmpty == true);
       },
     );
 
-    if (pickedDate == null) return; // User cancelled
+    if (pickedDate == null) return; 
+    if (!mounted) return; 
 
-    if (!mounted) return; // Check mounted after async gap
-
-    // Generate available time slots for the pickedDate
     final String? dayName = weekdayToString[pickedDate.weekday];
     final List<String> dailyWorkingHours = workingHours[dayName!] ?? [];
     
-    // Convert string time ranges to TimeOfDay objects
     final List<TimeOfDay> availableTimeSlots = [];
     for (String range in dailyWorkingHours) {
       final parts = range.split('-');
@@ -218,10 +209,9 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     }
 
-    // Show a dialog with selectable time slots
-    final TimeOfDay? pickedTime = await _showTimeSlotPicker(navigator.context, availableTimeSlots);
+    final TimeOfDay? pickedTime = await _showTimeSlotPicker(context, availableTimeSlots);
 
-    if (pickedTime == null) return; // User cancelled
+    if (pickedTime == null) return; 
 
     final DateTime finalDateTime = DateTime(
       pickedDate.year,
@@ -233,13 +223,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       await _firebaseService.requestAppointment(widget.otherUserId, _currentUserId, finalDateTime);
-      if (!mounted) return; // Check mounted after async gap
-      messenger.showSnackBar(
+      if (!mounted) return; 
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('Solicitud de cita enviada con éxito. El profesional te contactará pronto.')),
       );
     } catch (e) {
-      if (!mounted) return; // Check mounted after async gap
-      messenger.showSnackBar(
+      if (!mounted) return; 
+      scaffoldMessenger.showSnackBar(
         SnackBar(content: Text('Error al enviar la solicitud de cita: $e')),
       );
     }
@@ -247,15 +237,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<TimeOfDay?> _showTimeSlotPicker(BuildContext context, List<TimeOfDay> availableSlots) {
     if (availableSlots.isEmpty) {
-      final navigator = Navigator.of(context); // Capture navigator
       return showDialog<TimeOfDay?>(
-        context: navigator.context, // Use captured navigator's context
+        context: context, 
         builder: (context) => AlertDialog(
           title: const Text('Sin Horas Disponibles'),
           content: const Text('No hay horas disponibles para agendar en este día.'),
           actions: [
             TextButton(
-              onPressed: () => navigator.pop(),
+              onPressed: () => Navigator.pop(context),
               child: const Text('Entendido'),
             ),
           ],
@@ -263,9 +252,8 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     }
 
-    final navigator = Navigator.of(context); // Capture navigator
     return showDialog<TimeOfDay?>(
-      context: navigator.context, // Use captured navigator's context
+      context: context, 
       builder: (context) {
         return AlertDialog(
           title: const Text('Selecciona una Hora'),
@@ -275,11 +263,11 @@ class _ChatScreenState extends State<ChatScreen> {
               runSpacing: 8.0,
               children: availableSlots.map((time) {
                 return ChoiceChip(
-                  label: Text(time.format(navigator.context)), // Use captured navigator's context
-                  selected: false, // Will be handled by the dialog's state, or just pop
+                  label: Text(time.format(context)), 
+                  selected: false, 
                   onSelected: (selected) {
                     if (selected) {
-                      navigator.pop(time);
+                      Navigator.pop(context, time);
                     }
                   },
                 );
@@ -288,7 +276,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => navigator.pop(),
+              onPressed: () => Navigator.pop(context),
               child: const Text('Cancelar'),
             ),
           ],
@@ -299,7 +287,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Only show the appointment button if current user is a 'Usuario' and the chat is with a professional
     final bool canRequestAppointment = _currentUserAccountType == 'Usuario' && widget.isProfessionalChat;
 
     return Scaffold(
@@ -325,7 +312,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     children: [
                       Text(
                         widget.otherUserName,
-                        overflow: TextOverflow.ellipsis, // Handle long names
+                        overflow: TextOverflow.ellipsis, 
                         style: const TextStyle(fontSize: 16),
                       ),
                       if (isOtherUserTyping)
@@ -352,7 +339,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 700.0), // Max width for chat on large screens
+          constraints: const BoxConstraints(maxWidth: 700.0), 
           child: GestureDetector(
             onTap: () => FocusScope.of(context).unfocus(),
             child: Column(
@@ -381,7 +368,6 @@ class _ChatScreenState extends State<ChatScreen> {
                         );
                       }
                       final messages = snapshot.data!;
-                      // Mark messages as read when they are received by the other user
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         for (var message in messages) {
                           if (message.senderId == widget.otherUserId && !message.readBy.contains(_currentUserId)) {
@@ -439,9 +425,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _showDeleteOptions(Message message, bool isMe) {
-    final navigator = Navigator.of(context); // Capture navigator
     showModalBottomSheet(
-      context: navigator.context, // Use captured navigator's context
+      context: context, 
       builder: (BuildContext bc) {
         return SafeArea(
           child: Wrap(
@@ -450,16 +435,16 @@ class _ChatScreenState extends State<ChatScreen> {
                 leading: const Icon(Icons.delete_outline),
                 title: const Text('Eliminar para mí'),
                 onTap: () {
-                  navigator.pop(); // Use captured navigator
+                  Navigator.pop(context); 
                   _deleteMessage(message, false);
                 },
               ),
-              if (isMe) // Only show 'Delete for everyone' if the current user sent the message
+              if (isMe) 
                 ListTile(
                   leading: const Icon(Icons.delete_forever),
                   title: const Text('Eliminar para todos'),
                   onTap: () {
-                    navigator.pop(); // Use captured navigator
+                    Navigator.pop(context); 
                     _deleteMessage(message, true);
                   },
                 ),
@@ -503,11 +488,11 @@ class _ChatScreenState extends State<ChatScreen> {
               Text(
                 DateFormat.Hm().format(message.timestamp),
                 style: TextStyle(
-                  color: textColor.withAlpha(179), // Replaced withOpacity
+                  color: textColor.withAlpha(179), 
                   fontSize: 12,
                 ),
               ),
-              if (isMe) // Only show read status for messages sent by the current user
+              if (isMe) 
                 Padding(
                   padding: const EdgeInsets.only(left: 4.0),
                   child: Icon(

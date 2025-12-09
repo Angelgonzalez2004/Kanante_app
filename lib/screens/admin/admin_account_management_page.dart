@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kanante_app/models/user_model.dart';
 import 'package:kanante_app/services/firebase_service.dart';
-import 'package:kanante_app/screens/professional/profile_page.dart'; // Reusing for viewing other profiles
+import 'package:kanante_app/screens/user/professional_profile_page.dart'; // Reusing for viewing other profiles
 import 'package:kanante_app/screens/admin/send_alert_screen.dart'; // New screen for sending alerts
 
 class AdminAccountManagementPage extends StatefulWidget {
@@ -175,7 +175,7 @@ class _AdminAccountManagementPageState extends State<AdminAccountManagementPage>
                                                 Navigator.push(
                                                   context,
                                                   MaterialPageRoute(
-                                                    builder: (context) => ProfessionalProfilePage(professionalUid: user.id),
+                                                    builder: (context) => ProfessionalProfilePage(professionalId: user.id),
                                                   ),
                                                 );
                                               },

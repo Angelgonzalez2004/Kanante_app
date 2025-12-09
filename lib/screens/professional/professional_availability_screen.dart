@@ -139,18 +139,6 @@ class _ProfessionalAvailabilityScreenState extends State<ProfessionalAvailabilit
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gestionar Disponibilidad'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        actions: [
-          IconButton(
-            icon: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Icon(Icons.save),
-            onPressed: _isLoading ? null : _saveAvailability,
-            tooltip: 'Guardar Disponibilidad',
-          ),
-        ],
-      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Center(

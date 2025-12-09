@@ -29,6 +29,7 @@ class UserModel {
   // New fields for professional availability and settings
   final Map<String, List<String>>? workingHours; // e.g., {'Monday': ['09:00-13:00', '14:00-18:00']}
   final int? appointmentDuration; // Duration of a standard appointment in minutes
+  final String? fcmToken; // New field for FCM token
 
   UserModel({
     required this.id,
@@ -56,6 +57,7 @@ class UserModel {
     this.appointmentPrice,
     this.workingHours, // New field
     this.appointmentDuration, // New field
+    this.fcmToken, // New field
   });
 
   factory UserModel.fromMap(String id, Map<String, dynamic> data) {
@@ -85,6 +87,7 @@ class UserModel {
       appointmentPrice: (data['appointmentPrice'] as num?)?.toDouble(),
       workingHours: (data['workingHours'] as Map<String, dynamic>?)?.map((key, value) => MapEntry(key, List<String>.from(value))), // New field
       appointmentDuration: (data['appointmentDuration'] as num?)?.toInt(), // New field
+      fcmToken: data['fcmToken'], // New field
     );
   }
 
@@ -114,6 +117,7 @@ class UserModel {
       'appointmentPrice': appointmentPrice,
       'workingHours': workingHours, // New field
       'appointmentDuration': appointmentDuration, // New field
+      'fcmToken': fcmToken, // New field
     };
   }
 }

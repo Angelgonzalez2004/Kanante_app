@@ -9,6 +9,8 @@ class SupportTicket {
   final DateTime createdAt;
   final String? adminResponse;
   final DateTime? respondedAt;
+  final String priority; // New field: e.g., 'low', 'medium', 'high'
+  final String? assignedTo; // New field: UID of the admin assigned to this ticket
 
   SupportTicket({
     required this.ticketId,
@@ -21,6 +23,8 @@ class SupportTicket {
     required this.createdAt,
     this.adminResponse,
     this.respondedAt,
+    this.priority = 'medium', // Default priority
+    this.assignedTo,
   });
 
   factory SupportTicket.fromMap(String ticketId, Map<String, dynamic> data) {
@@ -37,6 +41,8 @@ class SupportTicket {
       respondedAt: data['respondedAt'] != null
           ? DateTime.fromMillisecondsSinceEpoch(data['respondedAt'])
           : null,
+      priority: data['priority'] ?? 'medium',
+      assignedTo: data['assignedTo'],
     );
   }
 
@@ -51,6 +57,8 @@ class SupportTicket {
       'createdAt': createdAt.millisecondsSinceEpoch,
       'adminResponse': adminResponse,
       'respondedAt': respondedAt?.millisecondsSinceEpoch,
+      'priority': priority,
+      'assignedTo': assignedTo,
     };
   }
 }

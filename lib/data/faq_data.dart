@@ -1,4 +1,3 @@
-
 class FaqData {
   static const Map<String, List<Map<String, String>>> forUser = {
     'General': [
@@ -36,6 +35,11 @@ class FaqData {
       {'q': '¿Quién puede ver mi perfil?', 'a': 'Tu perfil básico (nombre y foto) es visible para los profesionales con los que interactúas, pero tu información de contacto es privada.'},
       {'q': '¿Cómo cierro sesión de forma segura?', 'a': 'Puedes cerrar sesión desde el menú principal o desde la pantalla de "Ajustes".'},
       {'q': '¿Qué hago si encuentro un error en la app?', 'a': 'Puedes reportarlo a través de la sección "Ayuda y Soporte" > "Enviar Queja o Sugerencia". ¡Agradecemos tu ayuda!'},
+    ],
+    'Resolución de Problemas': [
+      {'q': '¿La app se siente lenta o no carga?', 'a': 'Intenta cerrar la aplicación completamente y volver a abrirla. También, asegúrate de tener una conexión a internet estable. Si el problema persiste, contacta a soporte.'},
+      {'q': '¿No recibo notificaciones?', 'a': 'Asegúrate de haber concedido permisos de notificación a la app en los ajustes de tu teléfono. También puedes revisar la configuración de notificaciones dentro de la app en "Ajustes".'},
+      {'q': '¿Qué hago si mi chat con un profesional no funciona?', 'a': 'Verifica tu conexión a internet. Si todo está bien, reporta el problema en la sección de "Soporte" para que podamos investigarlo.'},
     ],
   };
 
@@ -76,6 +80,11 @@ class FaqData {
       {'q': '¿Qué hago si un paciente cancela a último minuto?', 'a': 'Puedes establecer tus propias políticas de cancelación en tu perfil. La plataforma te permitirá aplicar cargos según tus políticas (función en desarrollo).'},
       {'q': '¿Puedo exportar mis datos?', 'a': 'Estamos trabajando en una función para que puedas exportar tu historial de citas y datos financieros. Estará disponible próximamente.'},
     ],
+     'Crecimiento y Visibilidad': [
+      {'q': '¿Cómo puedo conseguir más pacientes?', 'a': 'Publicar contenido de calidad y relevante en el feed es la mejor manera de aumentar tu visibilidad. También, asegúrate de que tu perfil esté completo y sea atractivo.'},
+      {'q': '¿Puedo promocionar mis servicios fuera de la app?', 'a': 'Puedes mencionar tu perfil de Kananté en tus redes sociales, pero no está permitido usar el chat de la app para llevar pacientes a tu consulta privada externa.'},
+      {'q': '¿Cómo funcionan las valoraciones?', 'a': 'Después de una cita completada, los usuarios pueden dejar una valoración de 1 a 5 estrellas y un comentario. Un buen promedio de valoración mejora tu posición en los resultados de búsqueda.'},
+    ],
   };
 
   static const Map<String, List<Map<String, String>>> forAdmin = {
@@ -88,7 +97,7 @@ class FaqData {
       {'q': '¿Un profesional puede volver a aplicar si fue rechazado?', 'a': 'Sí. Una vez rechazado, el profesional tiene la opción de subir nuevos documentos para una nueva revisión.'},
       {'q': '¿Qué significa la insignia de "Verificado"?', 'a': 'Es un indicador público en el perfil del profesional que le dice a los usuarios que sus credenciales han sido confirmadas por nuestro equipo.'},
       {'q': '¿Debo verificar a todos los profesionales?', 'a': 'Sí, es una política obligatoria para garantizar la calidad y seguridad de la plataforma.'},
-      {'q': '¿Puedo revocar una verificación?', 'a': 'Sí, si se descubre que un profesional ha violado los términos de servicio o ha proporcionado información falsa, puedes cambiar su estado manualmente desde su perfil.'},
+      {'q': '¿Puedo revocar una verificación?', 'a': 'Sí, si se descubre que un profesional ha violado los términos de servicio o ha proporcionado información falsa, puedes cambiar su estado manually desde su perfil.'},
       {'q': '¿Hay un log de las verificaciones?', 'a': 'El sistema guarda la fecha y el administrador que realizó la última actualización de estado de verificación de cada profesional.'},
     ],
     'Soporte y Contenido': [
@@ -114,6 +123,11 @@ class FaqData {
       {'q': '¿El rol de administrador es el mismo que el de un profesional?', 'a': 'No. Son roles completamente separados con permisos y vistas diferentes. Un administrador no puede actuar como profesional a menos que tenga una cuenta separada para ello.'},
       {'q': '¿Puedo buscar a un usuario específico?', 'a': 'Sí, la pantalla "Gestionar Cuentas" incluye una barra de búsqueda para encontrar usuarios por nombre o correo electrónico.'},
       {'q': '¿Las acciones de administrador quedan registradas?', 'a': 'Sí, las acciones críticas como eliminar cuentas o aprobar verificaciones quedan registradas en un log interno para auditoría.'},
+    ],
+    'Seguridad y Políticas': [
+      {'q': '¿Qué hacer ante un reporte de abuso de un usuario?', 'a': 'Investiga el caso desde "Gestionar Cuentas". Revisa los perfiles y, si es necesario, los chats de soporte. Toma la acción apropiada, que puede ir desde una advertencia hasta la eliminación de la cuenta.'},
+      {'q': '¿Cómo se manejan las disputas de pago?', 'a': 'Actualmente, el sistema de pago está en desarrollo. Una vez implementado, habrá un protocolo para investigar disputas, revisando el historial de citas y comunicación.'},
+      {'q': '¿Cuál es la política sobre la inactividad de cuentas?', 'a': 'Las cuentas inactivas por más de dos años pueden ser eliminadas para mantener la base de datos limpia, previa notificación por correo electrónico al usuario.'},
     ],
   };
 }

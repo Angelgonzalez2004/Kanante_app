@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../main.dart'; // Para themeNotifier
-import '../login_screen.dart';
+// Se eliminó la importación no utilizada de login_screen.dart
 
 class UserSettingsPage extends StatefulWidget {
   const UserSettingsPage({super.key});
@@ -113,16 +113,17 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
     );
 
     if (confirm == true) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cerrando sesión en 3 segundos...'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      await Future.delayed(const Duration(seconds: 3));
+
       await _auth.signOut();
       await _googleSignIn.signOut();
-      
-      _showSnackBar('¡Hasta luego! 👋', color: Colors.green);
-      
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-      );
     }
   }
   
@@ -151,7 +152,6 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Cuenta eliminada con éxito.')),
           );
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
         }
       } on FirebaseAuthException catch (e) {
          if (mounted) {
@@ -193,11 +193,11 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Material( // Added Material widget
-      type: MaterialType.transparency, // Use transparency to avoid visual changes
-      child: Center( // Removed Scaffold and AppBar
+    return Material(
+      type: MaterialType.transparency,
+      child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 800), // Smaller max width
+                constraints: const BoxConstraints(maxWidth: 800),
                           child: ListView(
                             padding: const EdgeInsets.all(24),
                             children: [
@@ -208,11 +208,12 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                                 title: const Text('Cambiar contraseña'),
                                 trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
                                 onTap: _changePassword,
-                              ),                    const Divider(),
+                              ),
+                              const Divider(),
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
                       value: _darkMode,
-                      activeTrackColor: Colors.teal.withAlpha((255 * 0.5).round()),
+                      activeTrackColor: Colors.teal.withValues(alpha: 0.5), // Actualizado a withValues
                       activeThumbColor: Colors.teal,
                       title: const Text('Modo oscuro'),
                       onChanged: _toggleTheme,
@@ -220,7 +221,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
                       value: _notifications,
-                      activeTrackColor: Colors.teal.withAlpha((255 * 0.5).round()),
+                      activeTrackColor: Colors.teal.withValues(alpha: 0.5), // Actualizado a withValues
                       activeThumbColor: Colors.teal,
                       title: const Text('Notificaciones'),
                       onChanged: _toggleNotifications,
@@ -237,7 +238,6 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                       leading: const Icon(Icons.policy),
                       onTap: () {
                         _showSnackBar('Navegar a la política de privacidad.');
-                        // TODO: Implement navigation to privacy policy page
                       },
                     ),
                     ListTile(
@@ -246,7 +246,6 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                       leading: const Icon(Icons.data_usage),
                       onTap: () {
                         _showSnackBar('Navegar a la gestión de preferencias de datos.');
-                        // TODO: Implement navigation to data preferences management
                       },
                     ),
                     Divider(height: MediaQuery.of(context).size.height * 0.04),
@@ -259,7 +258,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                       contentPadding: EdgeInsets.zero,
                       title: const Text('Cambiar contraseña'),
                       leading: const Icon(Icons.lock_reset),
-                      onTap: _changePassword, // Reuse existing _changePassword method
+                      onTap: _changePassword,
                     ),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
@@ -267,14 +266,13 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                       leading: const Icon(Icons.security),
                       onTap: () {
                         _showSnackBar('Navegar a la configuración de 2FA.');
-                        // TODO: Implement navigation to 2FA settings
                       },
                     ),
                     Divider(height: MediaQuery.of(context).size.height * 0.04),
                     Center(
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent.withAlpha((255 * 0.1).round()),
+                          backgroundColor: Colors.redAccent.withValues(alpha: 0.1), // Actualizado a withValues
                           foregroundColor: Colors.redAccent,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),

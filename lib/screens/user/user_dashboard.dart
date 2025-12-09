@@ -4,16 +4,15 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:kanante_app/models/alert_model.dart';
 import 'package:kanante_app/services/firebase_service.dart';
-import '../login_screen.dart';
 import '../shared/home_page.dart';
-import '../shared/publication_feed_page.dart'; // New import for interactive feed
-import 'user_profile_page.dart'; // Added new UserProfilePage
-import 'user_settings_page.dart'; // Added new UserSettingsPage
+import '../shared/publication_feed_page.dart';
+import 'user_profile_page.dart';
+import 'user_settings_page.dart';
 import 'my_appointments_screen.dart';
 import '../shared/support_screen.dart';
-import 'messages_page.dart'; // Changed import
-import '../shared/my_alerts_screen.dart'; // New import
-import '../shared/appointments_reminder_screen.dart'; // New import
+import 'messages_page.dart';
+import '../shared/my_alerts_screen.dart';
+import '../shared/appointments_reminder_screen.dart';
 
 class UserDashboard extends StatefulWidget {
   const UserDashboard({super.key});
@@ -30,12 +29,12 @@ class _UserDashboardState extends State<UserDashboard> {
 
   String _userName = 'Usuario';
   String _userEmail = '';
-  String _phone = ''; // Added phone number
-  String? _profileImageUrl; // Add for profile image
-  int _selectedIndex = 1; // Changed from 0 to 1 to default to 'Feed de Contenido'
+  String _phone = '';
+  String? _profileImageUrl;
+  int _selectedIndex = 1; // Default to 'Feed de Contenido'
 
-  late final List<Map<String, dynamic>> _sections; // Made late final
-  late final List<String> _pageTitles; // Added _pageTitles list
+  late final List<Map<String, dynamic>> _sections;
+  late final List<String> _pageTitles;
   bool _isLoading = true;
 
   @override
@@ -43,17 +42,16 @@ class _UserDashboardState extends State<UserDashboard> {
     super.initState();
     _loadUserData();
     _pageTitles = [
-      // Initialize _pageTitles here
       'Inicio',
       'Feed de Contenido',
-      'Mis Citas', // This is still MyAppointmentsScreen
-      'Citas Agendadas', // New entry for AppointmentsReminderScreen
+      'Mis Citas',
+      'Citas Agendadas',
       'Mensajes',
-      'Mi Perfil', // Renamed from Ajustes
-      'Configuración', // New entry
+      'Mi Perfil',
+      'Configuración',
       'Soporte',
-      'Mis Alertas', // New entry
-      'Cerrar Sesión' // Added logout title for consistency
+      'Mis Alertas',
+      'Cerrar Sesión'
     ];
   }
 
@@ -71,8 +69,8 @@ class _UserDashboardState extends State<UserDashboard> {
           if (snapshot.exists) {
             final data = Map<String, dynamic>.from(snapshot.value as Map);
             _userName = data['name'] ?? 'Usuario';
-            _phone = data['phone'] ?? ''; // Load phone number
-            _profileImageUrl = data['profileImageUrl']; // Get profile image
+            _phone = data['phone'] ?? '';
+            _profileImageUrl = data['profileImageUrl'];
           }
           _userEmail = user.email ?? '';
           _initializeSections();
@@ -88,93 +86,81 @@ class _UserDashboardState extends State<UserDashboard> {
   void _initializeSections() {
     _sections = [
       {
-        'title': _pageTitles[0], // Use pageTitles
+        'title': _pageTitles[0],
         'icon': Icons.home,
         'page': HomePage(
           userName: _userName,
-          shortcutButtons: _buildUserShortcuts(),
         )
       },
       {
-        'title': _pageTitles[1], // Use pageTitles
+        'title': _pageTitles[1],
         'icon': Icons.explore,
-        'page': const PublicationFeedPage() // Changed to PublicationFeedPage
+        'page': const PublicationFeedPage()
       },
       {
-        'title': _pageTitles[2], // Use pageTitles
+        'title': _pageTitles[2],
         'icon': Icons.calendar_today,
         'page': const MyAppointmentsScreen()
       },
       {
-        'title': _pageTitles[3], // Use pageTitles - Citas Agendadas
+        'title': _pageTitles[3],
         'icon': Icons.event_note_rounded,
         'page': const AppointmentsReminderScreen(),
       },
       {
-        'title': _pageTitles[4], // Use pageTitles
+        'title': _pageTitles[4],
         'icon': Icons.chat,
         'page': const MessagesPage()
       },
       {
-        'title': _pageTitles[5], // Use pageTitles - Mi Perfil
+        'title': _pageTitles[5],
         'icon': Icons.person,
         'page': const UserProfilePage()
       },
       {
-        'title': _pageTitles[6], // Use pageTitles - Configuración
+        'title': _pageTitles[6],
         'icon': Icons.settings,
         'page': const UserSettingsPage()
       },
       {
-        // REMOVED THE 'n' HERE
-        'title': _pageTitles[7], // Use pageTitles - Soporte
+        'title': _pageTitles[7],
         'icon': Icons.support_agent,
         'page': const SupportScreen()
       },
       {
-        'title': _pageTitles[8], // Use pageTitles - Mis Alertas
+        'title': _pageTitles[8],
         'icon': Icons.notifications_active,
         'page': const MyAlertsScreen()
       },
       {
-        'title': _pageTitles[9], // Use pageTitles - Cerrar Sesión
+        'title': _pageTitles[9],
         'icon': Icons.logout_rounded,
-        'isLogout': true, // Added isLogout flag
+        'isLogout': true,
       },
     ];
   }
 
-  List<Widget> _buildUserShortcuts() {
-    // Tapping these cards will now correctly navigate using the index from the _sections list.
-    return [
-      _shortcutCard(
-          'Feed de Contenido', Icons.explore, () => _onItemTapped(1)),
-      _shortcutCard('Mis Citas', Icons.calendar_today, () => _onItemTapped(2)), // Direct to AppointmentsPage
-      _shortcutCard('Citas Agendadas', Icons.event_note_rounded, () => _onItemTapped(3)), // New shortcut for Reminders
-      _shortcutCard('Mensajes', Icons.chat, () => _onItemTapped(4)),
-      _shortcutCard('Mi Perfil', Icons.person, () => _onItemTapped(5)), // Link to new profile page
-      _shortcutCard('Mis Alertas', Icons.notifications_active, () => _onItemTapped(8)), // Updated index
-    ];
-  }
+  // _shortcutCard has been removed as it was unused.
 
-  Widget _shortcutCard(String title, IconData icon, VoidCallback onTap) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 40, color: Colors.teal),
-            const SizedBox(height: 12),
-            Text(title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.bold)),
-          ],
+  Widget _buildHeader() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          radius: 32,
+          backgroundImage: (_profileImageUrl != null && _profileImageUrl!.isNotEmpty)
+              ? NetworkImage(_profileImageUrl!)
+              : null,
+          backgroundColor: Colors.white.withValues(alpha: 0.3),
+          child: (_profileImageUrl == null || _profileImageUrl!.isEmpty)
+              ? const Icon(Icons.person, size: 32, color: Colors.white)
+              : null,
         ),
-      ),
+        const SizedBox(height: 12),
+        Text(_userName, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(_phone.isNotEmpty ? _phone : _userEmail, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+      ],
     );
   }
 
@@ -200,12 +186,23 @@ class _UserDashboardState extends State<UserDashboard> {
         ],
       ),
     );
+
     if (confirm == true) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cerrando sesión en 3 segundos...'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+
+      await Future.delayed(const Duration(seconds: 3));
+
       await _auth.signOut();
       await _googleSignIn.signOut();
+
       if (mounted) {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (Route<dynamic> route) => false);
       }
     }
   }
@@ -218,7 +215,7 @@ class _UserDashboardState extends State<UserDashboard> {
     setState(() {
       _selectedIndex = index;
     });
-    // For narrow screens, close the drawer after selection
+    
     if (MediaQuery.of(context).size.width < 600 && Navigator.canPop(context)) {
       Navigator.pop(context);
     }
@@ -238,7 +235,7 @@ class _UserDashboardState extends State<UserDashboard> {
           backgroundColor: Theme.of(context).colorScheme.surface,
           appBar: AppBar(
             title: Text(_pageTitles[_selectedIndex]),
-            backgroundColor: Colors.teal,
+            backgroundColor: Colors.indigo,
             foregroundColor: Colors.white,
             actions: isLargeScreen
                 ? [
@@ -248,34 +245,30 @@ class _UserDashboardState extends State<UserDashboard> {
                       onPressed: _logout,
                     ),
                   ]
-                : null, // No actions for narrow screens, logout is in drawer
+                : null,
           ),
-          drawer: isLargeScreen
-              ? null
-              : _buildDrawer(context), // Only show drawer on narrow screens
+          drawer: isLargeScreen ? null : _buildDrawer(),
           body: Row(
             children: [
-              if (isLargeScreen)
-                _buildSideBar(context), // Show sidebar on large screens
+              if (isLargeScreen) _buildSideBar(),
               Expanded(
                 child: IndexedStack(
                   index: _selectedIndex,
                   children: _sections
-                      .where((s) =>
-                          s['isLogout'] != true) // Filter out logout for page stack
+                      .where((s) => s['isLogout'] != true)
                       .map<Widget>((s) => s['page'])
                       .toList(),
                 ),
               ),
             ],
           ),
-          floatingActionButton: null, // No FAB for any page now that MessagesPage handles its own chat initiation
+          floatingActionButton: null,
         );
       },
     );
   }
 
-  Widget _buildSideBar(BuildContext context) {
+  Widget _buildSideBar() {
     return StreamBuilder<List<AlertModel>>(
         stream: _firebaseService.getAlertsForRecipient(_auth.currentUser!.uid),
         builder: (context, snapshot) {
@@ -290,32 +283,7 @@ class _UserDashboardState extends State<UserDashboard> {
           leading: Column(
             children: [
               const SizedBox(height: 20),
-              CircleAvatar(
-                radius: 40,
-                backgroundImage:
-                    (_profileImageUrl != null && _profileImageUrl!.isNotEmpty)
-                        ? NetworkImage(_profileImageUrl!)
-                        : null,
-                child: (_profileImageUrl == null || _profileImageUrl!.isEmpty)
-                    ? const Icon(Icons.person, size: 40)
-                    : null,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _userName,
-                style: Theme.of(context).textTheme.titleMedium,
-                textAlign: TextAlign.center,
-              ),
-              // CORRECCIÓN: Usar _phone aquí
-              if (_phone.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4.0),
-                  child: Text(
-                    _phone,
-                    style: Theme.of(context).textTheme.bodySmall,
-                    textAlign: TextAlign.center,
-                  ),
-                ),
+              _buildHeader(),
               const SizedBox(height: 20),
               const Divider(),
             ],
@@ -338,28 +306,17 @@ class _UserDashboardState extends State<UserDashboard> {
     );
   }
 
-  Widget _buildDrawer(BuildContext context) {
+  Widget _buildDrawer() {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Drawer(
       child: Column(
         children: [
-          UserAccountsDrawerHeader(
-            accountName: Text(_userName),
-            // CORRECCIÓN: Usar _phone aquí combinado con el email
-            accountEmail: Text(_phone.isNotEmpty ? '$_userEmail\n$_phone' : _userEmail),
-            currentAccountPicture: CircleAvatar(
-              backgroundImage:
-                  (_profileImageUrl != null && _profileImageUrl!.isNotEmpty)
-                      ? NetworkImage(_profileImageUrl!)
-                      : null,
-              child: (_profileImageUrl == null || _profileImageUrl!.isEmpty)
-                  ? const Icon(Icons.person, size: 40, color: Colors.white)
-                  : null,
-            ),
+          DrawerHeader(
             decoration: BoxDecoration(
               color: colorScheme.primary,
             ),
+            child: _buildHeader(),
           ),
           Expanded(
             child: ListView.builder(

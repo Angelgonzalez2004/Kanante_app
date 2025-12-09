@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../main.dart'; // Para themeNotifier
-import '../login_screen.dart';
 import '../../theme/app_colors.dart'; // Added missing import
 
 class AdminSettingsPage extends StatefulWidget {
@@ -67,12 +66,6 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
       await _googleSignIn.signOut();
       
       _showSnackBar('¡Hasta luego! 👋', color: Colors.green, duration: const Duration(seconds: 3));
-      
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-      );
     }
   }
   
@@ -101,7 +94,6 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Cuenta eliminada con éxito.')),
           );
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
         }
       } on FirebaseAuthException catch (e) {
          if (mounted) {

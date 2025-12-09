@@ -4,7 +4,6 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:kanante_app/models/alert_model.dart';
 import 'package:kanante_app/services/firebase_service.dart';
-import '../login_screen.dart';
 import '../shared/home_page.dart';
 import '../shared/publication_feed_page.dart';
 import 'patients_page.dart';
@@ -81,7 +80,6 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
         'icon': Icons.dashboard_rounded,
         'page': HomePage(
           userName: _userData?['name'] ?? 'Profesional',
-          shortcutButtons: _buildProfessionalShortcuts(),
         )
       },
       {
@@ -149,50 +147,6 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
     ];
   }
 
-  List<Widget> _buildProfessionalShortcuts() {
-    // Indices basados en el orden de _sections (0:Inicio, 1:Feed, 2:Pacientes, etc.)
-    return [
-      _shortcutCard('Pacientes', Icons.people_alt_rounded, () => _onItemTapped(2)),
-      _shortcutCard('Citas', Icons.calendar_month_rounded, () => _onItemTapped(3)),
-      _shortcutCard('Mensajes', Icons.message_rounded, () => _onItemTapped(4)),
-      _shortcutCard('Publicaciones', Icons.article_rounded, () => _onItemTapped(5)),
-      _shortcutCard('Citas Agendadas', Icons.event_note_rounded, () => _onItemTapped(6)), // New shortcut for Appointments Reminder
-      _shortcutCard('Gestionar Disponibilidad', Icons.schedule_rounded, () => _onItemTapped(7)), // New shortcut for Availability
-      _shortcutCard('Mis Alertas', Icons.notifications_active, () => _onItemTapped(11)), // Updated index for Alerts
-    ];
-  }
-
-  Widget _shortcutCard(String title, IconData icon, VoidCallback onTap) {
-    return Card(
-      elevation: 4, // Increased elevation for a more premium look
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), // More rounded corners
-      color: Theme.of(context).cardColor, // Use theme's card color
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        splashColor: Theme.of(context).colorScheme.primary.withValues(alpha: (0.1 * 255).toDouble()), // Add splash effect
-        highlightColor: Theme.of(context).colorScheme.primary.withValues(alpha: (0.05 * 255).toDouble()), // Add highlight effect
-        child: Padding(
-          padding: const EdgeInsets.all(16.0), // Added padding
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 48, color: Theme.of(context).colorScheme.primary), // Larger icon, primary color
-              const SizedBox(height: 12),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold), // Use titleMedium
-                maxLines: 2, // Allow title to wrap
-                overflow: TextOverflow.ellipsis, // Add ellipsis for long titles
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _onItemTapped(int index) {
     // Verificación de seguridad: Si es el botón de logout, ejecutamos logout y NO cambiamos de página
     if (_sections[index]['isLogout'] == true) {
@@ -230,10 +184,29 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
         ],
       ),
     );
+
     if (confirm == true) {
+      if (!mounted) return;
+      // Show a confirmation message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cerrando sesión en 3 segundos...'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+
+      // Wait for 3 seconds
+      await Future.delayed(const Duration(seconds: 3));
+
+      // Sign out
       await _auth.signOut();
       await _googleSignIn.signOut();
-      if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+
+      // Navigate to Login screen and remove all previous routes
+      // Note: This conflicts with the AuthWrapper pattern, but is implemented as requested.
+      if (mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (Route<dynamic> route) => false);
+      }
     }
   }
 
@@ -274,6 +247,7 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
         title: Text(_sections[_selectedIndex]['title']),
         centerTitle: true,
         elevation: 2,
+        backgroundColor: Colors.indigo,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded),
@@ -304,6 +278,7 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
                   MaterialPageRoute(builder: (context) => const NewPublicationPage()),
                 );
               },
+              backgroundColor: Colors.indigo,
               child: const Icon(Icons.add),
             )
           : null, // No FAB for other pages
@@ -324,21 +299,7 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
           leading: Column(
             children: [
               const SizedBox(height: 20),
-              CircleAvatar(
-                radius: 40,
-                backgroundImage: (_userData?['profileImageUrl'] != null && _userData!['profileImageUrl'].isNotEmpty)
-                    ? NetworkImage(_userData!['profileImageUrl'])
-                    : null,
-                child: (_userData?['profileImageUrl'] == null || _userData!['profileImageUrl'].isEmpty)
-                    ? const Icon(Icons.psychology_alt_rounded, size: 40)
-                    : null,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _userData?['name'] ?? 'Profesional',
-                style: Theme.of(context).textTheme.titleMedium,
-                textAlign: TextAlign.center,
-              ),
+              _buildHeader(),
               const SizedBox(height: 20),
               const Divider(),
             ],
@@ -365,20 +326,11 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
     return Drawer(
       child: Column(
         children: [
-          UserAccountsDrawerHeader(
-            accountName: Text(_userData?['name'] ?? 'Profesional'),
-            accountEmail: Text(_userData?['email'] ?? ''),
-            currentAccountPicture: CircleAvatar(
-              backgroundImage: (_userData?['profileImageUrl'] != null && _userData!['profileImageUrl'].isNotEmpty)
-                  ? NetworkImage(_userData!['profileImageUrl'])
-                  : null,
-              child: (_userData?['profileImageUrl'] == null || _userData!['profileImageUrl'].isEmpty)
-                  ? const Icon(Icons.psychology_alt_rounded, size: 40)
-                  : null,
-            ),
+          DrawerHeader(
             decoration: BoxDecoration(
               color: colorScheme.primary,
             ),
+            child: _buildHeader(),
           ),
           Expanded(
             child: ListView.builder(
@@ -450,6 +402,28 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildHeader() {
+    final imageUrl = _userData?['profileImageUrl'] as String?;
+    final name = _userData?['name'] ?? 'Profesional';
+    final email = _userData?['email'] ?? '';
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          radius: 32,
+          backgroundImage: (imageUrl != null && imageUrl.isNotEmpty) ? NetworkImage(imageUrl) : null,
+          child: (imageUrl == null || imageUrl.isEmpty) ? const Icon(Icons.psychology_alt_rounded, size: 32, color: Colors.white) : null,
+          backgroundColor: Colors.white.withOpacity(0.3),
+        ),
+        const SizedBox(height: 12),
+        Text(name, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(email, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+      ],
     );
   }
 }

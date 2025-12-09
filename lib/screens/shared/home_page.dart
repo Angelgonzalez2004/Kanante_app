@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
   final String userName;
-  final List<Widget> shortcutButtons;
 
-  const HomePage({super.key, required this.userName, required this.shortcutButtons});
+  const HomePage({super.key, required this.userName});
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +26,9 @@ class HomePage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16.0),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: (0.08 * 255).toDouble()),
+                    color: Theme.of(context).colorScheme.primary.withAlpha((0.08 * 255).round()),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: (0.2 * 255).toDouble())),
+                    border: Border.all(color: Theme.of(context).colorScheme.primary.withAlpha((0.2 * 255).round())),
                   ),
                   child: Row(
                     children: [
@@ -45,19 +44,40 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text('Accesos Rápidos', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                Text('Novedades', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
-                GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 200, // Each item can have a max width of 200
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 1, // To keep items squarish
+                Card(
+                  clipBehavior: Clip.antiAlias,
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Nuevas Publicaciones', style: textTheme.titleMedium),
+                        const SizedBox(height: 8),
+                        Text('Descubre los últimos artículos y consejos de nuestros profesionales en el feed.', style: textTheme.bodyMedium),
+                      ],
+                    ),
                   ),
-                  itemCount: shortcutButtons.length,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemBuilder: (context, index) => shortcutButtons[index],
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  clipBehavior: Clip.antiAlias,
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Próximas Citas', style: textTheme.titleMedium),
+                        const SizedBox(height: 8),
+                        Text('No olvides revisar la sección de citas para ver tus próximas consultas agendadas.', style: textTheme.bodyMedium),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),

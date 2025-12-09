@@ -104,48 +104,125 @@ class SupportChatsTab extends StatelessWidget {
   }
 }
 
-class SupportTicketsTab extends StatelessWidget {
+class SupportTicketsTab extends StatefulWidget {
   const SupportTicketsTab({super.key});
 
   @override
+  State<SupportTicketsTab> createState() => _SupportTicketsTabState();
+}
+
+class _SupportTicketsTabState extends State<SupportTicketsTab> {
+  final FirebaseService firebaseService = FirebaseService();
+  String _selectedStatusFilter = 'all'; // 'all', 'open', 'in_progress', 'closed'
+  String _selectedPriorityFilter = 'all'; // 'all', 'low', 'medium', 'high'
+
+  @override
   Widget build(BuildContext context) {
-    final FirebaseService firebaseService = FirebaseService();
-    return StreamBuilder<List<SupportTicket>>(
-      stream: firebaseService.getSupportTickets(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No hay tickets de soporte.'));
-        }
-        final tickets = snapshot.data!;
-        return Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 900.0), // Max width for list on large screens
-            child: ListView.builder(
-              itemCount: tickets.length,
-              itemBuilder: (context, index) {
-                final ticket = tickets[index];
-                return ListTile(
-                  leading: Icon(ticket.status == 'open' ? Icons.folder_open : Icons.folder, color: ticket.status == 'open' ? Colors.blue : Colors.grey),
-                  title: Text(ticket.subject),
-                  subtitle: Text('De: ${ticket.userName ?? 'Anónimo'}'),
-                  trailing: Text(DateFormat('dd/MM/yy').format(ticket.createdAt)),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SupportTicketDetailScreen(ticket: ticket),
-                      ),
-                    );
-                  },
-                );
+    return Column(
+      children: [
+        _buildFilterOptions(),
+        Expanded(
+          child: StreamBuilder<List<SupportTicket>>(
+            stream: firebaseService.getSupportTickets(
+              statusFilter: _selectedStatusFilter,
+              priorityFilter: _selectedPriorityFilter,
+            ),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('No hay tickets de soporte.'));
+              }
+              final tickets = snapshot.data!;
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 900.0), // Max width for list on large screens
+                  child: ListView.builder(
+                    itemCount: tickets.length,
+                    itemBuilder: (context, index) {
+                      final ticket = tickets[index];
+                      return ListTile(
+                        leading: Icon(ticket.status == 'open' ? Icons.folder_open : Icons.folder, color: ticket.status == 'open' ? Colors.blue : Colors.grey),
+                        title: Text(ticket.subject),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('De: ${ticket.userName ?? 'Anónimo'} (${ticket.userRole ?? 'N/A'})'),
+                            Text('Prioridad: ${ticket.priority}'),
+                            Text('Asignado a: ${ticket.assignedTo ?? 'N/A'}'),
+                          ],
+                        ),
+                        trailing: Text(DateFormat('dd/MM/yy').format(ticket.createdAt)),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SupportTicketDetailScreen(ticket: ticket),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilterOptions() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Expanded(
+            child: DropdownButtonFormField<String>(
+              initialValue: _selectedStatusFilter,
+              decoration: const InputDecoration(
+                labelText: 'Estado',
+                border: OutlineInputBorder(),
+              ),
+              items: const [
+                DropdownMenuItem(value: 'all', child: Text('Todos')),
+                DropdownMenuItem(value: 'open', child: Text('Abiertos')),
+                DropdownMenuItem(value: 'in_progress', child: Text('En Progreso')),
+                DropdownMenuItem(value: 'closed', child: Text('Cerrados')),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedStatusFilter = value ?? 'all';
+                });
               },
             ),
           ),
-        );
-      },
+          const SizedBox(width: 8),
+          Expanded(
+            child: DropdownButtonFormField<String>(
+              initialValue: _selectedPriorityFilter,
+              decoration: const InputDecoration(
+                labelText: 'Prioridad',
+                border: OutlineInputBorder(),
+              ),
+              items: const [
+                DropdownMenuItem(value: 'all', child: Text('Todas')),
+                DropdownMenuItem(value: 'low', child: Text('Baja')),
+                DropdownMenuItem(value: 'medium', child: Text('Media')),
+                DropdownMenuItem(value: 'high', child: Text('Alta')),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedPriorityFilter = value ?? 'all';
+                });
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

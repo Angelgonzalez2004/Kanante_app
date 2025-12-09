@@ -11,6 +11,7 @@ class Publication {
   final int likes; // New field
   final List<String> likedBy; // New field
   final List<CommentModel> comments; // New field
+  final String status; // New field: e.g., 'pending', 'published', 'unpublished', 'rejected'
 
   // Fields to be populated after fetching
   String? authorName;
@@ -28,6 +29,7 @@ class Publication {
     this.likes = 0, // Default value
     this.likedBy = const [], // Default empty list
     this.comments = const [], // Default empty list
+    this.status = 'pending', // Default status
     this.authorName,
     this.authorImageUrl,
     this.authorVerificationStatus,
@@ -50,6 +52,7 @@ class Publication {
       comments: data['comments'] is Map
           ? (data['comments'] as Map<String, dynamic>).entries.map((e) => CommentModel.fromMap(e.key, Map<String, dynamic>.from(e.value))).toList()
           : [],
+      status: data['status'] ?? 'pending', // Parse new field
     );
   }
 
@@ -63,6 +66,7 @@ class Publication {
       'updatedAt': updatedAt?.millisecondsSinceEpoch,
       'likes': likes,
       'likedBy': likedBy,
+      'status': status, // Include new field
       // 'comments' are now a sub-collection, so we don't map them here.
     };
   }
