@@ -27,7 +27,7 @@ La aplicación está estructurada en tres roles principales:
 ## ✨ Características Principales
 
 *   **🚀 Flujo de Inicio de Aplicación Mejorado:** La aplicación ahora sigue un flujo claro de `Splash Screen` (logo) -> `Welcome Screen` (información atractiva) -> `Login Screen`. La `Welcome Screen` es la puerta de entrada principal para nuevos usuarios o aquellos que desean iniciar sesión, y la `Login Screen` permite regresar a la `Welcome Screen`.
-*   **🔐 Autenticación Multi-plataforma:** Registro e inicio de sesión con correo/contraseña y Google Sign-In, con flujos seguros y persistencia de sesión.
+*   **🔐 Autenticación Segura:** Registro e inicio de sesión únicamente con correo electrónico y contraseña, ofreciendo flujos seguros y persistencia de sesión.
 *   **🎨 Diseño Responsivo y Adaptativo:** Interfaz de usuario completamente responsiva que se adapta a móviles, tabletas y web, utilizando `LayoutBuilder` para cambiar entre menús laterales (`Drawer`) y barras de navegación persistentes (`NavigationRail`) para una experiencia de usuario óptima.
 *   **👤 Perfiles y Configuraciones Claramente Separados:**
     *   **Páginas de Perfil:** Dedicadas a la información de identidad del usuario (nombre, teléfono, foto de perfil, biografía, etc.). Ahora con campos editables como género, fecha de nacimiento (con selector de calendario), teléfono y RFC.
@@ -59,11 +59,10 @@ Hemos implementado una serie de mejoras significativas en la aplicación para en
     *   Se implementó un `AuthWrapper` robusto como punto de entrada único de la aplicación, centralizando la gestión del estado de autenticación y el redireccionamiento por roles.
     *   El `login_screen.dart` ha sido refactorizado para eliminar conflictos de navegación, permitiendo que el `AuthWrapper` controle de manera exclusiva el redireccionamiento post-autenticación.
     *   Se mitigaron las condiciones de carrera que causaban redirecciones intermitentes a la pantalla de bienvenida o a un estado de sesión inconsistente.
-    *   **Corrección de Redirección para Google Sign-In:** Se solucionó un problema donde los usuarios que iniciaban sesión con Google eran redirigidos incorrectamente a la pantalla de bienvenida en lugar de sus paneles de control basados en roles. Ahora, los roles se asignan y reconocen correctamente.
-    *   **Suspensión Temporal de Google Sign-In:** La opción de inicio de sesión con Google ha sido suspendida temporalmente de la interfaz de usuario en `LoginScreen` para enfocarse en la autenticación tradicional con correo y contraseña.
+    
 *   **✅ Estabilidad y Mantenimiento del Código:**
-    *   Resolución de todos los errores, advertencias y lints críticos reportados por `flutter analyze`, asegurando un código base más robusto y limpio.
-    *   **Limpieza de Código y Lints:** Se corrigieron errores de sintaxis (`expected_token`), uso de elementos deprecados (`withOpacity`), y problemas de orden de propiedades (`sort_child_properties_last`). Además, se eliminaron importaciones y declaraciones de código no utilizados para mantener la limpieza del proyecto.
+    *   **Resolución Completa de Problemas:** Se han resuelto todos los errores, advertencias y lints reportados por `flutter analyze`, garantizando un código base robusto, limpio y de alto rendimiento.
+    *   **Limpieza Profunda de Código:** Se corrigieron errores de sintaxis, uso de elementos deprecados, y problemas de orden de propiedades. Se eliminaron importaciones y declaraciones de código no utilizados, asegurando la máxima limpieza y eficiencia del proyecto.
 *   **¡Mejoras en la Experiencia de Usuario (UI/UX)!**
     *   **Dashboards Renovados:** Los dashboards de Usuario y Profesional han sido pulidos, con una tematización consistente (uso de `Colors.indigo` para un aspecto más profesional).
     *   **Cabeceras Consistentes:** Se implementaron cabeceras personalizadas y reutilizables en los `Drawer` y `NavigationRail` de los dashboards, proporcionando un diseño moderno y unificado.
@@ -87,7 +86,7 @@ Este proyecto está construido con una pila de tecnologías modernas para el des
 *   **Framework:** [Flutter](https://flutter.dev/)
 *   **Lenguaje:** [Dart](https://dart.dev/)
 *   **Backend:** [Firebase](https://firebase.google.com/)
-    *   **🔥 Autenticación:** Firebase Auth (Email/Password & Google Sign-In)
+    *   **🔥 Autenticación:** Firebase Auth (Correo/Contraseña)
     *   **🗄️ Base de Datos:** Firebase Realtime Database
     *   **📦 Almacenamiento:** Firebase Storage
 *   **Gestión de Estado:** [Provider](https://pub.dev/packages/provider)
@@ -111,7 +110,7 @@ Este proyecto requiere una configuración de Firebase para funcionar. **No podr�
 
 1.  **Crear un Proyecto en Firebase:**
     *   Ve a la [Consola de Firebase](https://console.firebase.google.com/) y crea un nuevo proyecto.
-    *   Habilita los siguientes servicios: **Authentication** (con proveedores de Email/Contraseña y Google), **Realtime Database**, y **Firebase Storage**.
+    *   Habilita los siguientes servicios: **Authentication** (con proveedor de Email/Contraseña), **Realtime Database**, y **Firebase Storage**.
 
 2.  **Configurar la App para Android:**
     *   En la configuración de tu proyecto de Firebase, añade una nueva aplicación de Android con el `package name`: `com.example.kanante_app`.
@@ -126,15 +125,7 @@ Este proyecto requiere una configuración de Firebase para funcionar. **No podr�
     *   En Firebase, añade una nueva aplicación de iOS con el `bundle ID`: `com.example.kananteApp`.
     *   Descarga el archivo `GoogleService-Info.plist` y colócalo en el directorio `ios/Runner/` de tu proyecto usando Xcode.
 
-4.  **Configurar la App para Web:**
-    *   En Firebase, añade una nueva aplicación Web.
-    *   Ve a la [Consola de Google Cloud](https://console.cloud.google.com/), selecciona tu proyecto, y en **APIs y servicios > Credenciales**, crea un nuevo **ID de cliente de OAuth 2.0** para "Aplicación web".
-    *   Copia el **ID de cliente** generado (un string que termina en `.apps.googleusercontent.com`).
-    *   Abre el archivo `web/index.html` y reemplaza el marcador de posición en la siguiente etiqueta meta:
-        ```html
-        <meta name="google-signin-client_id" content="YOUR_WEB_CLIENT_ID_HERE">
-        ```
-    *   **Habilitar People API:** En la consola de Google Cloud, ve a **APIs y servicios > Biblioteca** y busca y habilita la **People API**.
+
 
 ### Instalación
 
