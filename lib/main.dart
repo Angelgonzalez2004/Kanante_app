@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:firebase_app_check/firebase_app_check.dart';
-import 'package:firebase_messaging/firebase_messaging.dart'; // New import for FCM
-import 'package:firebase_auth/firebase_auth.dart'; // New import for current user
+// import 'package:firebase_app_check/firebase_app_check.dart'; // <--- COMENTADO PARA QUE NO SALGA EN AMARILLO
+import 'package:firebase_messaging/firebase_messaging.dart'; 
+import 'package:firebase_auth/firebase_auth.dart'; 
 import 'package:kanante_app/services/firebase_service.dart';
 import 'package:kanante_app/screens/shared/auth_wrapper.dart';
 import 'firebase_options.dart';
@@ -23,16 +23,17 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // --- CÓDIGO MODIFICADO ---
-  // Activamos el modo DEBUG para poder ver el token en la consola
-  // y registrarlo en Firebase.
+  // --- APP CHECK DESACTIVADO TEMPORALMENTE ---
+  // Comentado para evitar el error 403 y permitir el login en desarrollo.
+  /*
   await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.debug, // <--- IMPORTANTE: Modo Debug
-    appleProvider: AppleProvider.debug,     // <--- IMPORTANTE: Modo Debug para iOS también
+    androidProvider: AndroidProvider.debug, 
+    appleProvider: AppleProvider.debug,    
   );
-  // -----------------------
+  */
+  // -------------------------------------------
 
-  await initializeDateFormatting('es'); // Inicializar formato de fecha en español
+  await initializeDateFormatting('es'); 
   
   // --- FCM Token Handling ---
   final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
@@ -56,7 +57,6 @@ void main() async {
     String? token = await firebaseMessaging.getToken();
     if (token != null) {
       debugPrint('FCM Token: $token');
-      // Save token to current user's profile if logged in
       auth.authStateChanges().listen((User? user) {
         if (user != null) {
           firebaseService.updateUserProfile(user.uid, {'fcmToken': token});
@@ -65,7 +65,6 @@ void main() async {
       });
     }
 
-    // Listen for token refresh
     firebaseMessaging.onTokenRefresh.listen((String newToken) {
       debugPrint('FCM Token refreshed: $newToken');
       auth.authStateChanges().listen((User? user) {
@@ -79,45 +78,33 @@ void main() async {
     debugPrint('User declined or has not yet granted permission for notifications');
   }
 
-  // --- FCM Message Handling (Flutter side) ---
-  // Handle background messages
+  // --- FCM Message Handling ---
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  // Handle foreground messages
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     debugPrint('Got a message whilst in the foreground!');
-    debugPrint('Message data: ${message.data}');
-
     if (message.notification != null) {
       debugPrint('Message also contained a notification: ${message.notification}');
-      // Here you might want to show a local notification or update UI
     }
   });
 
-  // Handle interaction when the app is terminated and user taps on notification
   FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
     if (message != null) {
       debugPrint('Terminated app message: ${message.data}');
-      // Handle deep linking or specific actions based on notification data
     }
   });
 
-  // Handle interaction when the app is in background and user taps on notification
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
     debugPrint('App opened from background message: ${message.data}');
-    // Handle deep linking or specific actions based on notification data
   });
-  // --- End FCM Message Handling ---
   
   runApp(const MyApp());
 }
 
-// Top-level function for background messages
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   debugPrint('Handling a background message: ${message.messageId}');
-  // Perform any other background tasks here
 }
 
 class MyApp extends StatelessWidget {
@@ -166,7 +153,7 @@ class MyApp extends StatelessWidget {
             ),
           ),
           themeMode: currentTheme,
-          home: const AuthWrapper(), // AuthWrapper is the new initial screen
+          home: const AuthWrapper(), 
           routes: {
             '/welcome': (context) => const WelcomeScreen(), 
             '/login': (context) => const LoginScreen(),

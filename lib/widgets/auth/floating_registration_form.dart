@@ -187,12 +187,11 @@ class _FloatingRegistrationFormState extends State<FloatingRegistrationForm> {
                 prefixIcon: Icon(Icons.person_pin_outlined),
                 border: OutlineInputBorder(),
               ),
-              items: ['Usuario', 'Profesional', 'Admin'] // Added 'Admin'
-                  .map((role) => DropdownMenuItem(
-                        value: role,
-                        child: Text(role),
-                      ))
-                  .toList(),
+              items: const [
+                DropdownMenuItem(value: 'user', child: Text('Usuario')),
+                DropdownMenuItem(value: 'professional', child: Text('Profesional')),
+                DropdownMenuItem(value: 'admin', child: Text('Admin')),
+              ], // Added missing comma
               onChanged: _onAccountTypeChanged, // Changed to new handler
               validator: (value) =>
                   value == null ? 'Debes seleccionar un rol' : null,

@@ -417,8 +417,8 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
         CircleAvatar(
           radius: 32,
           backgroundImage: (imageUrl != null && imageUrl.isNotEmpty) ? NetworkImage(imageUrl) : null,
-          child: (imageUrl == null || imageUrl.isEmpty) ? const Icon(Icons.psychology_alt_rounded, size: 32, color: Colors.white) : null,
-          backgroundColor: Colors.white.withOpacity(0.3),
+          backgroundColor: Color.fromRGBO(255, 255, 255, 0.3), // Changed deprecated withOpacity
+          child: (imageUrl == null || imageUrl.isEmpty) ? const Icon(Icons.psychology_alt_rounded, size: 32, color: Colors.white) : null, // Moved child to last
         ),
         const SizedBox(height: 12),
         Text(name, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),

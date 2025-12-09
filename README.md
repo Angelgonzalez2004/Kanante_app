@@ -59,6 +59,11 @@ Hemos implementado una serie de mejoras significativas en la aplicación para en
     *   Se implementó un `AuthWrapper` robusto como punto de entrada único de la aplicación, centralizando la gestión del estado de autenticación y el redireccionamiento por roles.
     *   El `login_screen.dart` ha sido refactorizado para eliminar conflictos de navegación, permitiendo que el `AuthWrapper` controle de manera exclusiva el redireccionamiento post-autenticación.
     *   Se mitigaron las condiciones de carrera que causaban redirecciones intermitentes a la pantalla de bienvenida o a un estado de sesión inconsistente.
+    *   **Corrección de Redirección para Google Sign-In:** Se solucionó un problema donde los usuarios que iniciaban sesión con Google eran redirigidos incorrectamente a la pantalla de bienvenida en lugar de sus paneles de control basados en roles. Ahora, los roles se asignan y reconocen correctamente.
+    *   **Suspensión Temporal de Google Sign-In:** La opción de inicio de sesión con Google ha sido suspendida temporalmente de la interfaz de usuario en `LoginScreen` para enfocarse en la autenticación tradicional con correo y contraseña.
+*   **✅ Estabilidad y Mantenimiento del Código:**
+    *   Resolución de todos los errores, advertencias y lints críticos reportados por `flutter analyze`, asegurando un código base más robusto y limpio.
+    *   **Limpieza de Código y Lints:** Se corrigieron errores de sintaxis (`expected_token`), uso de elementos deprecados (`withOpacity`), y problemas de orden de propiedades (`sort_child_properties_last`). Además, se eliminaron importaciones y declaraciones de código no utilizados para mantener la limpieza del proyecto.
 *   **¡Mejoras en la Experiencia de Usuario (UI/UX)!**
     *   **Dashboards Renovados:** Los dashboards de Usuario y Profesional han sido pulidos, con una tematización consistente (uso de `Colors.indigo` para un aspecto más profesional).
     *   **Cabeceras Consistentes:** Se implementaron cabeceras personalizadas y reutilizables en los `Drawer` y `NavigationRail` de los dashboards, proporcionando un diseño moderno y unificado.
