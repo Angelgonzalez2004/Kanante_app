@@ -19,6 +19,26 @@ class FirebaseService {
 
   FirebaseStorage get storage => _storage;
 
+  // Helper function to safely cast Firebase data snapshots to Map<String, dynamic>
+  Map<String, dynamic>? _safeCastMap(dynamic value) {
+    if (value is Map) {
+      final Map<String, dynamic> newMap = {};
+      value.forEach((key, val) {
+        if (key is String) {
+          newMap[key] = val;
+        } else {
+          // Log if there's a non-string key, which would break Map<String, dynamic>
+          debugPrint('DEBUG: Non-string key found in map: $key');
+        }
+      });
+      return newMap;
+    }
+    // Log unexpected formats for debugging
+    debugPrint('DEBUG: Raw data from Firebase: $value');
+    debugPrint('DEBUG: Unexpected data format (not a Map): $value');
+    return null;
+  }
+
   // --- User Profile Methods ---
 
   Future<UserModel?> getUserProfile(String userId) async {
@@ -567,16 +587,18 @@ class FirebaseService {
 
   Future<List<ChatConversation>> getConversationsForProfessional(String professionalId) async {
     try {
-      final event = await _db.child('chats').orderByChild('participants/$professionalId').equalTo(true).once();
-      final snapshot = event.snapshot;
-      if (!snapshot.exists || snapshot.value == null) return [];
-
       final conversations = <ChatConversation>[];
-      final data = Map<String, dynamic>.from(snapshot.value as Map);
+      final data = _safeCastMap(snapshot.value); // Use safe cast helper
+
+      if (data == null) return []; // Return empty if casting failed
 
       for (final entry in data.entries) {
-        final chatData = Map<String, dynamic>.from(entry.value as Map);
-        conversations.add(ChatConversation.fromMap(entry.key, chatData));
+        final chatData = _safeCastMap(entry.value); // Use safe cast helper
+        if (chatData != null) {
+          conversations.add(ChatConversation.fromMap(entry.key, chatData));
+        } else {
+          debugPrint('DEBUG: chatData for key ${entry.key} is null after safeCastMap');
+        }
       }
 
       await Future.wait(conversations.map((convo) async {
@@ -603,11 +625,17 @@ class FirebaseService {
       if (!snapshot.exists || snapshot.value == null) return [];
 
       final conversations = <ChatConversation>[];
-      final data = Map<String, dynamic>.from(snapshot.value as Map);
+      final data = _safeCastMap(snapshot.value); // Use safe cast helper
+
+      if (data == null) return []; // Return empty if casting failed
 
       for (final entry in data.entries) {
-        final chatData = Map<String, dynamic>.from(entry.value as Map);
-        conversations.add(ChatConversation.fromMap(entry.key, chatData));
+        final chatData = _safeCastMap(entry.value); // Use safe cast helper
+        if (chatData != null) {
+          conversations.add(ChatConversation.fromMap(entry.key, chatData));
+        } else {
+          debugPrint('DEBUG: chatData for key ${entry.key} is null after safeCastMap');
+        }
       }
 
       await Future.wait(conversations.map((convo) async {
