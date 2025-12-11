@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
+
 import '../models/appointment_model.dart';
 import '../models/chat_model.dart';
 import '../models/message_model.dart';
@@ -10,8 +13,6 @@ import '../models/support_ticket_model.dart';
 import '../models/alert_model.dart';
 import '../models/comment_model.dart';
 import '../models/review_model.dart';
-import 'package:flutter/foundation.dart';
-import 'package:intl/intl.dart';
 
 class FirebaseService {
   final DatabaseReference _db = FirebaseDatabase.instance.ref();
@@ -27,15 +28,16 @@ class FirebaseService {
         if (key is String) {
           newMap[key] = val;
         } else {
-          // Log if there's a non-string key, which would break Map<String, dynamic>
           debugPrint('DEBUG: Non-string key found in map: $key');
         }
       });
       return newMap;
     }
     // Log unexpected formats for debugging
-    debugPrint('DEBUG: Raw data from Firebase: $value');
-    debugPrint('DEBUG: Unexpected data format (not a Map): $value');
+    if (value != null) {
+      debugPrint('DEBUG: Raw data from Firebase: $value');
+      debugPrint('DEBUG: Unexpected data format (not a Map): $value');
+    }
     return null;
   }
 
@@ -588,12 +590,18 @@ class FirebaseService {
   Future<List<ChatConversation>> getConversationsForProfessional(String professionalId) async {
     try {
       final conversations = <ChatConversation>[];
-      final data = _safeCastMap(snapshot.value); // Use safe cast helper
+      // FIX: Added missing database query to get 'snapshot'
+      final event = await _db.child('chats').orderByChild('participants/$professionalId').equalTo(true).once();
+      final snapshot = event.snapshot;
 
-      if (data == null) return []; // Return empty if casting failed
+      if (!snapshot.exists || snapshot.value == null) return [];
+
+      final data = _safeCastMap(snapshot.value); 
+
+      if (data == null) return []; 
 
       for (final entry in data.entries) {
-        final chatData = _safeCastMap(entry.value); // Use safe cast helper
+        final chatData = _safeCastMap(entry.value); 
         if (chatData != null) {
           conversations.add(ChatConversation.fromMap(entry.key, chatData));
         } else {
@@ -625,12 +633,12 @@ class FirebaseService {
       if (!snapshot.exists || snapshot.value == null) return [];
 
       final conversations = <ChatConversation>[];
-      final data = _safeCastMap(snapshot.value); // Use safe cast helper
+      final data = _safeCastMap(snapshot.value); 
 
-      if (data == null) return []; // Return empty if casting failed
+      if (data == null) return []; 
 
       for (final entry in data.entries) {
-        final chatData = _safeCastMap(entry.value); // Use safe cast helper
+        final chatData = _safeCastMap(entry.value);
         if (chatData != null) {
           conversations.add(ChatConversation.fromMap(entry.key, chatData));
         } else {
@@ -659,7 +667,7 @@ class FirebaseService {
   Future<int> getUnreadMessageCountForUser(String userId) async {
     try {
       int unreadCount = 0;
-      final conversations = await getConversationsForUser(userId); // Use existing method
+      final conversations = await getConversationsForUser(userId); 
       for (var convo in conversations) {
         final messagesRef = _db.child('messages/${convo.id}').orderByChild('timestamp').limitToLast(1);
         final event = await messagesRef.once();
@@ -809,7 +817,6 @@ class FirebaseService {
         return null;
       }
 
-      // CORREGIDO: Se eliminó "?? 0.0" ya que 'rating' no es nulo
       final double totalRating = reviews.fold(0.0, (sum, review) => sum + review.rating);
       
       return totalRating / reviews.length;

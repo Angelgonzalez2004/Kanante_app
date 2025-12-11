@@ -202,8 +202,12 @@ class _AdminHomePageState extends State<AdminHomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: Theme.of(context).textTheme.titleMedium),
-                  Text(value, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: color)),
+                  Flexible( // Make title flexible
+                    child: Text(title, style: Theme.of(context).textTheme.titleMedium, overflow: TextOverflow.ellipsis),
+                  ),
+                  Flexible( // Make value flexible
+                    child: Text(value, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: color), overflow: TextOverflow.ellipsis),
+                  ),
                 ],
               ),
             ),

@@ -35,7 +35,7 @@ class FaqData {
       {'q': '¿Quién puede ver mi perfil?', 'a': 'Tu perfil básico (nombre y foto) es visible para los profesionales con los que interactúas, pero tu información de contacto es privada.'},
       {'q': '¿Cómo cierro sesión de forma segura?', 'a': 'Puedes cerrar sesión desde el menú principal o desde la pantalla de "Ajustes".'},
       {'q': '¿Qué hago si encuentro un error en la app?', 'a': 'Puedes reportarlo a través de la sección "Ayuda y Soporte" > "Enviar Queja o Sugerencia". ¡Agradecemos tu ayuda!'},
-      {'q': '¿Cómo puedo buscar soporte técnico?', 'a': 'Si no encuentras respuesta aquí, puedes usar la sección "Soporte" para contactarnos directamente.'} // New question
+      {'q': '¿Cómo puedo buscar soporte técnico?', 'a': 'Si no encuentras respuesta aquí, puedes usar la sección "Soporte" para contactarnos directamente.'} 
     ],
     'Resolución de Problemas': [
       {'q': '¿La app se siente lenta o no carga?', 'a': 'Intenta cerrar la aplicación completamente y volver a abrirla. También, asegúrate de tener una conexión a internet estable. Si el problema persiste, contacta a soporte.'},
@@ -59,9 +59,9 @@ class FaqData {
       {'q': '¿Qué pasa si mis credenciales son de otro país?', 'a': 'Nuestro equipo evaluará las credenciales internacionales caso por caso. Asegúrate de que sean legibles y oficiales.'},
     ],
     'Gestión de la Práctica': [
-      {'q': '¿Cómo creo una nueva publicación?', 'a': 'Ve a la sección "Publicaciones" y toca el botón "+". Podrás añadir un título, contenido de texto, imágenes y hashtags.'}, // Updated answer
+      {'q': '¿Cómo creo una nueva publicación?', 'a': 'Ve a la sección "Publicaciones" y toca el botón "+". Podrás añadir un título, contenido de texto, imágenes y hashtags.'}, 
       {'q': '¿Puedo editar una publicación ya hecha?', 'a': 'Sí, en la lista de "Mis Publicaciones", cada una tiene un botón de editar que te permitirá modificarla y guardarla de nuevo.'},
-      {'q': '¿Cómo puedo añadir y gestionar hashtags?', 'a': 'Al crear o editar una publicación, encontrarás un campo específico para hashtags. Sepáralos por comas. Los hashtags ayudan a que tus publicaciones sean más descubribles.'}, // New question
+      {'q': '¿Cómo puedo añadir y gestionar hashtags?', 'a': 'Al crear o editar una publicación, encontrarás un campo específico para hashtags. Sepáralos por comas. Los hashtags ayudan a que tus publicaciones sean más descubribles.'}, 
       {'q': '¿Cómo gestiono mi disponibilidad para citas?', 'a': 'En la sección "Citas" o "Ajustes", podrás configurar tu calendario, establecer tus horarios de trabajo y bloquear horas no disponibles.'},
       {'q': '¿Cómo confirmo o rechazo una solicitud de cita?', 'a': 'Las nuevas solicitudes de cita aparecerán en tu panel de "Citas" con opciones para aceptarlas o rechazarlas. El usuario será notificado automáticamente.'},
       {'q': '¿Qué herramientas tengo para las consultas?', 'a': 'La plataforma integra un chat seguro para mensajería y la opción de realizar videollamadas para consultas en tiempo real.'},
@@ -83,11 +83,12 @@ class FaqData {
       {'q': '¿Qué hago si un paciente cancela a último minuto?', 'a': 'Puedes establecer tus propias políticas de cancelación en tu perfil. La plataforma te permitirá aplicar cargos según tus políticas (función en desarrollo).'},
       {'q': '¿Puedo exportar mis datos?', 'a': 'Estamos trabajando en una función para que puedas exportar tu historial de citas y datos financieros. Estará disponible próximamente.'},
     ],
-     'Crecimiento y Visibilidad': [
+    'Crecimiento y Visibilidad': [
       {'q': '¿Cómo puedo conseguir más pacientes?', 'a': 'Publicar contenido de calidad y relevante en el feed es la mejor manera de aumentar tu visibilidad. También, asegúrate de que tu perfil esté completo y sea atractivo.'},
       {'q': '¿Puedo promocionar mis servicios fuera de la app?', 'a': 'Puedes mencionar tu perfil de Kananté en tus redes sociales, pero no está permitido usar el chat de la app para llevar pacientes a tu consulta privada externa.'},
       {'q': '¿Cómo funcionan las valoraciones?', 'a': 'Después de una cita completada, los usuarios pueden dejar una valoración de 1 a 5 estrellas y un comentario. Un buen promedio de valoración mejora tu posición en los resultados de búsqueda.'},
-      {'q': '¿Hay alguna forma de destacar mi perfil?', 'a': 'Actualmente, ofrecemos visibilidad basada en la completitud del perfil y la calidad de tus publicaciones. Estamos explorando opciones de promoción destacada para futuras versiones.'}, // New question
+      {'q': '¿Hay alguna forma de destacar mi perfil?', 'a': 'Actualmente, ofrecemos visibilidad basada en la completitud del perfil y la calidad de tus publicaciones. Estamos explorando opciones de promoción destacada para futuras versiones.'}, 
+    ],
   };
 
   static const Map<String, List<Map<String, String>>> forAdmin = {
@@ -126,7 +127,7 @@ class FaqData {
       {'q': '¿El rol de administrador es el mismo que el de un profesional?', 'a': 'No. Son roles completamente separados con permisos y vistas diferentes. Un administrador no puede actuar como profesional a menos que tenga una cuenta separada para ello.'},
       {'q': '¿Puedo buscar a un usuario específico?', 'a': 'Sí, la pantalla "Gestionar Cuentas" incluye una barra de búsqueda para encontrar usuarios por nombre o correo electrónico.'},
       {'q': '¿Las acciones de administrador quedan registradas?', 'a': 'Sí, las acciones críticas como eliminar cuentas o aprobar verificaciones quedan registradas en un log interno para auditoría.'},
-      {'q': '¿Hay herramientas para monitorear la actividad del usuario?', 'a': 'Actualmente, puedes ver el estado y tipo de cuenta de los usuarios en "Gestionar Cuentas". Estamos desarrollando herramientas de monitoreo más avanzadas para auditorías de actividad.'}, // New question
+      {'q': '¿Hay herramientas para monitorear la actividad del usuario?', 'a': 'Actualmente, puedes ver el estado y tipo de cuenta de los usuarios en "Gestionar Cuentas". Estamos desarrollando herramientas de monitoreo más avanzadas para auditorías de actividad.'}, 
     ],
     'Seguridad y Políticas': [
       {'q': '¿Qué hacer ante un reporte de abuso de un usuario?', 'a': 'Investiga el caso desde "Gestionar Cuentas". Revisa los perfiles y, si es necesario, los chats de soporte. Toma la acción apropiada, que puede ir desde una advertencia hasta la eliminación de la cuenta.'},
