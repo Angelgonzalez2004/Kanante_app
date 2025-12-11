@@ -145,16 +145,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
           backgroundColor: Colors.white,
           child: Icon(Icons.admin_panel_settings, size: 32, color: Colors.indigo),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 8), // Keep a bit of space after avatar
         Text(name,
             style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
                 fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2), // Reduced spacing
         Text(email,
             style: const TextStyle(color: Colors.white70, fontSize: 14)),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4), // Reduced spacing
         Chip(
           label: Text(role,
               style: TextStyle(
