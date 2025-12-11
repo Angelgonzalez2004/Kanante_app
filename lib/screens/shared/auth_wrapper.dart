@@ -62,19 +62,21 @@ class _RoleBasedRedirectState extends State<RoleBasedRedirect> {
         }
 
         final user = userSnapshot.data!;
+        final String lowercasedAccountType = user.accountType.toLowerCase();
         debugPrint('AuthWrapper: User profile found. User ID: ${user.id}, Account Type: ${user.accountType}');
-        switch (user.accountType) {
+        debugPrint('AuthWrapper: Lowercased Account Type for switch: "$lowercasedAccountType"'); // Added for debugging
+        switch (lowercasedAccountType) { // Use the lowercased variable for comparison
           case 'admin':
             debugPrint('AuthWrapper: Navigating to AdminDashboard for user ID: ${user.id}');
             return const AdminDashboard();
-          case 'professional':
+          case 'profesional': // Changed to Spanish lowercase
             debugPrint('AuthWrapper: Navigating to ProfessionalDashboard for user ID: ${user.id}');
             return const ProfessionalDashboard();
-          case 'user':
+          case 'usuario': // Changed to Spanish lowercase
             debugPrint('AuthWrapper: Navigating to UserDashboard for user ID: ${user.id}');
             return const UserDashboard();
           default:
-            debugPrint('AuthWrapper: Unknown account type "${user.accountType}" for user ID: ${user.id}. Navigating to WelcomeScreen.');
+            debugPrint('AuthWrapper: Unknown account type "${user.accountType}" (Lowercased: "$lowercasedAccountType") for user ID: ${user.id}. Navigating to WelcomeScreen.');
             return const WelcomeScreen(); // Fallback for unknown roles
         }
       },
