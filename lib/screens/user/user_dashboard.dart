@@ -141,6 +141,7 @@ class _UserDashboardState extends State<UserDashboard> {
   // _shortcutCard has been removed as it was unused.
 
   Widget _buildHeader() {
+    final role = _userName == 'Usuario' ? 'Paciente' : 'Usuario'; // Assuming default 'Usuario' means patient
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,6 +158,8 @@ class _UserDashboardState extends State<UserDashboard> {
         ),
         const SizedBox(height: 12),
         Text(_userName, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4), // Added spacing for role
+        Text(role, style: const TextStyle(color: Colors.white70, fontSize: 14)), // Display role
         Text(_phone.isNotEmpty ? _phone : _userEmail, style: const TextStyle(color: Colors.white70, fontSize: 14)),
       ],
     );
