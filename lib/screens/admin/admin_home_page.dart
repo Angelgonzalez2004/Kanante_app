@@ -198,12 +198,14 @@ class _AdminHomePageState extends State<AdminHomePage> {
           children: [
             Icon(icon, size: 40, color: color),
             const SizedBox(width: 20),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: Theme.of(context).textTheme.titleMedium),
-                Text(value, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: color)),
-              ],
+            Expanded( // Wrap Column with Expanded
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: Theme.of(context).textTheme.titleMedium),
+                  Text(value, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: color)),
+                ],
+              ),
             ),
           ],
         ),
