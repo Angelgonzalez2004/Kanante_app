@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kanante_app/services/firebase_service.dart';
-import 'package:kanante_app/models/appointment_model.dart';
-import 'package:kanante_app/models/chat_model.dart';
-import 'package:kanante_app/models/review_model.dart';
 import 'package:kanante_app/theme/app_colors.dart';
 
 class ProfessionalHomePage extends StatefulWidget {

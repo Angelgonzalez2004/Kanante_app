@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kanante_app/services/firebase_service.dart';
-import 'package:kanante_app/models/appointment_model.dart';
 import 'package:kanante_app/models/publication_model.dart';
 import 'package:kanante_app/theme/app_colors.dart';
 import 'package:kanante_app/screens/user/professional_search_page.dart'; // To navigate to search
@@ -143,7 +142,7 @@ class _UserHomePageState extends State<UserHomePage> {
                             child: ListTile(
                               leading: const Icon(Icons.article_outlined),
                               title: Text(pub.title),
-                              subtitle: Text(pub.content.toString().substring(0, pub.content.toString().length > 50 ? 50 : pub.content.toString().length) + '...'),
+                              subtitle: Text('${pub.content.toString().substring(0, pub.content.toString().length > 50 ? 50 : pub.content.toString().length)}...'),
                               onTap: () {
                                 // Navigate to publication detail page
                               },

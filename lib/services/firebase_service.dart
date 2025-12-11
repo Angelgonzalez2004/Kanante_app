@@ -449,6 +449,40 @@ class FirebaseService {
     }
   }
 
+  // --- New method: Get upcoming appointments for a professional ---
+  Future<List<Appointment>> getUpcomingAppointmentsForProfessional(String professionalId) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final event = await _db
+          .child('appointments')
+          .orderByChild('professionalUid')
+          .equalTo(professionalId)
+          .once();
+      final snapshot = event.snapshot;
+      if (!snapshot.exists || snapshot.value == null) return [];
+
+      final appointmentsData = Map<String, dynamic>.from(snapshot.value as Map);
+      final List<Appointment> appointments = [];
+      for (var entry in appointmentsData.entries) {
+        final appointment = Appointment.fromMap(entry.key, Map<String, dynamic>.from(entry.value as Map));
+        if (appointment.dateTime.millisecondsSinceEpoch > now) { // Filter for upcoming
+          appointments.add(appointment);
+        }
+      }
+
+      await Future.wait(appointments.map((appointment) async {
+        final patient = await getUserProfile(appointment.patientUid);
+        appointment.patientName = patient?.name ?? 'Paciente Desconocido';
+      }));
+
+      appointments.sort((a, b) => a.dateTime.compareTo(b.dateTime)); // Sort by date ascending
+      return appointments;
+    } catch (e) {
+      debugPrint("Error fetching upcoming appointments for professional: $e");
+      return [];
+    }
+  }
+
   Future<void> requestAppointment(String professionalUid, String patientUid, DateTime dateTime) async {
     final appointmentRef = _db.child('appointments').push();
     await appointmentRef.set({
@@ -491,6 +525,40 @@ class FirebaseService {
       return appointments;
     } catch (e) {
       debugPrint("Error fetching appointments for user: $e");
+      return [];
+    }
+  }
+
+  // --- New method: Get upcoming appointments for a user ---
+  Future<List<Appointment>> getUpcomingAppointmentsForUser(String userId) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final event = await _db
+          .child('appointments')
+          .orderByChild('patientUid')
+          .equalTo(userId)
+          .once();
+      final snapshot = event.snapshot;
+      if (!snapshot.exists || snapshot.value == null) return [];
+
+      final appointmentsData = Map<String, dynamic>.from(snapshot.value as Map);
+      final List<Appointment> appointments = [];
+      for (var entry in appointmentsData.entries) {
+        final appointment = Appointment.fromMap(entry.key, Map<String, dynamic>.from(entry.value as Map));
+        if (appointment.dateTime.millisecondsSinceEpoch > now) { // Filter for upcoming
+          appointments.add(appointment);
+        }
+      }
+
+      await Future.wait(appointments.map((appointment) async {
+        final professional = await getUserProfile(appointment.professionalUid);
+        appointment.professionalName = professional?.name ?? 'Profesional Desconocido';
+      }));
+
+      appointments.sort((a, b) => a.dateTime.compareTo(b.dateTime)); // Sort by date ascending
+      return appointments;
+    } catch (e) {
+      debugPrint("Error fetching upcoming appointments for user: $e");
       return [];
     }
   }
@@ -556,6 +624,33 @@ class FirebaseService {
     } catch (e) {
       debugPrint("Error fetching conversations for user: $e");
       return [];
+    }
+  }
+
+  // --- New method: Get unread message count for a user (heuristic) ---
+  Future<int> getUnreadMessageCountForUser(String userId) async {
+    try {
+      int unreadCount = 0;
+      final conversations = await getConversationsForUser(userId); // Use existing method
+      for (var convo in conversations) {
+        final messagesRef = _db.child('messages/${convo.id}').orderByChild('timestamp').limitToLast(1);
+        final event = await messagesRef.once();
+        final snapshot = event.snapshot;
+
+        if (snapshot.exists && snapshot.value != null) {
+          final messagesData = Map<String, dynamic>.from(snapshot.value as Map);
+          final lastMessageEntry = messagesData.entries.first;
+          final lastMessage = Message.fromMap(lastMessageEntry.key, Map<String, dynamic>.from(lastMessageEntry.value as Map));
+
+          if (lastMessage.senderId != userId) {
+            unreadCount++;
+          }
+        }
+      }
+      return unreadCount;
+    } catch (e) {
+      debugPrint("Error fetching unread message count: $e");
+      return 0;
     }
   }
 
