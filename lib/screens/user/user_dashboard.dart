@@ -4,7 +4,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:kanante_app/models/alert_model.dart';
 import 'package:kanante_app/services/firebase_service.dart';
-import '../shared/home_page.dart';
+import 'package:kanante_app/screens/user/user_home_page.dart'; // Import for UserHomePage
 import '../shared/publication_feed_page.dart';
 import 'user_profile_page.dart';
 import 'user_settings_page.dart';
@@ -23,7 +23,6 @@ class UserDashboard extends StatefulWidget {
 
 class _UserDashboardState extends State<UserDashboard> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();
   final FirebaseService _firebaseService = FirebaseService();
 
@@ -31,7 +30,7 @@ class _UserDashboardState extends State<UserDashboard> {
   String _userEmail = '';
   String _phone = '';
   String? _profileImageUrl;
-  int _selectedIndex = 1; // Default to 'Feed de Contenido'
+  int _selectedIndex = 0; // Default to 'Inicio' (UserHomePage)
 
   late final List<Map<String, dynamic>> _sections;
   late final List<String> _pageTitles;
@@ -88,7 +87,7 @@ class _UserDashboardState extends State<UserDashboard> {
       {
         'title': _pageTitles[0],
         'icon': Icons.home,
-        'page': HomePage(
+        'page': UserHomePage( // Changed to UserHomePage
           userName: _userName,
         )
       },
@@ -199,7 +198,6 @@ class _UserDashboardState extends State<UserDashboard> {
       await Future.delayed(const Duration(seconds: 3));
 
       await _auth.signOut();
-      await _googleSignIn.signOut();
 
       if (mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil('/login', (Route<dynamic> route) => false);

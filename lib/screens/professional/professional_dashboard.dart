@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:kanante_app/models/alert_model.dart';
 import 'package:kanante_app/services/firebase_service.dart';
-import '../shared/home_page.dart';
+import 'package:kanante_app/screens/professional/professional_home_page.dart'; // Import for ProfessionalHomePage
 import '../shared/publication_feed_page.dart';
 import 'patients_page.dart';
 import 'appointments_page.dart';
@@ -76,7 +76,7 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
       {
         'title': 'Inicio',
         'icon': Icons.dashboard_rounded,
-        'page': HomePage(
+        'page': ProfessionalHomePage( // Changed to ProfessionalHomePage
           userName: _userData?['name'] ?? 'Profesional',
         )
       },
