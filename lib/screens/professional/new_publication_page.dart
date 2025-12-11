@@ -17,7 +17,8 @@ class NewPublicationPage extends StatefulWidget {
 
 class _NewPublicationPageState extends State<NewPublicationPage> {
   final _titleController = TextEditingController();
-  final QuillController _contentController = QuillController.basic();
+  final TextEditingController _contentController = TextEditingController(); // Changed to TextEditingController
+  final TextEditingController _hashtagsController = TextEditingController(); // New controller for hashtags
   final _db = FirebaseDatabase.instance.ref();
   final _auth = FirebaseAuth.instance;
   final _storage = FirebaseStorage.instance;
@@ -38,6 +39,7 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
   void dispose() {
     _titleController.dispose();
     _contentController.dispose();
+    _hashtagsController.dispose(); // Dispose new controller
     _imageUrlController.dispose();
     super.dispose();
   }
@@ -49,7 +51,10 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
       if (snapshot.exists) {
         final data = Map<String, dynamic>.from(snapshot.value as Map);
         _titleController.text = data['title'];
-        _contentController.document = Document.fromJson(data['content']);
+        _contentController.text = data['content'] as String? ?? ''; // Load as plain text
+        if (data['hashtags'] != null) {
+          _hashtagsController.text = (data['hashtags'] as List<dynamic>).join(', '); // Load hashtags
+        }
         if (data['attachments'] != null) {
           setState(() {
             _attachments.addAll(List<String>.from(data['attachments']));
@@ -239,7 +244,7 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
     final user = _auth.currentUser;
     if (user == null) return;
 
-    if (_titleController.text.isEmpty || _contentController.document.isEmpty()) {
+    if (_titleController.text.isEmpty || _contentController.text.isEmpty) { // Check plain text content
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor, ingresa un título y contenido.')),
@@ -251,13 +256,20 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
 
     try {
       final attachmentUrls = await _uploadAttachments();
+      // Parse hashtags
+      final List<String> hashtags = _hashtagsController.text
+          .split(',')
+          .map((tag) => tag.trim())
+          .where((tag) => tag.isNotEmpty)
+          .toList();
 
       final publicationData = {
         'professionalUid': user.uid,
         'title': _titleController.text.trim(),
-        'content': _contentController.document.toDelta().toJson(),
+        'content': _contentController.text, // Save as plain text
         'createdAt': ServerValue.timestamp,
         'attachments': attachmentUrls,
+        'hashtags': hashtags, // Save hashtags
       };
 
       if (widget.publicationId == null) {
@@ -314,36 +326,29 @@ class _NewPublicationPageState extends State<NewPublicationPage> {
                       SizedBox(height: size.height * 0.03), // Responsive spacing
                       _buildAttachmentsSection(),
                       SizedBox(height: size.height * 0.03), // Responsive spacing
-                      Text('Contenido de la publicación', style: Theme.of(context).textTheme.titleLarge),
-                      SizedBox(height: size.height * 0.01), // Responsive spacing
-                      Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        child: Column(
-                          children: [
-                            QuillToolbar.simple(
-                              configurations: QuillSimpleToolbarConfigurations(
-                                controller: _contentController,
-                                sharedConfigurations: const QuillSharedConfigurations(
-                                  locale: Locale('es'),
-                                ),
-                              ),
-                            ),
-                            const Divider(height: 1),
-                            SizedBox(
-                              height: size.height * 0.4, // Responsive height
-                              child: QuillEditor.basic(
-                                configurations: QuillEditorConfigurations(
-                                  controller: _contentController,
-                                  padding: const EdgeInsets.all(16),
-                                  sharedConfigurations: const QuillSharedConfigurations(
-                                    locale: Locale('es'),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                      // Content input
+                      TextFormField(
+                        controller: _contentController,
+                        maxLines: null, // Allows multiline input
+                        minLines: 5,   // Starts with 5 lines
+                        decoration: const InputDecoration(
+                          labelText: 'Contenido de la publicación',
+                          hintText: 'Escribe aquí tu publicación...',
+                          border: OutlineInputBorder(),
+                          alignLabelWithHint: true,
                         ),
+                        keyboardType: TextInputType.multiline,
+                      ),
+                      SizedBox(height: size.height * 0.03), // Responsive spacing
+                      // Hashtags input
+                      TextFormField(
+                        controller: _hashtagsController,
+                        decoration: const InputDecoration(
+                          labelText: 'Hashtags',
+                          hintText: 'Ej: #salud, #bienestar, #nutricion',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.text,
                       ),
                     ],
                   ),
