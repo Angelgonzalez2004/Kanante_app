@@ -8,12 +8,13 @@ import 'support_center_screen.dart';
 import '../shared/faq_screen.dart'; 
 import 'package:kanante_app/data/faq_data.dart';
 
-import 'admin_profile_page.dart'; 
-import 'admin_settings_page.dart'; 
-import 'admin_messages_page.dart'; 
-import 'admin_account_management_page.dart'; 
-import 'admin_analytics_screen.dart'; 
-import '../shared/publication_feed_page.dart'; 
+import 'admin_profile_page.dart';
+import 'admin_settings_page.dart';
+import 'admin_messages_page.dart';
+import 'admin_account_management_page.dart';
+import 'admin_analytics_screen.dart';
+import '../shared/publication_feed_page.dart';
+import 'admin_home_page.dart'; // Import for AdminHomePage
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -26,10 +27,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  int _selectedIndex = 0; 
+  int _selectedIndex = 0;
 
   late final List<Widget> _pages;
   final List<String> _pageTitles = const [
+    'Inicio', // New 'Inicio' page
     'Verificar Profesionales',
     'Supervisar Publicaciones',
     'Centro de Soporte',
@@ -38,25 +40,24 @@ class _AdminDashboardState extends State<AdminDashboard> {
     'Mi Perfil (Admin)',
     'Configuración (Admin)',
     'Gestionar Cuentas',
-    'Análisis y Reportes', 
+    'Análisis y Reportes',
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _pages = const [
-      VerificationsPage(),
-      PublicationFeedPage(), 
-      SupportCenterScreen(),
-      FaqScreen(faqData: FaqData.forAdmin),
-      AdminMessagesPage(), 
-      AdminProfilePage(), 
-      AdminSettingsPage(), 
-      AdminAccountManagementPage(), 
-      AdminAnalyticsScreen(), 
-    ];
-  }
-
+    @override
+    void initState() {
+      super.initState();
+      _pages = const [
+        AdminHomePage(), // New 'Inicio' page
+        VerificationsPage(),
+        PublicationFeedPage(),
+        SupportCenterScreen(),
+        FaqScreen(faqData: FaqData.forAdmin),
+        AdminMessagesPage(),
+        AdminProfilePage(),
+        AdminSettingsPage(),
+        AdminAccountManagementPage(),
+        AdminAnalyticsScreen(),
+      ];
+    }
   Future<void> _signOut() async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -132,45 +133,49 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     });
                   },
                   labelType: NavigationRailLabelType.all,
-                  destinations: const <NavigationRailDestination>[
-                    NavigationRailDestination(
-                      icon: Icon(Icons.verified_user_outlined),
-                      label: Text('Verificar Profesionales'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.article_outlined),
-                      label: Text('Supervisar Publicaciones'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.support_agent),
-                      label: Text('Centro de Soporte'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.question_answer_outlined),
-                      label: Text('Preguntas Frecuentes'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.message_outlined),
-                      label: Text('Mensajes'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.person_outline),
-                      label: Text('Mi Perfil (Admin)'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.settings_outlined),
-                      label: Text('Configuración (Admin)'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.people),
-                      label: Text('Gestionar Cuentas'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.analytics), 
-                      label: Text('Análisis y Reportes'),
-                    ),
-                  ],
-                ),
+                                    destinations: <NavigationRailDestination>[
+                                      // New 'Inicio' destination
+                                      NavigationRailDestination(
+                                        icon: Icon(Icons.home_filled),
+                                        label: Text(_pageTitles[0]),
+                                      ),
+                                      NavigationRailDestination(
+                                        icon: Icon(Icons.verified_user_outlined),
+                                        label: Text(_pageTitles[1]),
+                                      ),
+                                      NavigationRailDestination(
+                                        icon: Icon(Icons.article_outlined),
+                                        label: Text(_pageTitles[2]),
+                                      ),
+                                      NavigationRailDestination(
+                                        icon: Icon(Icons.support_agent),
+                                        label: Text(_pageTitles[3]),
+                                      ),
+                                      NavigationRailDestination(
+                                        icon: Icon(Icons.question_answer_outlined),
+                                        label: Text(_pageTitles[4]),
+                                      ),
+                                      NavigationRailDestination(
+                                        icon: Icon(Icons.message_outlined),
+                                        label: Text(_pageTitles[5]),
+                                      ),
+                                      NavigationRailDestination(
+                                        icon: Icon(Icons.person_outline),
+                                        label: Text(_pageTitles[6]),
+                                      ),
+                                      NavigationRailDestination(
+                                        icon: Icon(Icons.settings_outlined),
+                                        label: Text(_pageTitles[7]),
+                                      ),
+                                      NavigationRailDestination(
+                                        icon: Icon(Icons.people),
+                                        label: Text(_pageTitles[8]),
+                                      ),
+                                      NavigationRailDestination(
+                                        icon: Icon(Icons.analytics),
+                                        label: Text(_pageTitles[9]),
+                                      ),
+                                    ],                ),
                 const VerticalDivider(thickness: 1, width: 1),
                 Expanded(
                   child: IndexedStack(
@@ -215,114 +220,124 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       ],
                     ),
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.verified_user_outlined),
-                    title: Text(_pageTitles[0]),
-                    selected: _selectedIndex == 0,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 0;
-                      });
-                      Navigator.pop(context); 
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.article_outlined),
-                    title: Text(_pageTitles[1]),
-                    selected: _selectedIndex == 1,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 1;
-                      });
-                      Navigator.pop(context); 
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.support_agent),
-                    title: Text(_pageTitles[2]),
-                    selected: _selectedIndex == 2,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 2;
-                      });
-                      Navigator.pop(context); 
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.question_answer_outlined),
-                    title: Text(_pageTitles[3]),
-                    selected: _selectedIndex == 3,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 3;
-                      });
-                      Navigator.pop(context); 
-                    },
-                  ),
-                  const Divider(), 
-                  ListTile(
-                    leading: const Icon(Icons.message_outlined), 
-                    title: Text(_pageTitles[4]), 
-                    selected: _selectedIndex == 4,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 4;
-                      });
-                      Navigator.pop(context); 
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.person_outline),
-                    title: Text(_pageTitles[5]), 
-                    selected: _selectedIndex == 5,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 5;
-                      });
-                      Navigator.pop(context); 
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.settings_outlined),
-                    title: Text(_pageTitles[6]), 
-                    selected: _selectedIndex == 6,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 6;
-                      });
-                      Navigator.pop(context); 
-                    },
-                  ),
-                  const Divider(), 
-                  ListTile(
-                    leading: const Icon(Icons.people),
-                    title: Text(_pageTitles[7]), 
-                    selected: _selectedIndex == 7,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 7;
-                      });
-                      Navigator.pop(context); 
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.analytics), 
-                    title: Text(_pageTitles[8]), 
-                    selected: _selectedIndex == 8,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 8;
-                      });
-                      Navigator.pop(context); 
-                    },
-                  ),
-                  const Divider(),
-                  ListTile(
-                    leading: const Icon(Icons.logout),
-                    title: const Text('Cerrar Sesión'),
-                    onTap: _signOut,
-                  ),
-                ],
+                                    ListTile(
+                                      leading: const Icon(Icons.home_filled),
+                                      title: Text(_pageTitles[0]),
+                                      selected: _selectedIndex == 0,
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedIndex = 0;
+                                        });
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: const Icon(Icons.verified_user_outlined),
+                                      title: Text(_pageTitles[1]),
+                                      selected: _selectedIndex == 1,
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedIndex = 1;
+                                        });
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: const Icon(Icons.article_outlined),
+                                      title: Text(_pageTitles[2]),
+                                      selected: _selectedIndex == 2,
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedIndex = 2;
+                                        });
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: const Icon(Icons.support_agent),
+                                      title: Text(_pageTitles[3]),
+                                      selected: _selectedIndex == 3,
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedIndex = 3;
+                                        });
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: const Icon(Icons.question_answer_outlined),
+                                      title: Text(_pageTitles[4]),
+                                      selected: _selectedIndex == 4,
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedIndex = 4;
+                                        });
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    const Divider(),
+                                    ListTile(
+                                      leading: const Icon(Icons.message_outlined),
+                                      title: Text(_pageTitles[5]),
+                                      selected: _selectedIndex == 5,
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedIndex = 5;
+                                        });
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: const Icon(Icons.person_outline),
+                                      title: Text(_pageTitles[6]),
+                                      selected: _selectedIndex == 6,
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedIndex = 6;
+                                        });
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: const Icon(Icons.settings_outlined),
+                                      title: Text(_pageTitles[7]),
+                                      selected: _selectedIndex == 7,
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedIndex = 7;
+                                        });
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    const Divider(),
+                                    ListTile(
+                                      leading: const Icon(Icons.people),
+                                      title: Text(_pageTitles[8]),
+                                      selected: _selectedIndex == 8,
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedIndex = 8;
+                                        });
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: const Icon(Icons.analytics),
+                                      title: Text(_pageTitles[9]),
+                                      selected: _selectedIndex == 9, // Updated index
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedIndex = 9; // Updated index
+                                        });
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    const Divider(),
+                                    ListTile(
+                                      leading: const Icon(Icons.logout),
+                                      title: const Text('Cerrar Sesión'),
+                                      onTap: _signOut,
+                                    ),                ],
               ),
             ),
             body: IndexedStack(

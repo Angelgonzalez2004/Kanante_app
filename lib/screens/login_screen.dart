@@ -4,7 +4,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 // --- IMPORTANTE: Usamos la ruta del paquete para importar tu AuthWrapper ---
 import 'package:kanante_app/screens/shared/auth_wrapper.dart';
@@ -29,28 +28,22 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  // final GoogleSignIn _googleSignIn = GoogleSignIn(); // Suspendido temporalmente
   final DatabaseReference _db = FirebaseDatabase.instance.ref();
-  // final FirebaseService _firebaseService = FirebaseService(); // Suspendido temporalmente
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   bool isLoading = false;
   bool showPassword = false;
-  bool _rememberMe = false;
-
-  // StreamSubscription<GoogleSignInAccount?>? _googleSignInSubscription; // Suspendido temporalmente
 
   @override
   void initState() {
     super.initState();
-    _loadSavedCredentials();
     // if (kIsWeb) { // Suspendido temporalmente
     //   _googleSignInSubscription = _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? googleUser) {
     //     if (googleUser != null) {
     //       _handleSuccessfulGoogleSignIn(googleUser);
-    //     } else {
+    //     // } else {
     //       if (mounted) setState(() => isLoading = false);
     //     }
     //   });
@@ -62,29 +55,12 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    // _googleSignInSubscription?.cancel(); // Suspendido temporalmente
     super.dispose();
   }
 
-  Future<void> _loadSavedCredentials() async {
-    final prefs = await SharedPreferences.getInstance();
-    final email = prefs.getString('email');
-    if (email != null) {
-      setState(() {
-        _emailController.text = email;
-        _rememberMe = true;
-      });
-    }
-  }
 
-  Future<void> _saveCredentials() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (_rememberMe) {
-      await prefs.setString('email', _emailController.text.trim());
-    } else {
-      await prefs.remove('email');
-    }
-  }
+
+
 
   void _showSnackBar(String message, {bool isError = false}) {
     if (!mounted) return;
@@ -119,8 +95,6 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
 
-      await _saveCredentials();
-      
       // Verificamos que el usuario exista en la base de datos de Realtime Database
       final snapshot = await _db.child('users/${userCredential.user!.uid}').get();
 
@@ -149,86 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } 
   }
   
-  // --- LOGIN CON GOOGLE --- // Suspendido temporalmente
-  // Future<void> _handleSuccessfulGoogleSignIn(GoogleSignInAccount googleUser) async {
-  //   setState(() => isLoading = true);
-    
-  //   try {
-  //     final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-  //     final AuthCredential credential = GoogleAuthProvider.credential(
-  //       accessToken: googleAuth.accessToken,
-  //       idToken: googleAuth.idToken,
-  //     );
 
-  //     // Iniciamos sesión en Firebase Auth
-  //     UserCredential userCredential = await _auth.signInWithCredential(credential);
-  //     User? user = userCredential.user;
-
-  //     if (user != null) {
-  //       // Consultamos si ya tiene perfil en tu Base de Datos
-  //       UserModel? userModel = await _firebaseService.getUserProfile(user.uid);
-        
-  //       if (userModel != null) {
-  //         // CASO 1: El usuario YA existe -> Vamos directo al AuthWrapper
-  //         _navigateToAuthWrapper();
-  //       } else {
-  //         // CASO 2: Usuario NUEVO (Login por primera vez) -> Formulario de Registro
-  //         if (!mounted) return;
-  //         final result = await _showFloatingRegisterSheet(user);
-          
-  //         if (result == true) {
-  //           // Se registró correctamente -> Vamos al AuthWrapper
-  //            _navigateToAuthWrapper();
-  //         } else {
-  //            // El usuario cerró el formulario sin registrarse -> Cerramos sesión
-  //            await _auth.signOut();
-  //            if (mounted) setState(() => isLoading = false);
-  //         }
-  //       }
-  //     }
-  //   } catch (e) {
-  //     _showSnackBar('Error al iniciar sesión con Google: ${e.toString()}', isError: true);
-  //     // Por seguridad, cerramos sesión si algo falló a medias
-  //     await _auth.signOut(); 
-  //     if (mounted) setState(() => isLoading = false);
-  //   }
-  // }
-
-  // Future<void> _signInWithGoogle() async {
-  //   setState(() => isLoading = true);
-  //   try {
-  //     final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-  //     if (googleUser == null) {
-  //       // El usuario canceló la selección de cuenta
-  //       if (mounted) setState(() => isLoading = false);
-  //       return;
-  //     }
-  //     if (!kIsWeb) { 
-  //       await _handleSuccessfulGoogleSignIn(googleUser);
-  //     }
-  //   } on Exception catch (e) {
-  //     _showSnackBar('Error al iniciar Google Sign-In: ${e.toString()}', isError: true);
-  //     if (mounted) setState(() => isLoading = false);
-  //   }
-  // }
-  
-  // Future<bool?> _showFloatingRegisterSheet(User googleUser) async {
-  //   return await showModalBottomSheet<bool>(
-  //     context: context,
-  //     isScrollControlled: true,
-  //     backgroundColor: Colors.transparent,
-  //     builder: (context) => Container(
-  //       decoration: BoxDecoration(
-  //         color: Theme.of(context).cardColor,
-  //         borderRadius: const BorderRadius.only(
-  //           topLeft: Radius.circular(20),
-  //           topRight: Radius.circular(20),
-  //         ),
-  //       ),
-  //       child: FloatingRegistrationForm(googleUser: googleUser),
-  //     ),
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -321,26 +216,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         duration: const Duration(milliseconds: 500),
                         delay: const Duration(milliseconds: 500),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.end, // Changed to end, as only one item will remain
                           children: [
-                            Flexible(
-                              child: Row(
-                                children: [
-                                  Checkbox(
-                                    value: _rememberMe,
-                                    onChanged: (value) => setState(() => _rememberMe = value!),
-                                    activeColor: AppColors.primary,
-                                  ),
-                                  const Flexible(child: Text('Recordar correo', style: TextStyle(color: AppColors.textLight))),
-                                ],
-                              ),
-                            ),
-                            Flexible(
-                              child: TextButton(
+                            TextButton(
                                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecoverPasswordScreen())),
                                 child: const Text('¿Olvidaste tu contraseña?', style: TextStyle(color: AppColors.primary)),
                               ),
-                            ),
                           ],
                         ),
                       ),
@@ -355,32 +236,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       
-                      // SizedBox(height: size.height * 0.03), // Comentado temporalmente para suspender Google Sign-In
-                      // const FadeInSlide(
-                      //   duration: Duration(milliseconds: 500),
-                      //   delay: Duration(milliseconds: 700),
-                      //   child: Row(
-                      //     children: [
-                      //       Expanded(child: Divider()),
-                      //       Padding(
-                      //         padding: EdgeInsets.symmetric(horizontal: 8.0),
-                      //         child: Text('O', style: TextStyle(color: AppColors.textLight)),
-                      //       ),
-                      //       Expanded(child: Divider()),
-                      //     ],
-                      //   ),
-                      // ),
 
-                      // SizedBox(height: size.height * 0.03), // Comentado temporalmente para suspender Google Sign-In
-                      // FadeInSlide(
-                      //   duration: const Duration(milliseconds: 500),
-                      //   delay: const Duration(milliseconds: 800),
-                      //   child: SocialAuthButton(
-                      //     text: 'Continuar con Google',
-                      //     isLoading: isLoading,
-                      //     onPressed: _signInWithGoogle,
-                      //   ),
-                      // ),
+
+
                       SizedBox(height: size.height * 0.04),
                       SizedBox(height: size.height * 0.04),
                       

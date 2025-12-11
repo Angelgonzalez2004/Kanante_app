@@ -54,6 +54,7 @@ class _RoleBasedRedirectState extends State<RoleBasedRedirect> {
         }
 
         if (!userSnapshot.hasData || userSnapshot.data == null) {
+          debugPrint('AuthWrapper: User profile data not found or null for userId: ${widget.userId}');
           // This could happen if the user is authenticated but their DB entry is gone.
           // Or if there's a network error.
           // Sending to welcome screen is a safe fallback.
@@ -61,14 +62,19 @@ class _RoleBasedRedirectState extends State<RoleBasedRedirect> {
         }
 
         final user = userSnapshot.data!;
+        debugPrint('AuthWrapper: User profile found. User ID: ${user.id}, Account Type: ${user.accountType}');
         switch (user.accountType) {
           case 'admin':
+            debugPrint('AuthWrapper: Navigating to AdminDashboard for user ID: ${user.id}');
             return const AdminDashboard();
           case 'professional':
+            debugPrint('AuthWrapper: Navigating to ProfessionalDashboard for user ID: ${user.id}');
             return const ProfessionalDashboard();
           case 'user':
+            debugPrint('AuthWrapper: Navigating to UserDashboard for user ID: ${user.id}');
             return const UserDashboard();
           default:
+            debugPrint('AuthWrapper: Unknown account type "${user.accountType}" for user ID: ${user.id}. Navigating to WelcomeScreen.');
             return const WelcomeScreen(); // Fallback for unknown roles
         }
       },

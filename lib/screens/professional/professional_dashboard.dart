@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:kanante_app/models/alert_model.dart';
 import 'package:kanante_app/services/firebase_service.dart';
 import '../shared/home_page.dart';
@@ -28,7 +27,6 @@ class ProfessionalDashboard extends StatefulWidget {
 class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
   int _selectedIndex = 0;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
   final DatabaseReference _db = FirebaseDatabase.instance.ref();
   final FirebaseService _firebaseService = FirebaseService();
 
@@ -200,7 +198,6 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
 
       // Sign out
       await _auth.signOut();
-      await _googleSignIn.signOut();
 
       // Navigate to Login screen and remove all previous routes
       // Note: This conflicts with the AuthWrapper pattern, but is implemented as requested.
