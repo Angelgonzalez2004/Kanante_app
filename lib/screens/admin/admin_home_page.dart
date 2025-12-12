@@ -125,16 +125,14 @@ class _AdminHomePageState extends State<AdminHomePage> {
                     color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 5,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                          BoxShadow(
+                                                            color: Colors.grey.withAlpha((255 * 0.1).round()),
+                                                            spreadRadius: 1,
+                                                            blurRadius: 5,
+                                                            offset: const Offset(0, 3),
+                                                          ),                                      ],
+                                    ),
+                                    child: const Column(                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Crecimiento de Usuarios (Placeholder)', style: TextStyle(fontWeight: FontWeight.bold)),
                       SizedBox(height: 10),
@@ -165,13 +163,12 @@ class _AdminHomePageState extends State<AdminHomePage> {
                     color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 5,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
+                                                          BoxShadow(
+                                                            color: Colors.grey.withAlpha((255 * 0.1).round()),
+                                                            spreadRadius: 1,
+                                                            blurRadius: 5,
+                                                            offset: const Offset(0, 3),
+                                                          ),                    ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

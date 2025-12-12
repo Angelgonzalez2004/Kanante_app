@@ -1,3 +1,5 @@
+> _Última actualización: 12 de diciembre de 2025_
+
 # Kananté App
 
 <p align="center">

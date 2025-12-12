@@ -159,7 +159,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           label: Text(role,
               style: TextStyle(
                   color: colorScheme.onPrimary, fontWeight: FontWeight.bold)),
-          backgroundColor: colorScheme.primary.withOpacity(0.7),
+          backgroundColor: colorScheme.primary.withAlpha((255 * 0.7).round()),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           side: BorderSide.none,
         )
